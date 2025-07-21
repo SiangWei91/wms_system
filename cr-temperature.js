@@ -214,8 +214,8 @@ const loadCrTemperaturePage = (() => {
       dateFilter.addEventListener("change", handleDateChange);
       fetchData(supabase);
       isInitialized = true;
-    } else if (isInitialized) {
-        renderContent()
+    } else {
+      renderContent();
     }
   };
 })();
