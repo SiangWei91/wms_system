@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="/shipment.css" />
+<div class="shipment-content-area">
+  <div class="tab-nav">
+    <button class="tab-button active" data-tab="shipment-list">
+      Shipment List
+    </button>
+    <button class="tab-button" data-tab="shipment-upload">
+      Shipment Upload
+    </button>
+    <button class="tab-button" data-tab="shipment-allocation">
+      Shipment Allocation
+    </button>
+  </div>
+
+  <div id="shipment-list" class="tab-content active">
+  </div>
+
+  <div id="shipment-upload" class="tab-content" style="display: none;">
+    <h2>Shipment Upload</h2>
+    <p>Coming soon...</p>
+  </div>
+
+    <div id="shipment-allocation" class="tab-content" style="display: none;">
+    <h2>Shipment Allocation</h2>
+      <input type="file" id="excelFileInput" accept=".xlsx, .xlsm" />
+      <div id="pageMessages" class="page-messages-container">
+          <!-- Custom messages will be dynamically inserted here -->
+      </div>
+      <div class="tab-action-bar" id="shipmentTabActionBar"> <!-- New wrapper -->
+          <div id="shipmentTabNav" style="display: none; flex-grow: 1;">
+              <!-- Tabs will be dynamically inserted here by JavaScript -->
+          </div>
+          <button id="updateInventoryBtn" style="display: none;">Update to Inventory</button>
+      </div>
+      <div id="shipmentDetailsContainer">
+          <!-- Container Number and Stored Date will be displayed here -->
+      </div>
+      <div id="resultsContainer">
+          <!-- Results will be displayed here by js/shipment.js for the active tab -->
+      </div>
+      <div id="loadingIndicator" style="display: none;">
+        <div class="spinner"></div>
+      </div>
+      <div id="modal-container"></div>
+  </div>
+</div>

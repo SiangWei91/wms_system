@@ -1,0 +1,43 @@
+<div class="stock-take">
+  <h1>Stock Take</h1>
+  <div class="filters modern-filters">
+    <div class="form-group">
+      <label for="date-picker">Date:</label>
+      <input type="date" id="date-picker">
+    </div>
+  </div>
+  <div id="stock-take-tab-nav" class="tab-nav"></div>
+  <div class="table-container-split modern-table-container">
+    <div class="table-wrapper" id="morning-wrapper">
+      <h2>Morning</h2>
+      <table class="stock-take-table">
+        <thead>
+          <tr>
+            <th>Product Description</th>
+            <th>Packing Size</th>
+            <th>Ctn</th>
+            <th>Pkt</th>
+          </tr>
+        </thead>
+        <tbody id="morning-table-body">
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrapper" id="afternoon-wrapper">
+      <h2>Afternoon</h2>
+      <table class="stock-take-table">
+        <thead>
+          <tr>
+            <th>Product Description</th>
+            <th>Packing Size</th>
+            <th>Ctn</th>
+            <th>Pkt</th>
+            <th class="comparison-header">Comparison</th>
+          </tr>
+        </thead>
+        <tbody id="afternoon-table-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
