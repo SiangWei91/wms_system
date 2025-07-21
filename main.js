@@ -182,7 +182,7 @@ if (window.location.pathname.endsWith('app.html')) {
             userInfo.innerText = userName;
         }
         const page = window.location.hash.substring(1) || 'dashboard';
-        loadContent(page);
+        navigateTo(page);
         if (!window.location.hash) {
             window.location.hash = 'dashboard';
         }
