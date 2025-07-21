@@ -13,10 +13,10 @@ const shipmentModuleState = {
     updateInventoryBtn: null
   };
 
-function loadShipmentAllocationPage() {
+function loadShipmentAllocationPage(supabase) {
     const fileInput = document.getElementById('excelFileInput');
     if (fileInput) {
-        fileInput.addEventListener('change', handleFile, false);
+        fileInput.addEventListener('change', (e) => handleFile(e, supabase), false);
     }
 
     const resultsContainer = document.getElementById('resultsContainer');
@@ -27,7 +27,7 @@ function loadShipmentAllocationPage() {
 
     const updateBtn = document.getElementById('updateInventoryBtn');
     if (updateBtn) {
-        updateBtn.addEventListener('click', updateInventory);
+        updateBtn.addEventListener('click', () => updateInventory(supabase));
     }
 }
 
@@ -472,7 +472,7 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-async function updateInventory() {
+async function updateInventory(supabase) {
     const modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = `
         <div class="modal">
@@ -500,7 +500,7 @@ async function updateInventory() {
 
     for (const item of allItems) {
         try {
-            const { productId } = await lookupOrCreateProduct(item.itemCode, item.productDescription, item.packingSize);
+            const { productId } = await lookupOrCreateProduct(item.itemCode, item.productDescription, item.packingSize, supabase);
 
             if (!productId) {
                 showModal('Error', `Could not find or create product with item code ${item.itemCode}.`);

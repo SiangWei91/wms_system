@@ -38,11 +38,20 @@ const handleAuthError = (error) => {
   }
 };
 
+const loadedScripts = new Set();
+
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
+        if (loadedScripts.has(url)) {
+            resolve();
+            return;
+        }
         const script = document.createElement('script');
         script.src = url;
-        script.onload = resolve;
+        script.onload = () => {
+            loadedScripts.add(url);
+            resolve();
+        };
         script.onerror = reject;
         document.head.appendChild(script);
     });
@@ -60,24 +69,24 @@ const loadContent = async (page) => {
           loadProducts(content, supabaseClient);
         } else if (page === 'stock-take') {
           await loadScript('stock-take.js');
-          loadStockTakeData(content);
+          loadStockTakeData(content, supabaseClient);
         } else if (page === 'shipment') {
           await loadScript('shipment.js');
-          loadShipmentPage(content);
+          loadShipmentPage(content, supabaseClient);
           await loadScript('shipment-allocation.js');
-          loadShipmentAllocationPage();
+          loadShipmentAllocationPage(supabaseClient);
         } else if (page === 'transactions') {
             await loadScript('transaction.js');
             loadTransactions(content, supabaseClient);
         } else if (page === 'cr-temperature') {
           await loadScript('cr-temperature.js');
-          loadCrTemperaturePage();
+          loadCrTemperaturePage(supabaseClient);
         } else if (page === 'dashboard') {
           await loadScript('dashboard.js');
-          loadDashboard();
+          loadDashboard(supabaseClient);
         } else if (page === 'service-record') {
           await loadScript('service-record.js');
-          loadServiceRecordPage(content);
+          loadServiceRecordPage(content, supabaseClient);
         }
       } else {
         content.innerHTML = '<p>Page not found.</p>';

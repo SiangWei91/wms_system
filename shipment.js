@@ -1,22 +1,22 @@
 let shipmentHeaders = [];
 
-async function loadShipmentPage() {
+async function loadShipmentPage(content, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
     if (tab) {
-      await openTab(event, tab.dataset.tab);
+      await openTab(event, tab.dataset.tab, supabase);
     }
   });
 
   // Load the shipment list by default
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
   if (shipmentListTab) {
-    await openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+    await openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
   }
 }
 
-async function openTab(evt, tabName) {
+async function openTab(evt, tabName, supabase) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
@@ -43,19 +43,19 @@ async function openTab(evt, tabName) {
     const tableContainer = document.getElementById('shipment-list-table');
 
     setTimeout(async () => {
-      const data = await getShipmentList();
+      const data = await getShipmentList(supabase);
 
       loadingIndicator.style.display = 'none';
 
       if (data) {
-        const table = renderShipmentTable(data);
+        const table = renderShipmentTable(data, true, supabase);
         tableContainer.appendChild(table);
       }
     }, 0);
   }
 }
 
-async function getShipmentList() {
+async function getShipmentList(supabase) {
   const { data, error } = await supabase.functions.invoke('shipment-list', {
     method: 'GET',
   });
@@ -68,7 +68,7 @@ async function getShipmentList() {
   return data;
 }
 
-function renderShipmentTable(data, showActions = true) {
+function renderShipmentTable(data, showActions = true, supabase) {
   shipmentHeaders = data.values[0];
   const table = document.createElement('table');
   table.classList.add('data-table');
@@ -106,7 +106,7 @@ function renderShipmentTable(data, showActions = true) {
       const viewButton = document.createElement('button');
       viewButton.innerHTML = '<i class="fas fa-eye"></i>';
       viewButton.classList.add('btn-icon', 'view-btn');
-      viewButton.addEventListener('click', () => handleViewShipment(rowData[0]));
+      viewButton.addEventListener('click', () => handleViewShipment(rowData[0], supabase));
 
       const editButton = document.createElement('button');
       editButton.innerHTML = '<i class="fas fa-edit"></i>';
@@ -117,7 +117,7 @@ function renderShipmentTable(data, showActions = true) {
       saveButton.innerHTML = '<i class="fas fa-save"></i>';
       saveButton.classList.add('btn-icon', 'save-btn');
       saveButton.style.display = 'none';
-      saveButton.addEventListener('click', (e) => handleSaveRow(e.target));
+      saveButton.addEventListener('click', (e) => handleSaveRow(e.target, supabase));
 
       const actionsTd = document.createElement('td');
       actionsTd.appendChild(viewButton);
@@ -133,7 +133,7 @@ function renderShipmentTable(data, showActions = true) {
   return table;
 }
 
-async function getShipmentDetails(shipmentNo) {
+async function getShipmentDetails(shipmentNo, supabase) {
   const { data, error } = await supabase.functions.invoke(`shipment-details?shipment=${shipmentNo}`, {
     method: 'GET',
   });
@@ -161,7 +161,7 @@ function handleEditRow(button) {
   saveButton.style.display = 'inline-block';
 }
 
-async function handleSaveRow(button) {
+async function handleSaveRow(button, supabase) {
   const row = button.closest('tr');
   const cells = row.querySelectorAll('td');
   const shipmentNo = cells[0].textContent;
@@ -201,19 +201,19 @@ async function handleSaveRow(button) {
   button.textContent = 'Edit';
   button.classList.remove('save-btn');
   button.classList.add('edit-btn');
-  button.removeEventListener('click', (e) => handleSaveRow(e.target));
+  button.removeEventListener('click', (e) => handleSaveRow(e.target, supabase));
   button.addEventListener('click', (e) => handleEditRow(e.target));
 
   // Refresh the table
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+  openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
 }
 
-function handleViewShipment(shipmentNo) {
-  openShipmentDetailsTab(shipmentNo);
+function handleViewShipment(shipmentNo, supabase) {
+  openShipmentDetailsTab(shipmentNo, supabase);
 }
 
-async function openShipmentDetailsTab(shipmentNo) {
+async function openShipmentDetailsTab(shipmentNo, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   const contentArea = document.querySelector('.shipment-content-area');
 
@@ -245,12 +245,12 @@ async function openShipmentDetailsTab(shipmentNo) {
   contentArea.appendChild(newContent);
 
   // Switch to new tab
-  openTab({ currentTarget: newTab }, newTab.dataset.tab);
+  openTab({ currentTarget: newTab }, newTab.dataset.tab, supabase);
 
-  const data = await getShipmentDetails(shipmentNo);
+  const data = await getShipmentDetails(shipmentNo, supabase);
 
   if (data) {
-    const table = renderShipmentTable(data, false);
+    const table = renderShipmentTable(data, false, supabase);
     newContent.innerHTML = `<h2>${shipmentNo}</h2>`;
     newContent.appendChild(table);
   } else {
@@ -258,7 +258,7 @@ async function openShipmentDetailsTab(shipmentNo) {
   }
 }
 
-function closeTab(tabName) {
+function closeTab(tabName, supabase) {
   const tab = document.querySelector(`[data-tab="${tabName}"]`);
   const content = document.getElementById(tabName);
 
@@ -271,5 +271,5 @@ function closeTab(tabName) {
 
   // Switch to the shipment list tab
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+  openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
 }

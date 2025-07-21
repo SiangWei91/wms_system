@@ -30,7 +30,7 @@ const sortOrder = {
   "Coldroom 3B": "asc",
 };
 
-async function fetchData() {
+async function fetchData(supabase) {
   try {
     const { data: fetchedData, error } = await supabase.functions.invoke(
       "get-coldroom-data"
@@ -203,7 +203,7 @@ const handleDateChange = () => {
   renderContent();
 };
 
-const loadCrTemperaturePage = () => {
+const loadCrTemperaturePage = (supabase) => {
   dateFilter = document.getElementById("date-filter");
   tabNav = document.getElementById("cr-temperature-tab-nav");
   tabContent = document.getElementById("cr-temperature-tab-content");
@@ -220,6 +220,6 @@ const loadCrTemperaturePage = () => {
     dateFilter.removeEventListener("change", handleDateChange);
     dateFilter.addEventListener("change", handleDateChange);
 
-    fetchData();
+    fetchData(supabase);
   }
 };

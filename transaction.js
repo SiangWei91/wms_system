@@ -1,5 +1,4 @@
-async function loadTransactions() {
-    const contentElement = document.getElementById('content');
+async function loadTransactions(contentElement, supabase) {
     if (!contentElement) {
         console.error("Content element not found. Cannot load transactions page.");
         return;
@@ -29,10 +28,10 @@ async function loadTransactions() {
         </div>
     `;
 
-    await fetchTransactions();
+    await fetchTransactions(supabase);
 }
 
-async function fetchTransactions() {
+async function fetchTransactions(supabase) {
     const tbody = document.getElementById('transactions-table-body');
     if (!tbody) {
         console.error("Transactions table body not found. Cannot fetch transactions.");

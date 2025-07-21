@@ -1,4 +1,4 @@
-const loadServiceRecordPage = async (content) => {
+const loadServiceRecordPage = async (content, supabase) => {
   let tableData = [];
   let sortColumn = null;
   let sortDirection = 'asc';
@@ -9,7 +9,7 @@ const loadServiceRecordPage = async (content) => {
     'Coldroom': ['Coldroom 1', 'Coldroom 2', 'Coldroom 3', 'Coldroom 5', 'Coldroom 6', 'Coldroom 3A', 'Coldroom 3B', 'Blk 15'],
   };
 
-  const fetchServiceRecord = async () => {
+  const fetchServiceRecord = async (supabase) => {
     try {
       const { data, error } = await supabase.functions.invoke('service-record');
 
@@ -127,7 +127,7 @@ const loadServiceRecordPage = async (content) => {
     });
   };
 
-  const setupForm = () => {
+  const setupForm = (supabase) => {
     const form = content.querySelector('#add-record-form');
     const submitButton = form.querySelector('button[type="submit"]');
     const loader = document.createElement('div');
@@ -176,7 +176,7 @@ const loadServiceRecordPage = async (content) => {
 
         form.reset();
         dateInput.valueAsDate = new Date();
-        fetchServiceRecord();
+        fetchServiceRecord(supabase);
       } catch (error) {
         console.error('Error submitting form:', error);
         loader.style.display = 'none';
@@ -234,7 +234,7 @@ const loadServiceRecordPage = async (content) => {
     });
   };
 
-  fetchServiceRecord();
+  fetchServiceRecord(supabase);
   setupTabs();
-  setupForm();
+  setupForm(supabase);
 };

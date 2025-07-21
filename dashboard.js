@@ -11,7 +11,7 @@ const coldroomNameMap = {
   "Coldroom 3 Chiller": "Coldroom 3",
 };
 
-async function getLatestTemperatures() {
+async function getLatestTemperatures(supabase) {
   try {
     const { data: fetchedData, error } = await supabase.functions.invoke(
       "get-coldroom-data"
@@ -106,8 +106,8 @@ function createTemperatureCard(tempData) {
   container.appendChild(card);
 }
 
-async function loadDashboard() {
-  const latestTemps = await getLatestTemperatures();
+async function loadDashboard(supabase) {
+  const latestTemps = await getLatestTemperatures(supabase);
   const container = document.getElementById("temperature-summary-container");
   container.innerHTML = "";
   latestTemps.forEach(createTemperatureCard);
