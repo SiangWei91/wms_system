@@ -31,18 +31,18 @@ function loadShipmentAllocationPage(supabase) {
     }
 }
 
-function handleFile(e) {
+function handleFile(e, supabase) {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = function(e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, {type: 'array'});
-        processWorkbook(workbook);
+        processWorkbook(workbook, supabase);
     };
     reader.readAsArrayBuffer(file);
 }
 
-function processWorkbook(workbook) {
+function processWorkbook(workbook, supabase) {
     const sheet1 = workbook.Sheets['sheet 1'];
     if (!sheet1) {
         console.error("Sheet 'sheet 1' not found in the workbook.");

@@ -38,20 +38,15 @@ const handleAuthError = (error) => {
   }
 };
 
-const loadedScripts = new Set();
-
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        if (loadedScripts.has(url)) {
+        if (document.querySelector(`script[src="${url}"]`)) {
             resolve();
             return;
         }
         const script = document.createElement('script');
         script.src = url;
-        script.onload = () => {
-            loadedScripts.add(url);
-            resolve();
-        };
+        script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
     });
