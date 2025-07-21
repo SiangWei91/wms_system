@@ -91,7 +91,7 @@ const loadContent = async (page) => {
 
 const navigateTo = (page) => {
   loadContent(page);
-  history.pushState({ page }, '', `/app.html/${page}`);
+  history.pushState({ page }, '', `app.html/${page}`);
   document.querySelectorAll('nav ul li').forEach(item => {
     item.classList.remove('active');
     if (item.getAttribute('data-page') === page) {
@@ -140,7 +140,7 @@ if (loginForm) {
             handleAuthError(error);
         } else {
             setCookie('userName', name, 1);
-            window.location.href = '/app.html';
+            window.location.href = 'app.html';
         }
     });
 }
@@ -156,7 +156,7 @@ if (window.location.pathname.startsWith('/app')) {
         const page = window.location.pathname.split('/')[2] || 'dashboard';
         loadContent(page);
     } else {
-        window.location.href = '/index.html';
+        window.location.href = 'index.html';
     }
 }
 
@@ -170,7 +170,7 @@ if (logoutButton) {
             handleAuthError(error);
         } else {
             eraseCookie('userName');
-            window.location.href = '/index.html';
+            window.location.href = 'index.html';
         }
     });
 }
