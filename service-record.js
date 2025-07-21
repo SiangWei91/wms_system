@@ -11,7 +11,13 @@ window.loadServiceRecordPage = async (content, supabase) => {
 
   const fetchServiceRecord = async (supabase) => {
     try {
-      const { data, error } = await supabase.functions.invoke('service-record');
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session.access_token;
+      const { data, error } = await supabase.functions.invoke('service-record', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
 
       if (error) {
         throw error;
