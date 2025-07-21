@@ -38,20 +38,35 @@ const handleAuthError = (error) => {
   }
 };
 
+
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${url}"]`)) {
+        // 检查脚本是否已经加载
+        const existingScript = document.querySelector(`script[src="${url}"]`);
+        if (existingScript) {
+            console.log(`Script already loaded: ${url}`);
             resolve();
             return;
         }
+        
+        console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
+        
+        script.onload = () => {
+            console.log(`✅ Script loaded successfully: ${url}`);
+            // 给脚本一点时间来执行和定义函数
+            setTimeout(resolve, 50);
+        };
+        
+        script.onerror = (error) => {
+            console.error(`❌ Script failed to load: ${url}`, error);
+            reject(new Error(`Failed to load script: ${url}`));
+        };
+        
         document.head.appendChild(script);
     });
 };
-
 const loadContent = async (page) => {
   const content = document.getElementById('content');
   if (content) {
