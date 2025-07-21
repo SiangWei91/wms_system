@@ -9,7 +9,7 @@ let totalNumPages = 1;
 let totalNumItems = 0;
 let globalHasNextPage = false;
 
-async function loadProducts(contentElement, supabase) {
+window.loadProducts = async function(contentElement, supabase) {
     const content = contentElement || document.getElementById('content');
     if (!content) {
         console.error("Content element not found. Cannot load products page.");
@@ -466,96 +466,4 @@ function escapeHtml(unsafe) {
          .replace(/>/g, "&gt;")
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
-}
-
-async function lookupOrCreateProduct(itemCode, excelProductDescription, excelPackingSize, supabase) {
-    if (!itemCode) {
-        console.warn("lookupOrCreateProduct (shipment.js): itemCode is missing.");
-        return { productName: excelProductDescription, packingSize: excelPackingSize, isNew: false, error: 'Missing itemCode', productId: null, productCode: itemCode };
-    }
-
-    try {
-        let { data: product, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('item_code', itemCode)
-            .single();
-
-        if (product) {
-            return {
-                productId: product.id,
-                productCode: product.item_code,
-                productName: product.product_name || excelProductDescription,
-                packingSize: product.packing_size || excelPackingSize,
-                isNew: false
-            };
-        } else {
-            const newProductData = {
-                item_code: itemCode,
-                product_name: excelProductDescription,
-                packing_size: excelPackingSize
-            };
-
-            try {
-                const { data: addedProduct, error: addError } = await supabase
-                    .from('products')
-                    .insert([newProductData])
-                    .select()
-                    .single();
-
-                if (addError) {
-                    // Re-throw if it's not the duplicate key error
-                    if (addError.code !== '23505') {
-                        throw addError;
-                    }
-                    // If it is the duplicate key error, it means another process inserted it.
-                    // We can now query for that product.
-                    const { data: existingProduct, error: queryError } = await supabase
-                        .from('products')
-                        .select('*')
-                        .eq('item_code', itemCode)
-                        .single();
-
-                    if (queryError) throw queryError;
-
-                    return {
-                        productId: existingProduct.id,
-                        productCode: existingProduct.item_code,
-                        productName: existingProduct.product_name,
-                        packingSize: existingProduct.packing_size,
-                        isNew: false // It was new to us, but not to the database
-                    };
-                }
-
-                return {
-                    productId: addedProduct.id,
-                    productCode: addedProduct.item_code,
-                    productName: addedProduct.product_name,
-                    packingSize: addedProduct.packing_size,
-                    isNew: true
-                };
-            } catch (error) {
-                // This outer catch is for other potential errors during the process
-                console.error(`Error in lookupOrCreateProduct during insert for itemCode ${itemCode}:`, error);
-                return {
-                    productName: excelProductDescription,
-                    packingSize: excelPackingSize,
-                    isNew: false,
-                    error: `Product API interaction error: ${error.message}`,
-                    productId: null,
-                    productCode: itemCode
-                };
-            }
-        }
-    } catch (error) {
-        console.error(`Error in lookupOrCreateProduct for itemCode ${itemCode}:`, error);
-        return {
-            productName: excelProductDescription,
-            packingSize: excelPackingSize,
-            isNew: false,
-            error: `Product API interaction error: ${error.message}`,
-            productId: null,
-            productCode: itemCode
-        };
-    }
 }

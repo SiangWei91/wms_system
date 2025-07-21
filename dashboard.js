@@ -106,7 +106,7 @@ function createTemperatureCard(tempData) {
   container.appendChild(card);
 }
 
-async function loadDashboard(supabase) {
+window.loadDashboard = async function(supabase) {
   const latestTemps = await getLatestTemperatures(supabase);
   const container = document.getElementById("temperature-summary-container");
   container.innerHTML = "";

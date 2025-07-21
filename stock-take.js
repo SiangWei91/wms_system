@@ -7,7 +7,7 @@ const coldrooms = {
   "B15": "Blk 15"
 };
 
-async function loadStockTakeData(content, supabase) {
+window.loadStockTakeData = async function(content, supabase) {
   const datePicker = document.getElementById('date-picker');
   datePicker.value = new Date().toISOString().split("T")[0];
   datePicker.addEventListener('change', displayData);

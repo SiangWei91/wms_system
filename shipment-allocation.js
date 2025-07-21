@@ -13,7 +13,7 @@ const shipmentModuleState = {
     updateInventoryBtn: null
   };
 
-window.loadShipmentAllocationPage = function(supabase) {
+function loadShipmentAllocationPage(supabase) {
     const fileInput = document.getElementById('excelFileInput');
     if (fileInput) {
         fileInput.addEventListener('change', (e) => handleFile(e, supabase), false);

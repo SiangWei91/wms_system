@@ -1,4 +1,4 @@
-async function loadTransactions(contentElement, supabase) {
+window.loadTransactions = async function(contentElement, supabase) {
     if (!contentElement) {
         console.error("Content element not found. Cannot load transactions page.");
         return;

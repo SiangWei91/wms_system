@@ -1,6 +1,6 @@
 let shipmentHeaders = [];
 
-async function loadShipmentPage(content, supabase) {
+window.loadShipmentPage = async function(content, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
