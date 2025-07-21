@@ -644,26 +644,35 @@ nav ul li i {
 
 
 @media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
   .sidebar {
-    position: fixed;
-    z-index: 1000;
-    height: 100%;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .sidebar .logo {
+    display: none; /* Hide logo on small screens to save space */
+  }
+
+  .sidebar nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 0;
+  }
+
+  .sidebar nav ul li {
+    padding: 10px 15px;
   }
 
   .main-content {
     margin-left: 0;
-  }
-
-  .sidebar:not(.sidebar-collapsed) {
-    width: 250px;
-  }
-
-  .sidebar.sidebar-collapsed {
-    width: 0;
-  }
-
-  .header {
-    padding: 0 15px;
   }
 
   .company-name {
