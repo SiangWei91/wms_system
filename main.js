@@ -121,19 +121,17 @@ const loadContent = async (page) => {
 const navigateTo = (page) => {
   loadContent(page);
   window.location.hash = page;
-  const currentActive = document.querySelector('nav ul li.active');
-  if (currentActive) {
-    currentActive.classList.remove('active');
-  }
-  const newActive = document.querySelector(`nav ul li[data-page="${page}"]`);
-  if (newActive) {
-    newActive.classList.add('active');
-  }
+  document.querySelectorAll('nav ul li').forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('data-page') === page) {
+      item.classList.add('active');
+    }
+  });
 };
 
 window.onhashchange = () => {
   const page = window.location.hash.substring(1) || 'dashboard';
-  navigateTo(page);
+  loadContent(page);
 };
 
 // Login functionality
@@ -184,7 +182,7 @@ if (window.location.pathname.endsWith('app.html')) {
             userInfo.innerText = userName;
         }
         const page = window.location.hash.substring(1) || 'dashboard';
-        navigateTo(page);
+        loadContent(page);
         if (!window.location.hash) {
             window.location.hash = 'dashboard';
         }
