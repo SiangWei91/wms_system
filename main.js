@@ -1,9 +1,7 @@
-const { createClient } = supabase
-
 const supabaseUrl = "https://xnwjvhbkzrazluihnzhw.supabase.co"
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhud2p2aGJrenJhemx1aWhuemh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI2MDYsImV4cCI6MjA2Nzg1ODYwNn0.jGSW0pQgMzcYxuxNixh4XKgku5Oz-cYspHxxhjQ5tCg"
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey)
 
 const setCookie = (name, value, days) => {
     let expires = "";
@@ -59,7 +57,7 @@ const loadContent = async (page) => {
         content.innerHTML = await response.text();
         if (page === 'product') {
           await loadScript('/product.js');
-          loadProducts(content, supabase);
+          loadProducts(content, supabaseClient);
         } else if (page === 'stock-take') {
           await loadScript('/stock-take.js');
           loadStockTakeData(content);
@@ -70,7 +68,7 @@ const loadContent = async (page) => {
           loadShipmentAllocationPage();
         } else if (page === 'transactions') {
             await loadScript('/transaction.js');
-            loadTransactions(content, supabase);
+            loadTransactions(content, supabaseClient);
         } else if (page === 'cr-temperature') {
           await loadScript('/cr-temperature.js');
           loadCrTemperaturePage();
@@ -120,7 +118,7 @@ if (loginForm) {
         const password = document.getElementById('password').value;
 
         // Get email from profiles table
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('email, name')
             .eq('user_id', userId)
@@ -134,7 +132,7 @@ if (loginForm) {
         const email = profile.email;
         const name = profile.name;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password,
         });
@@ -167,7 +165,7 @@ if (window.location.pathname.startsWith('/app')) {
 const logoutButton = document.getElementById('logout-button');
 if (logoutButton) {
     logoutButton.addEventListener('click', async () => {
-        const { error } = await supabase.auth. signOut();
+        const { error } = await supabaseClient.auth.signOut();
         if (error) {
             handleAuthError(error);
         } else {
