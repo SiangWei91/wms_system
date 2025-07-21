@@ -1,4 +1,4 @@
-window.loadServiceRecordPage = async (content, supabase) => {
+const loadServiceRecordPage = async (content, supabase) => {
   let tableData = [];
   let sortColumn = null;
   let sortDirection = 'asc';
@@ -244,3 +244,5 @@ window.loadServiceRecordPage = async (content, supabase) => {
   setupTabs();
   setupForm(supabase);
 };
+
+window.loadServiceRecordPage = loadServiceRecordPage;

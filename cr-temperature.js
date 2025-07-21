@@ -1,4 +1,4 @@
-(() => {
+const loadCrTemperaturePage = (() => {
   let data = [];
   let charts = [];
   let dateFilter, tabNav, tabContent;
@@ -205,7 +205,7 @@
     renderContent();
   };
 
-  window.loadCrTemperaturePage = (supabase) => {
+  return (supabase) => {
     dateFilter = document.getElementById("date-filter");
     tabNav = document.getElementById("cr-temperature-tab-nav");
     tabContent = document.getElementById("cr-temperature-tab-content");
@@ -219,3 +219,5 @@
     }
   };
 })();
+
+window.loadCrTemperaturePage = loadCrTemperaturePage;
