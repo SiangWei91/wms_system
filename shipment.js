@@ -1,8 +1,6 @@
-import { supabase } from './supabase-client.js';
-
 let shipmentHeaders = [];
 
-export async function loadShipmentPage() {
+async function loadShipmentPage() {
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');

@@ -1,5 +1,3 @@
-import { supabase } from "./supabase-client.js";
-
 const coldroomGroups = {
   "Coldroom 5": ["Coldroom 5 - 1", "Coldroom 5 - 2"],
   "Coldroom 6": ["Coldroom 6", "Coldroom 6 Chiller"],
@@ -108,7 +106,7 @@ function createTemperatureCard(tempData) {
   container.appendChild(card);
 }
 
-export async function loadDashboard() {
+async function loadDashboard() {
   const latestTemps = await getLatestTemperatures();
   const container = document.getElementById("temperature-summary-container");
   container.innerHTML = "";

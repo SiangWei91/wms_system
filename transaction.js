@@ -1,6 +1,4 @@
-import { supabase } from './supabase-client.js';
-
-export async function loadTransactions() {
+async function loadTransactions() {
     const contentElement = document.getElementById('content');
     if (!contentElement) {
         console.error("Content element not found. Cannot load transactions page.");

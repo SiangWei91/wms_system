@@ -1,6 +1,3 @@
-import * as XLSX from 'xlsx';
-import { supabase } from './supabase-client.js';
-
 const shipmentModuleState = {
     allExtractedData: {},
     viewDefinitions: [
@@ -16,7 +13,7 @@ const shipmentModuleState = {
     updateInventoryBtn: null
   };
 
-export function loadShipmentAllocationPage() {
+function loadShipmentAllocationPage() {
     const fileInput = document.getElementById('excelFileInput');
     if (fileInput) {
         fileInput.addEventListener('change', handleFile, false);

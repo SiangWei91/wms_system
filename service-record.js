@@ -1,6 +1,4 @@
-import { supabase } from './supabase-client.js';
-
-export const loadServiceRecordPage = async (content) => {
+const loadServiceRecordPage = async (content) => {
   let tableData = [];
   let sortColumn = null;
   let sortDirection = 'asc';

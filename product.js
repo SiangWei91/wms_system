@@ -9,7 +9,7 @@ let totalNumPages = 1;
 let totalNumItems = 0;
 let globalHasNextPage = false;
 
-export async function loadProducts(contentElement, supabase) {
+async function loadProducts(contentElement, supabase) {
     const content = contentElement || document.getElementById('content');
     if (!content) {
         console.error("Content element not found. Cannot load products page.");
@@ -468,7 +468,7 @@ function escapeHtml(unsafe) {
          .replace(/'/g, "&#039;");
 }
 
-export async function lookupOrCreateProduct(itemCode, excelProductDescription, excelPackingSize, supabase) {
+async function lookupOrCreateProduct(itemCode, excelProductDescription, excelPackingSize, supabase) {
     if (!itemCode) {
         console.warn("lookupOrCreateProduct (shipment.js): itemCode is missing.");
         return { productName: excelProductDescription, packingSize: excelPackingSize, isNew: false, error: 'Missing itemCode', productId: null, productCode: itemCode };

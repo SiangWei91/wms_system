@@ -1,5 +1,3 @@
-import { supabase } from './supabase-client.js';
-
 let allData = {};
 
 const coldrooms = {
@@ -9,7 +7,7 @@ const coldrooms = {
   "B15": "Blk 15"
 };
 
-export async function loadStockTakeData() {
+async function loadStockTakeData() {
   const datePicker = document.getElementById('date-picker');
   datePicker.value = new Date().toISOString().split("T")[0];
   datePicker.addEventListener('change', displayData);

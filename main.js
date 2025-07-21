@@ -1,4 +1,9 @@
-import { supabase } from './supabase-client.js'
+const { createClient } = supabase_js
+
+const supabaseUrl = "https://xnwjvhbkzrazluihnzhw.supabase.co"
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhud2p2aGJrenJhemx1aWhuemh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI2MDYsImV4cCI6MjA2Nzg1ODYwNn0.jGSW0pQgMzcYxuxNixh4XKgku5Oz-cYspHxxhjQ5tCg"
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const setCookie = (name, value, days) => {
     let expires = "";
@@ -35,6 +40,16 @@ const handleAuthError = (error) => {
   }
 };
 
+const loadScript = (url) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+};
+
 const loadContent = async (page) => {
   const content = document.getElementById('content');
   if (content) {
@@ -43,28 +58,28 @@ const loadContent = async (page) => {
       if (response.ok) {
         content.innerHTML = await response.text();
         if (page === 'product') {
-          const module = await import('/product.js');
-          module.loadProducts(content, supabase);
+          await loadScript('/product.js');
+          loadProducts(content, supabase);
         } else if (page === 'stock-take') {
-          const module = await import('/stock-take.js');
-          module.loadStockTakeData(content);
+          await loadScript('/stock-take.js');
+          loadStockTakeData(content);
         } else if (page === 'shipment') {
-          const module = await import('/shipment.js');
-          module.loadShipmentPage(content);
-          const allocationModule = await import('/shipment-allocation.js');
-          allocationModule.loadShipmentAllocationPage();
+          await loadScript('/shipment.js');
+          loadShipmentPage(content);
+          await loadScript('/shipment-allocation.js');
+          loadShipmentAllocationPage();
         } else if (page === 'transactions') {
-            const module = await import('/transaction.js');
-            module.loadTransactions(content, supabase);
+            await loadScript('/transaction.js');
+            loadTransactions(content, supabase);
         } else if (page === 'cr-temperature') {
-          const module = await import('/cr-temperature.js');
-          module.loadCrTemperaturePage();
+          await loadScript('/cr-temperature.js');
+          loadCrTemperaturePage();
         } else if (page === 'dashboard') {
-          const module = await import('/dashboard.js');
-          module.loadDashboard();
+          await loadScript('/dashboard.js');
+          loadDashboard();
         } else if (page === 'service-record') {
-          const module = await import('/service-record.js');
-          module.loadServiceRecordPage(content);
+          await loadScript('/service-record.js');
+          loadServiceRecordPage(content);
         }
       } else {
         content.innerHTML = '<p>Page not found.</p>';

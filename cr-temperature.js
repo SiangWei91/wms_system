@@ -1,5 +1,3 @@
-import { supabase } from "./supabase-client.js";
-
 let data = [];
 let charts = [];
 let dateFilter, tabNav, tabContent;
@@ -205,7 +203,7 @@ const handleDateChange = () => {
   renderContent();
 };
 
-export const loadCrTemperaturePage = () => {
+const loadCrTemperaturePage = () => {
   dateFilter = document.getElementById("date-filter");
   tabNav = document.getElementById("cr-temperature-tab-nav");
   tabContent = document.getElementById("cr-temperature-tab-content");
