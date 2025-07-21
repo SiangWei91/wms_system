@@ -131,7 +131,7 @@ const navigateTo = (page) => {
 
 window.onhashchange = () => {
   const page = window.location.hash.substring(1) || 'dashboard';
-  loadContent(page);
+  navigateTo(page);
 };
 
 // Login functionality
