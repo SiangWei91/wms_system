@@ -41,7 +41,7 @@ const handleAuthError = (error) => {
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = url;
+        script.src = url.startsWith('/') ? url.substring(1) : url;
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
@@ -56,27 +56,27 @@ const loadContent = async (page) => {
       if (response.ok) {
         content.innerHTML = await response.text();
         if (page === 'product') {
-          await loadScript('/product.js');
+          await loadScript('product.js');
           loadProducts(content, supabaseClient);
         } else if (page === 'stock-take') {
-          await loadScript('/stock-take.js');
+          await loadScript('stock-take.js');
           loadStockTakeData(content);
         } else if (page === 'shipment') {
-          await loadScript('/shipment.js');
+          await loadScript('shipment.js');
           loadShipmentPage(content);
-          await loadScript('/shipment-allocation.js');
+          await loadScript('shipment-allocation.js');
           loadShipmentAllocationPage();
         } else if (page === 'transactions') {
-            await loadScript('/transaction.js');
+            await loadScript('transaction.js');
             loadTransactions(content, supabaseClient);
         } else if (page === 'cr-temperature') {
-          await loadScript('/cr-temperature.js');
+          await loadScript('cr-temperature.js');
           loadCrTemperaturePage();
         } else if (page === 'dashboard') {
-          await loadScript('/dashboard.js');
+          await loadScript('dashboard.js');
           loadDashboard();
         } else if (page === 'service-record') {
-          await loadScript('/service-record.js');
+          await loadScript('service-record.js');
           loadServiceRecordPage(content);
         }
       } else {
