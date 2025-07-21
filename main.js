@@ -63,27 +63,27 @@ const loadContent = async (page) => {
         const runPageScript = async () => {
             if (page === 'product') {
               await loadScript('product.js');
-              loadProducts(content, supabaseClient);
+              window.loadProducts(content, supabaseClient);
             } else if (page === 'stock-take') {
               await loadScript('stock-take.js');
-              loadStockTakeData(content, supabaseClient);
+              window.loadStockTakeData(content, supabaseClient);
             } else if (page === 'shipment') {
               await loadScript('shipment.js');
-              loadShipmentPage(content, supabaseClient);
               await loadScript('shipment-allocation.js');
-              loadShipmentAllocationPage(supabaseClient);
+              window.loadShipmentPage(content, supabaseClient);
+              window.loadShipmentAllocationPage(supabaseClient);
             } else if (page === 'transactions') {
                 await loadScript('transaction.js');
-                loadTransactions(content, supabaseClient);
+                window.loadTransactions(content, supabaseClient);
             } else if (page === 'cr-temperature') {
               await loadScript('cr-temperature.js');
-              loadCrTemperaturePage(supabaseClient);
+              window.loadCrTemperaturePage(supabaseClient);
             } else if (page === 'dashboard') {
               await loadScript('dashboard.js');
-              loadDashboard(supabaseClient);
+              window.loadDashboard(supabaseClient);
             } else if (page === 'service-record') {
               await loadScript('service-record.js');
-              loadServiceRecordPage(content, supabaseClient);
+              window.loadServiceRecordPage(content, supabaseClient);
             }
         }
 
