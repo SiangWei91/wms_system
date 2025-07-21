@@ -1,137 +1,136 @@
-const supabaseUrl = "https://xnwjvhbkzrazluihnzhw.supabase.co"
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhud2p2aGJrenJhemx1aWhuemh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI2MDYsImV4cCI6MjA2Nzg1ODYwNn0.jGSW0pQgMzcYxuxNixh4XKgku5Oz-cYspHxxhjQ5tCg"
+const supabaseUrl = "https://xnwjvhbkzrazluihnzhw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhud2p2aGJrenJhemx1aWhuemh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI2MDYsImV4cCI6MjA2Nzg1ODYwNn0.jGSW0pQgMzcYxuxNixh4XKgku5Oz-cYspHxxhjQ5tCg";
 
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey)
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 const setCookie = (name, value, days) => {
     let expires = "";
     if (days) {
         const date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Strict; Secure";
-}
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict; Secure";
+};
 
 const getCookie = (name) => {
     const nameEQ = name + "=";
     const ca = document.cookie.split(';');
-    for(let i=0;i < ca.length;i++) {
+    for (let i = 0; i < ca.length; i++) {
         let c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
     }
     return null;
-}
+};
 
 const eraseCookie = (name) => {
     document.cookie = name + '=; Max-Age=-99999999; path=/; domain=' + window.location.hostname;
-}
-
-const handleAuthError = (error) => {
-  const errorMessage = document.getElementById('error-message');
-  if (errorMessage) {
-    errorMessage.innerText = error.message;
-    errorMessage.style.display = 'block';
-  } else {
-    alert(error.message);
-  }
 };
 
+const handleAuthError = (error) => {
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        errorMessage.innerText = error.message;
+        errorMessage.style.display = 'block';
+    } else {
+        alert(error.message);
+    }
+};
 
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        // 检查脚本是否已经加载
         const existingScript = document.querySelector(`script[src="${url}"]`);
         if (existingScript) {
             console.log(`Script already loaded: ${url}`);
             resolve();
             return;
         }
-        
+
         console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
-        
+
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
-            // 给脚本一点时间来执行和定义函数
             setTimeout(resolve, 50);
         };
-        
+
         script.onerror = (error) => {
             console.error(`❌ Script failed to load: ${url}`, error);
             reject(new Error(`Failed to load script: ${url}`));
         };
-        
+
         document.head.appendChild(script);
     });
 };
+
 const loadContent = async (page) => {
-  const content = document.getElementById('content');
-  if (content) {
-    try {
-      const response = await fetch(`templates/${page}.html`);
-      if (response.ok) {
-        content.innerHTML = await response.text();
+    const content = document.getElementById('content');
+    if (content) {
+        try {
+            const response = await fetch(`templates/${page}.html`);
+            if (response.ok) {
+                content.innerHTML = await response.text();
 
-        const runPageScript = async () => {
-            if (page === 'product') {
-              await loadScript('product.js');
-              window.loadProducts(content, supabaseClient);
-            } else if (page === 'stock-take') {
-              await loadScript('stock-take.js');
-              window.loadStockTakeData(content, supabaseClient);
-            } else if (page === 'shipment') {
-              await loadScript('shipment.js');
-              await loadScript('shipment-allocation.js');
-              window.loadShipmentPage(content, supabaseClient);
-              window.loadShipmentAllocationPage(supabaseClient);
-            } else if (page === 'transactions') {
-                await loadScript('transaction.js');
-                window.loadTransactions(content, supabaseClient);
-            } else if (page === 'cr-temperature') {
-              await loadScript('cr-temperature.js');
-              window.loadCrTemperaturePage(supabaseClient);
-            } else if (page === 'dashboard') {
-              await loadScript('dashboard.js');
-              window.loadDashboard(supabaseClient);
-            } else if (page === 'service-record') {
-              await loadScript('service-record.js');
-              window.loadServiceRecordPage(content, supabaseClient);
+                const runPageScript = async () => {
+                    if (page === 'product') {
+                        await loadScript('product.js');
+                        window.loadProducts(content, supabaseClient);
+                    } else if (page === 'stock-take') {
+                        await loadScript('stock-take.js');
+                        window.loadStockTakeData(content, supabaseClient);
+                    } else if (page === 'shipment') {
+                        await loadScript('shipment.js');
+                        await loadScript('shipment-allocation.js');
+                        window.loadShipmentPage(content, supabaseClient);
+                        window.loadShipmentAllocationPage(supabaseClient);
+                    } else if (page === 'transactions') {
+                        await loadScript('transaction.js');
+                        window.loadTransactions(content, supabaseClient);
+                    } else if (page === 'cr-temperature') {
+                        await loadScript('cr-temperature.js');
+                        window.loadCrTemperaturePage(supabaseClient);
+                    } else if (page === 'dashboard') {
+                        await loadScript('dashboard.js');
+                        window.loadDashboard(supabaseClient);
+                    } else if (page === 'service-record') {
+                        await loadScript('service-record.js');
+                        window.loadServiceRecordPage(content, supabaseClient);
+                    }
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', runPageScript);
+                } else {
+                    runPageScript();
+                }
+
+            } else {
+                content.innerHTML = '<p>Page not found.</p>';
             }
+        } catch (error) {
+            console.error('Error loading page:', error);
+            content.innerHTML = '<p>Error loading page.</p>';
         }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', runPageScript);
-        } else {
-            runPageScript();
-        }
-
-      } else {
-        content.innerHTML = '<p>Page not found.</p>';
-      }
-    } catch (error) {
-      console.error('Error loading page:', error);
-      content.innerHTML = '<p>Error loading page.</p>';
     }
-  }
 };
 
 const navigateTo = (page) => {
-  loadContent(page);
-  window.location.hash = page;
-  document.querySelectorAll('nav ul li').forEach(item => {
-    item.classList.remove('active');
-    if (item.getAttribute('data-page') === page) {
-      item.classList.add('active');
-    }
-  });
+    loadContent(page);
+    window.location.hash = page;
+    document.querySelectorAll('nav ul li').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-page') === page) {
+            item.classList.add('active');
+        }
+    });
 };
 
+// ✅ 修复刷新页面时 active 状态不更新的问题
 window.onhashchange = () => {
-  const page = window.location.hash.substring(1) || 'dashboard';
-  loadContent(page);
+    const page = window.location.hash.substring(1) || 'dashboard';
+    navigateTo(page);
 };
 
 // Login functionality
@@ -145,7 +144,6 @@ if (loginForm) {
         const userId = document.getElementById('user-id').value;
         const password = document.getElementById('password').value;
 
-        // Get email from profiles table
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('email, name')
@@ -164,6 +162,7 @@ if (loginForm) {
             email,
             password,
         });
+
         if (error) {
             handleAuthError(error);
         } else {
@@ -173,7 +172,7 @@ if (loginForm) {
     });
 }
 
-// Check user session on all pages except login
+// ✅ 进入 app.html 时检查登录状态和初始化页面
 if (window.location.pathname.endsWith('app.html')) {
     const userName = getCookie('userName');
     if (userName) {
@@ -181,16 +180,13 @@ if (window.location.pathname.endsWith('app.html')) {
         if (userInfo) {
             userInfo.innerText = userName;
         }
+
         const page = window.location.hash.substring(1) || 'dashboard';
-        loadContent(page);
-        if (!window.location.hash) {
-            window.location.hash = 'dashboard';
-        }
+        navigateTo(page);
     } else {
         window.location.href = 'index.html';
     }
 }
-
 
 // Logout functionality
 const logoutButton = document.getElementById('logout-button');
