@@ -41,7 +41,7 @@ const handleAuthError = (error) => {
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = url.startsWith('/') ? url.substring(1) : url;
+        script.src = url;
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
@@ -91,7 +91,7 @@ const loadContent = async (page) => {
 
 const navigateTo = (page) => {
   loadContent(page);
-  history.pushState({ page }, '', `app.html/${page}`);
+  window.location.hash = page;
   document.querySelectorAll('nav ul li').forEach(item => {
     item.classList.remove('active');
     if (item.getAttribute('data-page') === page) {
@@ -100,10 +100,9 @@ const navigateTo = (page) => {
   });
 };
 
-window.onpopstate = (event) => {
-  if (event.state && event.state.page) {
-    loadContent(event.state.page);
-  }
+window.onhashchange = () => {
+  const page = window.location.hash.substring(1) || 'dashboard';
+  loadContent(page);
 };
 
 // Login functionality
@@ -146,15 +145,18 @@ if (loginForm) {
 }
 
 // Check user session on all pages except login
-if (window.location.pathname.startsWith('/app')) {
+if (window.location.pathname.endsWith('app.html')) {
     const userName = getCookie('userName');
     if (userName) {
         const userInfo = document.getElementById('user-info');
         if (userInfo) {
             userInfo.innerText = userName;
         }
-        const page = window.location.pathname.split('/')[2] || 'dashboard';
+        const page = window.location.hash.substring(1) || 'dashboard';
         loadContent(page);
+        if (!window.location.hash) {
+            window.location.hash = 'dashboard';
+        }
     } else {
         window.location.href = 'index.html';
     }
