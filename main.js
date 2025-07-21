@@ -121,12 +121,14 @@ const loadContent = async (page) => {
 const navigateTo = (page) => {
   loadContent(page);
   window.location.hash = page;
-  document.querySelectorAll('nav ul li').forEach(item => {
-    item.classList.remove('active');
-    if (item.getAttribute('data-page') === page) {
-      item.classList.add('active');
-    }
-  });
+  const currentActive = document.querySelector('nav ul li.active');
+  if (currentActive) {
+    currentActive.classList.remove('active');
+  }
+  const newActive = document.querySelector(`nav ul li[data-page="${page}"]`);
+  if (newActive) {
+    newActive.classList.add('active');
+  }
 };
 
 window.onhashchange = () => {
