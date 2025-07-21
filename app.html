@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Management System</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- 侧边栏导航 -->
+      <aside class="sidebar">
+        <div class="logo">
+          <i class="fas fa-boxes"></i>
+          <span>Inventory Management</span>
+        </div>
+        <nav>
+          <ul>
+            <li class="active" data-page="dashboard">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Dashboard</span>
+            </li>
+            <li data-page="product">
+              <i class="fas fa-box-open"></i>
+              <span>Product</span>
+            </li>
+            <li data-page="inventory">
+              <i class="fas fa-warehouse"></i>
+              <span>Inventory</span>
+            </li>
+            <li data-page="transactions">
+              <i class="fas fa-exchange-alt"></i>
+              <span>Transaction</span>
+            </li>
+            <li data-page="shipment">
+              <i class="fas fa-shipping-fast"></i>
+              <span>Shipment</span>
+            </li>
+            <li data-page="stock-take">
+              <i class="fas fa-boxes-stacked"></i>
+              <span>Stock Take</span>
+            </li>
+            <li data-page="order">
+              <i class="fas fa-cart-shopping"></i>
+              <span>Order</span>
+            </li>
+            <li data-page="cr-temperature">
+              <i class="fas fa-thermometer-half"></i>
+              <span>CR Temperature</span>
+            </li>
+            <li data-page="service-record">
+              <i class="fas fa-tools"></i>
+              <span>Service Record</span>
+            </li>
+            <li data-page="public-warehouse">
+              <i class="fas fa-warehouse"></i>
+              <span>Public Warehouse</span>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- 主内容区 -->
+      <main class="main-content">
+        <header class="header">
+          <div class="sidebar-toggle" id="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+          </div>
+          <div class="company-name">LI CHUAN FOOD PRODUCTS PTE LTD</div>
+          <div class="user-info">
+            <span id="user-info"></span>
+            <div id="avatar-menu-trigger" class="avatar-menu-trigger">
+              <div class="avatar">
+                <i class="fas fa-user-circle"></i>
+              </div>
+              <div id="avatar-dropdown" class="avatar-dropdown">
+                <a href="#" id="logout-button">Logout</a>
+              </div>
+            </div>
+          </div>
+        </header>
+        <!-- 页面内容动态加载到这里 -->
+        <div class="content" id="content">
+          <!-- Page-specific content will be loaded here -->
+        </div>
+      </main>
+    </div>
+    <script type="module" src="main.js"></script>
+    <div id="modal-container"></div>
+  </body>
+</html>

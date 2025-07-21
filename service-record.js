@@ -1,0 +1,242 @@
+import { supabase } from './supabase-client.js';
+
+export const loadServiceRecordPage = async (content) => {
+  let tableData = [];
+  let sortColumn = null;
+  let sortDirection = 'asc';
+
+  const equipmentOptions = {
+    'Forklift': ['B15 FD20T(F180-00472)', 'CR5 7FBR10 - 51326(48V)', 'CR6 6FBR J9-10232(24V)', 'Orange : 8FBN 25(48V)', 'White : BRA10-50S-400(24V)'],
+    'Truck': ['YN4970'],
+    'Coldroom': ['Coldroom 1', 'Coldroom 2', 'Coldroom 3', 'Coldroom 5', 'Coldroom 6', 'Coldroom 3A', 'Coldroom 3B', 'Blk 15'],
+  };
+
+  const fetchServiceRecord = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('service-record');
+
+      if (error) {
+        throw error;
+      }
+      if (data.values && data.values.length > 0) {
+        const headers = data.values[0];
+        tableData = data.values.slice(1).map(row => {
+          let rowObject = {};
+          headers.forEach((header, index) => {
+            rowObject[header] = row[index];
+          });
+          return rowObject;
+        });
+        renderTable();
+      } else {
+        const table = content.querySelector('#service-record-table tbody');
+        table.innerHTML = '<tr><td colspan="100%">No data found.</td></tr>';
+      }
+    } catch (error) {
+      console.error('Error fetching service record:', error);
+      const table = content.querySelector('#service-record-table tbody');
+      table.innerHTML = `<tr><td colspan="100%">Error loading data: ${error.message}</td></tr>`;
+    }
+  };
+
+  const renderTable = () => {
+    const table = content.querySelector('#service-record-table');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    // Clear existing table data
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+
+    if (tableData.length > 0) {
+      // Create table headers
+      const headerRow = document.createElement('tr');
+      const headers = Object.keys(tableData[0]);
+      headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => {
+          if (sortColumn === headerText) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortColumn = headerText;
+            sortDirection = 'asc';
+          }
+          sortData();
+          renderTable();
+        });
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      // Create table rows
+      tableData.forEach(rowData => {
+        const row = document.createElement('tr');
+        headers.forEach(header => {
+          const td = document.createElement('td');
+          td.textContent = rowData[header];
+          row.appendChild(td);
+        });
+        tbody.appendChild(row);
+      });
+    }
+  };
+
+  const sortData = () => {
+    if (sortColumn) {
+      tableData.sort((a, b) => {
+        const valA = a[sortColumn];
+        const valB = b[sortColumn];
+        if (valA < valB) {
+          return sortDirection === 'asc' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortDirection === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+  };
+
+
+  const setupTabs = () => {
+    const tabButtons = content.querySelectorAll('.tab-button');
+    const tabPanes = content.querySelectorAll('.tab-pane');
+    const container = content.querySelector('.service-record-container');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+
+        if (tabId === 'add-record-tab') {
+          container.classList.add('add-record-active');
+        } else {
+          container.classList.remove('add-record-active');
+        }
+
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        tabPanes.forEach(pane => {
+          if (pane.id === tabId) {
+            pane.classList.add('active');
+          } else {
+            pane.classList.remove('active');
+          }
+        });
+      });
+    });
+  };
+
+  const setupForm = () => {
+    const form = content.querySelector('#add-record-form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const loader = document.createElement('div');
+    loader.classList.add('loader');
+    submitButton.parentNode.insertBefore(loader, submitButton.nextSibling);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submitButton.disabled = true;
+      loader.style.display = 'inline-block';
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      if (data.date) {
+        const [year, month, day] = data.date.split('-');
+        data.date = `${day}/${month}/${year}`;
+      }
+
+      try {
+        const formBody = new URLSearchParams(data).toString();
+        const response = await fetch('https://script.google.com/macros/s/AKfycbzg03fCWlHwF7pHEEhMPVGjOEmvb-GNA_KlkkHS2n2Shk-tRxNNDpBgKIlpSOXNlvZP/exec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody,
+        });
+
+        loader.style.display = 'none';
+        submitButton.disabled = false;
+
+        const modal = document.getElementById('modal-servicerecord-container');
+        modal.style.display = 'flex';
+
+        const closeButton = document.getElementById('modal-close-button');
+        closeButton.onclick = function() {
+          modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+
+        form.reset();
+        dateInput.valueAsDate = new Date();
+        fetchServiceRecord();
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        loader.style.display = 'none';
+        submitButton.disabled = false;
+        alert('Error adding record. Please try again.');
+      }
+    });
+
+    const dateInput = content.querySelector('#date');
+    dateInput.valueAsDate = new Date();
+
+    const typeSelect = content.querySelector('#type');
+    const equipmentContainer = content.querySelector('#equipment-container');
+
+    typeSelect.addEventListener('change', (event) => {
+      const selectedType = event.target.value;
+      equipmentContainer.innerHTML = '';
+
+      if (selectedType === 'Another') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'equipment';
+        input.name = 'equipment';
+        input.required = true;
+        equipmentContainer.appendChild(input);
+      } else if (equipmentOptions[selectedType]) {
+        const select = document.createElement('select');
+        select.id = 'equipment';
+        select.name = 'equipment';
+        select.required = true;
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '--Please choose an option--';
+        select.appendChild(defaultOption);
+
+        equipmentOptions[selectedType].forEach(optionText => {
+          const option = document.createElement('option');
+          option.value = optionText;
+          option.textContent = optionText;
+          select.appendChild(option);
+        });
+        equipmentContainer.appendChild(select);
+      } else {
+        const select = document.createElement('select');
+        select.id = 'equipment';
+        select.name = 'equipment';
+        select.required = true;
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '--Please choose a type first--';
+        select.appendChild(defaultOption);
+        equipmentContainer.appendChild(select);
+      }
+    });
+  };
+
+  fetchServiceRecord();
+  setupTabs();
+  setupForm();
+};
