@@ -16,24 +16,6 @@ const loadCrTemperaturePage = (() => {
     "Coldroom 3 Chiller": "Coldroom 3",
   };
 
-  const sortOrder = {
-  // 冷冻冷藏室（负温度）- 使用 "asc" 让 -10, -8, -6, -4, -2 这样排列
-  "Coldroom 5 - 1": "asc",    // 改为 asc
-  "Coldroom 5 - 2": "asc",    // 改为 asc
-  "Coldroom 6": "asc",        // 改为 asc
-  "Blk 15": "asc",           // 改为 asc
-  "Coldroom 1": "asc",        // 改为 asc
-  "Coldroom 2": "asc",        // 改为 asc
-  
-  // 冷藏室制冷机（正温度）- 保持 "asc" 让温度从低到高
-  "Coldroom 6 Chiller": "asc",
-  "Blk 15 Chiller": "asc",
-  "Coldroom 5c": "asc",
-  "Coldroom 3 Chiller": "asc",
-  "Coldroom 3A": "asc",
-  "Coldroom 3B": "asc",
-};
-
   async function fetchData(supabase) {
     try {
       const { data: fetchedData, error } = await supabase.functions.invoke(
@@ -165,15 +147,12 @@ const loadCrTemperaturePage = (() => {
     const canvas = document.createElement("canvas");
     container.appendChild(canvas);
 
-    const order = sortOrder[coldroomName] || "asc";
-    const sortedData = [...chartData].sort((a, b) => {
-      const tempA = parseFloat(a.Temperature);
-      const tempB = parseFloat(b.Temperature);
-      return order === "asc" ? tempA - tempB : tempB - tempA;
-    });
+    // 移除了数据排序，直接使用原始数据
+    const labels = chartData.map((item) => item.Time);
+    const temperatures = chartData.map((item) => item.Temperature);
 
-    const labels = sortedData.map((item) => item.Time);
-    const temperatures = sortedData.map((item) => item.Temperature);
+    // 判断是否为冷冻冷藏室（负温度为主）
+    const isFreezer = ["Coldroom 5 - 1", "Coldroom 5 - 2", "Coldroom 6", "Blk 15", "Coldroom 1", "Coldroom 2"].includes(coldroomName);
 
     const chart = new Chart(canvas, {
       type: "line",
@@ -195,6 +174,8 @@ const loadCrTemperaturePage = (() => {
         scales: {
           y: {
             beginAtZero: false,
+            // 如果是冷冻室，反转Y轴让-2在上方，-10在下方
+            reverse: isFreezer
           },
         },
       },
