@@ -52,7 +52,7 @@ const loadContent = async (page) => {
   const content = document.getElementById('content');
   if (content) {
     try {
-      const response = await fetch(`/templates/${page}.html`);
+      const response = await fetch(`templates/${page}.html`);
       if (response.ok) {
         content.innerHTML = await response.text();
         if (page === 'product') {
