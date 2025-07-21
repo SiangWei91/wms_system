@@ -17,19 +17,22 @@ const loadCrTemperaturePage = (() => {
   };
 
   const sortOrder = {
-    "Coldroom 5 - 1": "desc",
-    "Coldroom 5 - 2": "desc",
-    "Coldroom 6": "desc",
-    "Coldroom 6 Chiller": "asc",
-    "Blk 15": "desc",
-    "Blk 15 Chiller": "asc",
-    "Coldroom 5c": "asc",
-    "Coldroom 3 Chiller": "asc",
-    "Coldroom 1": "desc",
-    "Coldroom 2": "desc",
-    "Coldroom 3A": "asc",
-    "Coldroom 3B": "asc",
-  };
+  // 冷冻冷藏室（负温度）- 使用 "asc" 让 -10, -8, -6, -4, -2 这样排列
+  "Coldroom 5 - 1": "asc",    // 改为 asc
+  "Coldroom 5 - 2": "asc",    // 改为 asc
+  "Coldroom 6": "asc",        // 改为 asc
+  "Blk 15": "asc",           // 改为 asc
+  "Coldroom 1": "asc",        // 改为 asc
+  "Coldroom 2": "asc",        // 改为 asc
+  
+  // 冷藏室制冷机（正温度）- 保持 "asc" 让温度从低到高
+  "Coldroom 6 Chiller": "asc",
+  "Blk 15 Chiller": "asc",
+  "Coldroom 5c": "asc",
+  "Coldroom 3 Chiller": "asc",
+  "Coldroom 3A": "asc",
+  "Coldroom 3B": "asc",
+};
 
   async function fetchData(supabase) {
     try {
