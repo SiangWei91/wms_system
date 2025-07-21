@@ -2,7 +2,6 @@ const loadCrTemperaturePage = (() => {
   let data = [];
   let charts = [];
   let dateFilter, tabNav, tabContent;
-  let isInitialized = false;
 
   const coldroomGroups = {
     "Coldroom 5": ["Coldroom 5 - 1", "Coldroom 5 - 2"],
@@ -210,13 +209,8 @@ const loadCrTemperaturePage = (() => {
     tabNav = document.getElementById("cr-temperature-tab-nav");
     tabContent = document.getElementById("cr-temperature-tab-content");
 
-    if (dateFilter && !isInitialized) {
-      dateFilter.addEventListener("change", handleDateChange);
-      fetchData(supabase);
-      isInitialized = true;
-    } else {
-      renderContent();
-    }
+    dateFilter.addEventListener("change", handleDateChange);
+    fetchData(supabase);
   };
 })();
 
