@@ -127,6 +127,9 @@ const loadContent = async (page) => {
 };
 
 const navigateTo = (page) => {
+    if ('#' + page === window.location.hash) {
+        return;
+    }
     loadContent(page);
     window.location.hash = page;
     document.querySelectorAll('nav ul li').forEach(item => {
