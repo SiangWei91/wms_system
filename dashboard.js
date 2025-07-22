@@ -107,8 +107,11 @@ function createTemperatureCard(tempData) {
 }
 
 window.loadDashboard = async function(supabase) {
-  const latestTemps = await getLatestTemperatures(supabase);
   const container = document.getElementById("temperature-summary-container");
+  if (!container) {
+    return;
+  }
+  const latestTemps = await getLatestTemperatures(supabase);
   container.innerHTML = "";
   latestTemps.forEach(createTemperatureCard);
 }

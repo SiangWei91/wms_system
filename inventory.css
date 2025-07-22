@@ -20,6 +20,11 @@
   font-size: 0.9em;
 }
 
+#table-wrapper {
+  max-height: 600px; /* Adjust as needed */
+  overflow-y: auto;
+}
+
 #inventory-table-container .table th {
   background-color: #f8f9fa;
   font-weight: 600;
