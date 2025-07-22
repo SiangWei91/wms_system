@@ -232,30 +232,32 @@ if (avatarTrigger) {
 }
 
 // Navigation functionality
-const navItems = document.querySelectorAll('nav ul li');
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const page = item.getAttribute('data-page');
-        if (page) {
-            navigateTo(page);
-        }
+if (window.location.pathname.endsWith('app.html')) {
+    const navItems = document.querySelectorAll('nav ul li');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const page = item.getAttribute('data-page');
+            if (page) {
+                navigateTo(page);
+            }
+        });
     });
-});
 
-// Sidebar toggle functionality
-const sidebarToggle = document.getElementById('sidebar-toggle');
-const sidebar = document.querySelector('.sidebar');
-if (sidebarToggle && sidebar) {
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('show');
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // Hide sidebar when a navigation item is clicked on mobile
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('show');
+            }
+        });
     });
 }
-
-// Hide sidebar when a navigation item is clicked on mobile
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-            sidebar.classList.remove('show');
-        }
-    });
-});
