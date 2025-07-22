@@ -247,6 +247,15 @@ const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar = document.querySelector('.sidebar');
 if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('sidebar-collapsed');
+        sidebar.classList.toggle('show');
     });
 }
+
+// Hide sidebar when a navigation item is clicked on mobile
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.remove('show');
+        }
+    });
+});

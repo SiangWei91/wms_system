@@ -653,31 +653,18 @@ nav ul li i {
 
 
 @media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-  }
-
   .sidebar {
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    z-index: 1000;
+    transition: left 0.3s ease;
   }
 
-  .sidebar .logo {
-    display: none; /* Hide logo on small screens to save space */
-  }
-
-  .sidebar nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 10px 0;
-  }
-
-  .sidebar nav ul li {
-    padding: 10px 15px;
+  .sidebar.show {
+    left: 0;
   }
 
   .main-content {
