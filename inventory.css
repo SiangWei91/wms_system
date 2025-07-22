@@ -1,0 +1,16 @@
+#inventory-table-container .table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+#inventory-table-container .table th,
+#inventory-table-container .table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+#inventory-table-container .table th {
+  background-color: #f2f2f2;
+}

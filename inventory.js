@@ -1,16 +1,32 @@
 window.loadInventoryPage = async (supabaseClient) => {
   const fetchProductStockSummary = async () => {
-    const { data, error } = await supabaseClient
+    const { data: summaryData, error: summaryError } = await supabaseClient
       .from('product_stock_summary')
-      .select('*')
-      .order('item_code', { ascending: true });
+      .select('*');
 
-    if (error) {
-      console.error('Error fetching summary:', error);
+    if (summaryError) {
+      console.error('Error fetching summary:', summaryError);
       return [];
     }
 
-    return data;
+    const { data: productsData, error: productsError } = await supabaseClient
+      .from('products')
+      .select('item_code, row_index');
+
+    if (productsError) {
+      console.error('Error fetching products:', productsError);
+      return [];
+    }
+
+    const productsMap = new Map(productsData.map(p => [p.item_code, p.row_index]));
+    const joinedData = summaryData.map(summaryItem => ({
+      ...summaryItem,
+      row_index: productsMap.get(summaryItem.item_code)
+    }));
+
+    joinedData.sort((a, b) => (a.row_index || Infinity) - (b.row_index || Infinity));
+
+    return joinedData;
   };
 
   const renderTable = (data) => {
