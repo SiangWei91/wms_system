@@ -3,7 +3,7 @@ window.loadInventoryPage = async (supabaseClient) => {
     const { data, error } = await supabaseClient
       .from('product_stock_summary')
       .select('*')
-      .order('row_index', { ascending: true });
+      .order('item_code', { ascending: true });
 
     if (error) {
       console.error('Error fetching summary:', error);
@@ -23,7 +23,7 @@ window.loadInventoryPage = async (supabaseClient) => {
     const tbody = document.createElement('tbody');
 
     // Create table headers
-    const headers = ['Product Name', 'Total Stock In', 'Total Stock Out', 'Current Stock'];
+    const headers = ['Item Code', 'Product Name', 'Packing Size', 'Cold Room 5', 'Jordon', 'Singlong', 'Lineage', 'Cold Room 1', 'Cold Room 2', 'Blk 15', 'Total Stock'];
     const headerRow = document.createElement('tr');
     headers.forEach(headerText => {
       const th = document.createElement('th');
@@ -35,7 +35,8 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table rows
     data.forEach(row => {
       const tr = document.createElement('tr');
-      const cells = [row.product_name, row.total_stock_in, row.total_stock_out, row.current_stock];
+      const totalStock = (row.coldroom5 || 0) + (row.jordon || 0) + (row.singlong || 0) + (row.lineage || 0) + (row.coldroom1 || 0) + (row.coldroom2 || 0) + (row.blk15 || 0);
+      const cells = [row.item_code, row.product_full_name, row.packing_size, row.coldroom5, row.jordon, row.singlong, row.lineage, row.coldroom1, row.coldroom2, row.blk15, totalStock];
       cells.forEach(cellText => {
         const td = document.createElement('td');
         td.textContent = cellText;
@@ -46,6 +47,7 @@ window.loadInventoryPage = async (supabaseClient) => {
 
     table.appendChild(thead);
     table.appendChild(tbody);
+    tableContainer.innerHTML = ''; // Clear previous content
     tableContainer.appendChild(table);
   };
 

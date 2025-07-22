@@ -43,7 +43,12 @@ const loadScript = (url) => {
         const existingScript = document.querySelector(`script[src="${url}"]`);
         if (existingScript) {
             console.log(`Script already loaded: ${url}`);
-            resolve();
+            // Ensure the script is fully parsed before resolving
+            if (window.loadInventoryPage) {
+                resolve();
+            } else {
+                existingScript.addEventListener('load', () => resolve());
+            }
             return;
         }
 
@@ -53,7 +58,7 @@ const loadScript = (url) => {
 
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
-            setTimeout(resolve, 50);
+            resolve();
         };
 
         script.onerror = (error) => {
@@ -99,7 +104,9 @@ const loadContent = async (page) => {
                         window.loadServiceRecordPage(content, supabaseClient);
                     } else if (page === 'inventory') {
                         await loadScript('inventory.js');
-                        window.loadInventoryPage(supabaseClient);
+                        if (window.loadInventoryPage) {
+                            window.loadInventoryPage(supabaseClient);
+                        }
                     }
                 };
 
