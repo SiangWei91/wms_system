@@ -29,7 +29,7 @@ window.loadInventoryPage = async (supabaseClient) => {
     return joinedData;
   };
 
-  let columnsHidden = false;
+  let columnsHidden = true;
 
   const renderTable = (data) => {
     const tableContainer = document.getElementById('inventory-table-container');
@@ -93,8 +93,10 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
+    toggleButton.textContent = columnsHidden ? 'Expand' : 'Hide';
     toggleButton.addEventListener('click', () => {
       columnsHidden = !columnsHidden;
+      toggleButton.textContent = columnsHidden ? 'Expand' : 'Hide';
       renderTable(data);
     });
   }
