@@ -85,7 +85,7 @@ window.loadInventoryPage = async (supabaseClient) => {
         const { data: transactions, error } = await supabaseClient
           .from('transactions')
           .select('*')
-          .eq('product_code', itemCode);
+          .eq('item_code', itemCode);
 
         if (error) {
           console.error('Error fetching transactions:', error);
