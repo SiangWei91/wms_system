@@ -112,6 +112,9 @@ function displayData() {
   const morningTable = document.getElementById('morning-wrapper');
   const afternoonTable = document.getElementById('afternoon-wrapper');
 
+  morningTable.classList.add('table-container');
+  afternoonTable.classList.add('table-container');
+
   morningTable.style.display = 'block';
   afternoonTable.style.display = 'block';
 
