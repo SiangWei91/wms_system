@@ -84,7 +84,10 @@ window.loadInventoryPage = async (supabaseClient) => {
         const itemCode = row.item_code;
         const { data: transactions, error } = await supabaseClient
           .from('transactions')
-          .select('*')
+          .select(`
+            *,
+            warehouses ( name )
+          `)
           .eq('item_code', itemCode);
 
         if (error) {
@@ -113,8 +116,9 @@ window.loadInventoryPage = async (supabaseClient) => {
     table.className = 'table';
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
+    const tfoot = document.createElement('tfoot');
 
-    const headers = ['Date', 'Type', 'Warehouse', 'Batch No', 'Quantity', 'Operator'];
+    const headers = ['Date', 'Type', 'Warehouse', 'Batch No', 'Quantity'];
     const headerRow = document.createElement('tr');
     headers.forEach(headerText => {
       const th = document.createElement('th');
@@ -123,15 +127,17 @@ window.loadInventoryPage = async (supabaseClient) => {
     });
     thead.appendChild(headerRow);
 
+    let totalQuantity = 0;
     data.forEach(row => {
       const tr = document.createElement('tr');
+      const date = new Date(row.transaction_date);
+      const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
       const cells = [
-        new Date(row.transaction_date).toLocaleDateString(),
-        row.type,
-        row.warehouse_id,
+        formattedDate,
+        row.transaction_type,
+        row.warehouses ? row.warehouses.name : row.warehouse_id,
         row.batch_no,
-        row.quantity,
-        row.operator_id
+        row.quantity
       ];
       cells.forEach(cellText => {
         const td = document.createElement('td');
@@ -139,10 +145,23 @@ window.loadInventoryPage = async (supabaseClient) => {
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
+      totalQuantity += row.quantity;
     });
+
+    const footerRow = document.createElement('tr');
+    const totalLabelCell = document.createElement('td');
+    totalLabelCell.colSpan = 4;
+    totalLabelCell.textContent = 'Total Quantity';
+    totalLabelCell.style.textAlign = 'right';
+    const totalValueCell = document.createElement('td');
+    totalValueCell.textContent = totalQuantity;
+    footerRow.appendChild(totalLabelCell);
+    footerRow.appendChild(totalValueCell);
+    tfoot.appendChild(footerRow);
 
     table.appendChild(thead);
     table.appendChild(tbody);
+    table.appendChild(tfoot);
     modalTableContainer.innerHTML = '';
     modalTableContainer.appendChild(table);
   };
