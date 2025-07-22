@@ -346,6 +346,7 @@ nav ul li i {
 @media (max-width: 768px) {
   .tab-nav {
     flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }
 
@@ -385,6 +386,7 @@ nav ul li i {
 .stock-take .table-container-split {
   display: flex;
   gap: 1rem;
+  overflow-x: auto;
 }
 
 .stock-take .table-wrapper {
