@@ -424,7 +424,7 @@ function handleCellEdit(event) {
     }
 }
 
-async function lookupOrCreateProduct(itemCode, productName, packingSize) {
+async function lookupOrCreateProduct(itemCode, productName, packingSize, supabase) {
     let { data: products, error } = await supabase
         .from('products')
         .select('item_code')

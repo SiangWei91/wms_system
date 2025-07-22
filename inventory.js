@@ -51,17 +51,27 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table rows
     data.forEach(row => {
       const tr = document.createElement('tr');
+      if (['Cold Room 5', 'Cold Room 6', 'Jordon', 'Singlong', 'Lineage', 'Cold Room 1', 'Cold Room 2', 'Blk 15'].includes(row.product_full_name)) {
+        tr.classList.add('collapsible');
+      }
       const total = (row.coldroom5 || 0) + (row.coldroom6 || 0) + (row.jordon || 0) + (row.singlong || 0) + (row.lineage || 0) + (row.coldroom1 || 0) + (row.coldroom2 || 0) + (row.blk15 || 0);
-      const cells = [row.item_code, row.product_full_name, row.packing_size, total, row.coldroom5, row.coldroom6, row.jordon, row.singlong, row.lineage, row.coldroom1, row.coldroom2, row.blk15];
-      const zeroToBlankCols = [4, 5, 6, 7, 8];
-
-      cells.forEach((cellText, index) => {
+      const cells = [
+        row.item_code,
+        row.product_full_name,
+        row.packing_size,
+        total,
+        row.coldroom5 === 0 ? '' : row.coldroom5,
+        row.coldroom6 === 0 ? '' : row.coldroom6,
+        row.jordon === 0 ? '' : row.jordon,
+        row.singlong === 0 ? '' : row.singlong,
+        row.lineage === 0 ? '' : row.lineage,
+        row.coldroom1,
+        row.coldroom2,
+        row.blk15
+      ];
+      cells.forEach(cellText => {
         const td = document.createElement('td');
-        if (zeroToBlankCols.includes(index) && cellText === 0) {
-          td.textContent = '';
-        } else {
-          td.textContent = cellText;
-        }
+        td.textContent = cellText;
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -76,12 +86,13 @@ window.loadInventoryPage = async (supabaseClient) => {
   const data = await fetchProductStockSummary();
   renderTable(data);
 
-  const toggleBtn = document.getElementById('toggle-columns-btn');
-  const tableContainer = document.getElementById('inventory-table-container');
-
-  if (toggleBtn && tableContainer) {
-    toggleBtn.addEventListener('click', () => {
-      tableContainer.classList.toggle('columns-collapsed');
+  const toggleButton = document.getElementById('toggle-button');
+  if (toggleButton) {
+    toggleButton.addEventListener('click', () => {
+      const collapsibleRows = document.querySelectorAll('.collapsible');
+      collapsibleRows.forEach(row => {
+        row.style.display = row.style.display === 'none' ? '' : 'none';
+      });
     });
   }
 };
