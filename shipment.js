@@ -49,6 +49,7 @@ async function openTab(evt, tabName, supabase) {
 
       if (data) {
         const table = renderShipmentTable(data, true, supabase);
+        tableContainer.classList.add('table-container');
         tableContainer.appendChild(table);
       }
     }, 0);

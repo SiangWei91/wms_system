@@ -479,7 +479,8 @@ nav ul li i {
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .data-table {
@@ -492,6 +493,7 @@ nav ul li i {
   padding: 13px; /* Reduced padding */
   text-align: left;
   border-bottom: 1px solid #eee;
+  font-size: 14px;
 }
 
 .data-table th {
