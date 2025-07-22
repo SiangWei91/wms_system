@@ -41,12 +41,9 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table headers
     const headers = ['Item Code', 'Product Name', 'Packing Size', 'Total', 'CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
     const headerRow = document.createElement('tr');
-    headers.forEach((headerText, index) => {
+    headers.forEach(headerText => {
       const th = document.createElement('th');
       th.textContent = headerText;
-      if (index >= 4) {
-        th.classList.add('collapsible-col');
-      }
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -69,12 +66,9 @@ window.loadInventoryPage = async (supabaseClient) => {
         row.coldroom2,
         row.blk15
       ];
-      cells.forEach((cellText, index) => {
+      cells.forEach(cellText => {
         const td = document.createElement('td');
         td.textContent = cellText;
-        if (index >= 4) {
-          td.classList.add('collapsible-col');
-        }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -89,19 +83,4 @@ window.loadInventoryPage = async (supabaseClient) => {
   const data = await fetchProductStockSummary();
   renderTable(data);
 
-  const toggleButton = document.getElementById('toggle-button');
-  if (toggleButton) {
-    toggleButton.addEventListener('click', () => {
-      const collapsibleCols = document.querySelectorAll('.collapsible-col');
-      collapsibleCols.forEach(col => {
-        col.style.display = col.style.display === 'none' ? '' : 'none';
-      });
-    });
-  }
-
-  // Hide columns by default
-  const collapsibleCols = document.querySelectorAll('.collapsible-col');
-  collapsibleCols.forEach(col => {
-    col.style.display = 'none';
-  });
 };
