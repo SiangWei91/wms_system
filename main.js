@@ -97,6 +97,9 @@ const loadContent = async (page) => {
                     } else if (page === 'service-record') {
                         await loadScript('service-record.js');
                         window.loadServiceRecordPage(content, supabaseClient);
+                    } else if (page === 'inventory') {
+                        await loadScript('inventory.js');
+                        window.loadInventoryPage(supabaseClient);
                     }
                 };
 
