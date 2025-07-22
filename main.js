@@ -231,8 +231,11 @@ if (avatarTrigger) {
     });
 }
 
-// Navigation functionality
-if (window.location.pathname.endsWith('app.html')) {
+let eventListenersAttached = false;
+
+function setupEventListeners() {
+    if (eventListenersAttached) return;
+
     const navItems = document.querySelectorAll('nav ul li');
     navItems.forEach(item => {
         item.addEventListener('click', () => {
@@ -243,7 +246,6 @@ if (window.location.pathname.endsWith('app.html')) {
         });
     });
 
-    // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     if (sidebarToggle && sidebar) {
@@ -252,7 +254,6 @@ if (window.location.pathname.endsWith('app.html')) {
         });
     }
 
-    // Hide sidebar when a navigation item is clicked on mobile
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
@@ -260,4 +261,10 @@ if (window.location.pathname.endsWith('app.html')) {
             }
         });
     });
+
+    eventListenersAttached = true;
+}
+
+if (window.location.pathname.endsWith('app.html')) {
+    setupEventListeners();
 }

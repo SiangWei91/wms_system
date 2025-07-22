@@ -667,6 +667,11 @@ nav ul li i {
     left: 0;
   }
 
+  .sidebar nav ul li {
+    font-size: 1.2rem;
+    padding: 15px 20px;
+  }
+
   .main-content {
     margin-left: 0;
   }
