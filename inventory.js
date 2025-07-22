@@ -39,11 +39,14 @@ window.loadInventoryPage = async (supabaseClient) => {
     const tbody = document.createElement('tbody');
 
     // Create table headers
-    const headers = ['Item Code', 'Product Name', 'Packing Size', 'Total', 'Cold Room 5', 'Cold Room 6', 'Jordon', 'Singlong', 'Lineage', 'Cold Room 1', 'Cold Room 2', 'Blk 15'];
+    const headers = ['Item Code', 'Product Name', 'Packing Size', 'Total', 'CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
     const headerRow = document.createElement('tr');
-    headers.forEach(headerText => {
+    headers.forEach((headerText, index) => {
       const th = document.createElement('th');
       th.textContent = headerText;
+      if (index >= 4) {
+        th.classList.add('collapsible-col');
+      }
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -51,9 +54,6 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table rows
     data.forEach(row => {
       const tr = document.createElement('tr');
-      if (['Cold Room 5', 'Cold Room 6', 'Jordon', 'Singlong', 'Lineage', 'Cold Room 1', 'Cold Room 2', 'Blk 15'].includes(row.product_full_name)) {
-        tr.classList.add('collapsible');
-      }
       const total = (row.coldroom5 || 0) + (row.coldroom6 || 0) + (row.jordon || 0) + (row.singlong || 0) + (row.lineage || 0) + (row.coldroom1 || 0) + (row.coldroom2 || 0) + (row.blk15 || 0);
       const cells = [
         row.item_code,
@@ -69,9 +69,12 @@ window.loadInventoryPage = async (supabaseClient) => {
         row.coldroom2,
         row.blk15
       ];
-      cells.forEach(cellText => {
+      cells.forEach((cellText, index) => {
         const td = document.createElement('td');
         td.textContent = cellText;
+        if (index >= 4) {
+          td.classList.add('collapsible-col');
+        }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -89,10 +92,16 @@ window.loadInventoryPage = async (supabaseClient) => {
   const toggleButton = document.getElementById('toggle-button');
   if (toggleButton) {
     toggleButton.addEventListener('click', () => {
-      const collapsibleRows = document.querySelectorAll('.collapsible');
-      collapsibleRows.forEach(row => {
-        row.style.display = row.style.display === 'none' ? '' : 'none';
+      const collapsibleCols = document.querySelectorAll('.collapsible-col');
+      collapsibleCols.forEach(col => {
+        col.style.display = col.style.display === 'none' ? '' : 'none';
       });
     });
   }
+
+  // Hide columns by default
+  const collapsibleCols = document.querySelectorAll('.collapsible-col');
+  collapsibleCols.forEach(col => {
+    col.style.display = 'none';
+  });
 };

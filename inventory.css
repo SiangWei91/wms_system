@@ -17,6 +17,7 @@
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9em;
 }
 
 #inventory-table-container .table th {
@@ -26,6 +27,7 @@
   font-size: 0.9em;
   position: sticky;
   top: 0;
+  z-index: 1;
 }
 
 #inventory-table-container .table tbody tr:hover {
