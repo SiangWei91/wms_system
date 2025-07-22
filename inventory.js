@@ -79,6 +79,23 @@ window.loadInventoryPage = async (supabaseClient) => {
         }
         tr.appendChild(td);
       });
+
+      tr.addEventListener('click', async () => {
+        const itemCode = row.item_code;
+        const { data: transactions, error } = await supabaseClient
+          .from('transactions')
+          .select('*')
+          .eq('product_code', itemCode);
+
+        if (error) {
+          console.error('Error fetching transactions:', error);
+          return;
+        }
+
+        renderModalTable(transactions);
+        document.getElementById('transaction-modal').style.display = 'block';
+      });
+
       tbody.appendChild(tr);
     });
 
@@ -88,16 +105,71 @@ window.loadInventoryPage = async (supabaseClient) => {
     tableContainer.appendChild(table);
   };
 
+  const renderModalTable = (data) => {
+    const modalTableContainer = document.getElementById('modal-table-container');
+    if (!modalTableContainer) return;
+
+    const table = document.createElement('table');
+    table.className = 'table';
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    const headers = ['Date', 'Type', 'Warehouse', 'Batch No', 'Quantity', 'Operator'];
+    const headerRow = document.createElement('tr');
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      const cells = [
+        new Date(row.transaction_date).toLocaleDateString(),
+        row.type,
+        row.warehouse_id,
+        row.batch_no,
+        row.quantity,
+        row.operator_id
+      ];
+      cells.forEach(cellText => {
+        const td = document.createElement('td');
+        td.textContent = cellText;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    modalTableContainer.innerHTML = '';
+    modalTableContainer.appendChild(table);
+  };
+
   const data = await fetchProductStockSummary();
   renderTable(data);
 
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
-    toggleButton.innerHTML = columnsHidden ? '&#x21E4;&#x21E5;' : '&#x21E5;&#x21E4;'; // Inward and Outward arrows
+    toggleButton.innerHTML = columnsHidden ? '&#x2795;' : '&#x2796;'; // Plus and Minus
     toggleButton.addEventListener('click', () => {
       columnsHidden = !columnsHidden;
-      toggleButton.innerHTML = columnsHidden ? '&#x21E4;&#x21E5;' : '&#x21E5;&#x21E4;';
+      toggleButton.innerHTML = columnsHidden ? '&#x2795;' : '&#x2796;';
       renderTable(data);
+    });
+  }
+
+  const modal = document.getElementById('transaction-modal');
+  const closeButton = document.querySelector('.close-button');
+  if (modal && closeButton) {
+    closeButton.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    window.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
     });
   }
 };
