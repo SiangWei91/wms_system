@@ -93,10 +93,10 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
-    toggleButton.innerHTML = columnsHidden ? '&#x25BC;' : '&#x25B2;'; // Down and Up arrows
+    toggleButton.innerHTML = columnsHidden ? '&#x219C;' : '&#x219B;'; // Outward and Inward arrows
     toggleButton.addEventListener('click', () => {
       columnsHidden = !columnsHidden;
-      toggleButton.innerHTML = columnsHidden ? '&#x25BC;' : '&#x25B2;';
+      toggleButton.innerHTML = columnsHidden ? '&#x219C;' : '&#x219B;';
       renderTable(data);
     });
   }
