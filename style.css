@@ -343,6 +343,12 @@ nav ul li i {
   margin-bottom: 10px;
 }
 
+@media (max-width: 768px) {
+  .tab-nav {
+    flex-wrap: wrap;
+  }
+}
+
 .tab-link {
   padding: 10px 20px;
   cursor: pointer;
