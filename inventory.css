@@ -1,15 +1,15 @@
 #toggle-columns-btn {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 10px 20px;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 5px 10px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
+  font-size: 14px;
   margin: 4px 2px;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .inventory {
@@ -17,8 +17,14 @@
 }
 
 #inventory-table-container {
-  max-height: 500px; /* Adjust as needed */
+  max-height: 800px;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+#inventory-table-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
 }
 
 .table {
