@@ -29,6 +29,8 @@ window.loadInventoryPage = async (supabaseClient) => {
     return joinedData;
   };
 
+  let columnsHidden = false;
+
   const renderTable = (data) => {
     const tableContainer = document.getElementById('inventory-table-container');
     if (!tableContainer) return;
@@ -41,9 +43,12 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table headers
     const headers = ['Item Code', 'Product Name', 'Packing Size', 'Total', 'CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
     const headerRow = document.createElement('tr');
-    headers.forEach(headerText => {
+    headers.forEach((headerText, index) => {
       const th = document.createElement('th');
       th.textContent = headerText;
+      if (columnsHidden && index >= 4 && index <= 11) {
+        th.classList.add('hidden');
+      }
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -66,9 +71,12 @@ window.loadInventoryPage = async (supabaseClient) => {
         row.coldroom2,
         row.blk15
       ];
-      cells.forEach(cellText => {
+      cells.forEach((cellText, index) => {
         const td = document.createElement('td');
         td.textContent = cellText;
+        if (columnsHidden && index >= 4 && index <= 11) {
+          td.classList.add('hidden');
+        }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -83,4 +91,11 @@ window.loadInventoryPage = async (supabaseClient) => {
   const data = await fetchProductStockSummary();
   renderTable(data);
 
+  const toggleButton = document.getElementById('toggle-columns-btn');
+  if (toggleButton) {
+    toggleButton.addEventListener('click', () => {
+      columnsHidden = !columnsHidden;
+      renderTable(data);
+    });
+  }
 };
