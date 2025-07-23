@@ -129,8 +129,8 @@
       }
 
       const groups = {};
-      inventorySummaryTableBody.querySelectorAll('tr').forEach(row => {
-        const mixPallet = row.cells[11] ? row.cells[11].textContent : null;
+      inventorySummaryTableBody.querySelectorAll('tr').forEach((row, index) => {
+        const mixPallet = inventoryData[index].details.mixPallet;
         const dateStored = row.cells[7].textContent;
         if (mixPallet) {
           const key = `${mixPallet}-${dateStored}`;
@@ -139,11 +139,15 @@
           }
           groups[key].push(row);
         }
+        row.cells[11].style.display = 'none';
       });
 
+      let colorIndex = 0;
+      const colors = ['#FFDDC1', '#FFD1DC', '#D1FFDC', '#D1DCFF', '#FFDCD1'];
       for (const key in groups) {
         if (groups[key].length > 1) {
-          const color = `hsl(${Math.random() * 360}, 100%, 90%)`;
+          const color = colors[colorIndex % colors.length];
+          colorIndex++;
           groups[key].forEach(row => {
             row.cells[9].style.backgroundColor = color;
             row.cells[10].style.backgroundColor = color;
