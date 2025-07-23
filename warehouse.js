@@ -42,8 +42,8 @@
                 <td>${item.item_code}</td>
                 <td>${product.product_name || ''}</td>
                 <td>${product.packing_size || ''}</td>
-                <td><input type="text" value="${item.details.palletType}"></td>
-                <td><input type="text" value="${item.details.location}"></td>
+                <td><input type="text" value="LC"></td>
+                <td><input type="text" value="LC01"></td>
                 <td>${item.batch_no}</td>
                 <td><input type="text" value="${item.details.lotNumber}"></td>
                 <td>${item.details.dateStored}</td>
@@ -57,8 +57,8 @@
                 <td>${item.item_code}</td>
                 <td>${product.product_name || ''}</td>
                 <td>${product.packing_size || ''}</td>
-                <td><input type="text" value="${item.details.palletType}"></td>
-                <td><input type="text" value="${item.details.location}"></td>
+                <td><input type="text" value="LLM"></td>
+                <td><input type="text" class="location-input" value=""></td>
                 <td>${item.batch_no}</td>
                 <td>${item.details.llm_item_code || ''}</td>
                 <td>${item.details.dateStored}</td>
@@ -102,6 +102,18 @@
             inventorySummaryTableBody.appendChild(row);
           }
         });
+
+      if (warehouseId === 'lineage') {
+        const locationInputs = document.querySelectorAll('.location-input');
+        if (locationInputs.length > 0) {
+          locationInputs[0].addEventListener('input', (e) => {
+            const firstLocation = e.target.value;
+            for (let i = 1; i < locationInputs.length; i++) {
+              locationInputs[i].value = firstLocation;
+            }
+          });
+        }
+      }
       } catch (error) {
         console.error('Error loading inventory data:', error);
       }
