@@ -235,7 +235,7 @@
             const id = row.querySelector('.delete-btn').dataset.id;
             const palletType = row.querySelector('input[type="text"]').value;
             const location = row.querySelector('.location-input, .lot-number-input').value;
-            const mixPallet = row.querySelector('.short-input[value=""]').value;
+            const mixPallet = row.cells[11].querySelector('.short-input').value;
             const pallet = Number(row.cells[10].textContent);
 
             if ((warehouseId === 'jordon' && !location) || (warehouseId === 'lineage' && !location)) {
