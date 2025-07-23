@@ -297,6 +297,7 @@
         };
 
         const handleModalSubmit = () => {
+          console.log(`handleModalSubmit called for warehouse: ${warehouseId}`);
           const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
           const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
           let errorShown = false;
