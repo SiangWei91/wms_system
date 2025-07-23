@@ -92,6 +92,7 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
+                <td>${item.details.mixPallet || ''}</td>
               `;
             } else if (warehouseId === 'lineage') {
               row.innerHTML = `
@@ -106,6 +107,7 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
+                <td>${item.details.mixPallet || ''}</td>
               `;
             }
             inventorySummaryTableBody.appendChild(row);
@@ -118,12 +120,35 @@
       if (summaryFooter) {
         summaryFooter.innerHTML = `
           <tr>
-            <td colspan="8">Total:</td>
+            <td colspan="9">Total:</td>
             <td>${summaryTotalQuantity}</td>
             <td>${summaryTotalPallet}</td>
             <td></td>
           </tr>
         `;
+      }
+
+      const groups = {};
+      inventorySummaryTableBody.querySelectorAll('tr').forEach(row => {
+        const mixPallet = row.cells[11] ? row.cells[11].textContent : null;
+        const dateStored = row.cells[7].textContent;
+        if (mixPallet) {
+          const key = `${mixPallet}-${dateStored}`;
+          if (!groups[key]) {
+            groups[key] = [];
+          }
+          groups[key].push(row);
+        }
+      });
+
+      for (const key in groups) {
+        if (groups[key].length > 1) {
+          const color = `hsl(${Math.random() * 360}, 100%, 90%)`;
+          groups[key].forEach(row => {
+            row.cells[9].style.backgroundColor = color;
+            row.cells[10].style.backgroundColor = color;
+          });
+        }
       }
 
       const stockInFooter = document.querySelector(`#${warehouseId}-stock-in-table tfoot`);
