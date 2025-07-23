@@ -71,7 +71,7 @@ nav ul li.active {
 
 .sub-menu {
   list-style: none;
-  padding-left: 20px;
+  padding-left: 0;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-in-out;
@@ -79,6 +79,10 @@ nav ul li.active {
 
 .sub-menu.open {
   max-height: 500px; /* Adjust as needed */
+}
+
+.sub-menu li {
+  padding-left: 40px;
 }
 
 nav ul li.active .sub-menu {
