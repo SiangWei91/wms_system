@@ -123,7 +123,6 @@
             <td colspan="9">Total:</td>
             <td>${summaryTotalQuantity}</td>
             <td>${summaryTotalPallet}</td>
-            <td></td>
           </tr>
         `;
       }
@@ -156,10 +155,9 @@
       if (stockInFooter) {
         stockInFooter.innerHTML = `
           <tr>
-            <td colspan="9">Total:</td>
+            <td colspan="10">Total:</td>
             <td>${stockInTotalQuantity}</td>
             <td>${stockInTotalPallet}</td>
-            <td></td>
             <td></td>
           </tr>
         `;
