@@ -107,6 +107,9 @@ const loadContent = async (page) => {
                         if (window.loadInventoryPage) {
                             window.loadInventoryPage(supabaseClient);
                         }
+                    } else if (page === 'jordon' || page === 'lineage' || page === 'sing-long') {
+                        const response = await fetch('templates/coming-soon.html');
+                        content.innerHTML = await response.text();
                     }
                 };
 
@@ -238,10 +241,14 @@ function setupEventListeners() {
 
     const navItems = document.querySelectorAll('nav ul li');
     navItems.forEach(item => {
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
             const page = item.getAttribute('data-page');
             if (page) {
-                navigateTo(page);
+                if (page === 'public-warehouse-main') {
+                    e.currentTarget.classList.toggle('active');
+                } else {
+                    navigateTo(page);
+                }
             }
         });
     });
