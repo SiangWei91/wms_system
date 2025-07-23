@@ -38,30 +38,19 @@ const handleAuthError = (error) => {
     }
 };
 
-const loadedScripts = new Set();
-
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        if (loadedScripts.has(url)) {
-            resolve();
-            return;
-        }
-
         console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
-
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
-            loadedScripts.add(url);
             resolve();
         };
-
         script.onerror = (error) => {
             console.error(`❌ Script failed to load: ${url}`, error);
             reject(new Error(`Failed to load script: ${url}`));
         };
-
         document.head.appendChild(script);
     });
 };
