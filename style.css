@@ -115,6 +115,10 @@ nav ul li i {
   text-align: left;
 }
 
+.data-table .short-input {
+  width: 100px;
+}
+
 .tab-nav {
   display: flex;
   border-bottom: 2px solid #ccc;

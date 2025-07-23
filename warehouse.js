@@ -42,30 +42,30 @@
                 <td>${item.item_code}</td>
                 <td>${product.product_name || ''}</td>
                 <td>${product.packing_size || ''}</td>
-                <td><input type="text" value="LC"></td>
-                <td><input type="text" value="LC01"></td>
+                <td><input type="text" class="short-input" value="LC"></td>
+                <td><input type="text" class="short-input" value="LC01"></td>
                 <td>${item.batch_no}</td>
-                <td><input type="text" value="${item.details.lotNumber}"></td>
+                <td><input type="text" class="lot-number-input" value="${item.details.lotNumber}"></td>
                 <td>${item.details.dateStored}</td>
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
-                <td><input type="text" value=""></td>
+                <td><input type="text" class="short-input" value=""></td>
               `;
             } else if (warehouseId === 'lineage') {
               row.innerHTML = `
                 <td>${item.item_code}</td>
                 <td>${product.product_name || ''}</td>
                 <td>${product.packing_size || ''}</td>
-                <td><input type="text" value="LLM"></td>
-                <td><input type="text" class="location-input" value=""></td>
+                <td><input type="text" class="short-input" value="LLM"></td>
+                <td><input type="text" class="location-input short-input" value=""></td>
                 <td>${item.batch_no}</td>
                 <td>${item.details.llm_item_code || ''}</td>
                 <td>${item.details.dateStored}</td>
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
-                <td><input type="text" value=""></td>
+                <td><input type="text" class="short-input" value=""></td>
               `;
             }
             stockInTableBody.appendChild(row);
@@ -110,6 +110,16 @@
             const firstLocation = e.target.value;
             for (let i = 1; i < locationInputs.length; i++) {
               locationInputs[i].value = firstLocation;
+            }
+          });
+        }
+      } else if (warehouseId === 'jordon') {
+        const lotNumberInputs = document.querySelectorAll('.lot-number-input');
+        if (lotNumberInputs.length > 0) {
+          lotNumberInputs[0].addEventListener('input', (e) => {
+            const firstLotNumber = e.target.value;
+            for (let i = 1; i < lotNumberInputs.length; i++) {
+              lotNumberInputs[i].value = firstLotNumber;
             }
           });
         }
