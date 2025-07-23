@@ -38,20 +38,30 @@ const handleAuthError = (error) => {
     }
 };
 
+const loadedScripts = new Set();
+
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        // Always create a new script element to ensure re-execution
+        if (loadedScripts.has(url)) {
+            resolve();
+            return;
+        }
+
         console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
+
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
+            loadedScripts.add(url);
             resolve();
         };
+
         script.onerror = (error) => {
             console.error(`❌ Script failed to load: ${url}`, error);
             reject(new Error(`Failed to load script: ${url}`));
         };
+
         document.head.appendChild(script);
     });
 };
@@ -96,10 +106,12 @@ const loadContent = async (page) => {
                     } else if (page === 'jordon') {
                         await loadScript('warehouse.js');
                         await loadScript('jordon.js');
+                        await loadScript('tabs.js');
                         window.loadJordonPage(supabaseClient);
                     } else if (page === 'lineage') {
                         await loadScript('warehouse.js');
                         await loadScript('lineage.js');
+                        await loadScript('tabs.js');
                         window.loadLineagePage(supabaseClient);
                     } else if (page === 'sing-long') {
                         navigateTo('coming-soon');
