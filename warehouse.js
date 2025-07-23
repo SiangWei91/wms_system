@@ -92,7 +92,6 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
-                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             } else if (warehouseId === 'lineage') {
               row.innerHTML = `
@@ -107,7 +106,6 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
-                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             }
             inventorySummaryTableBody.appendChild(row);
@@ -145,13 +143,33 @@
       deleteButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
           const id = e.target.dataset.id;
-          const { error } = await supabaseClient
+          const { data: inventoryItem, error: fetchError } = await supabaseClient
+            .from('inventory')
+            .select('item_code, batch_no')
+            .eq('id', id)
+            .single();
+
+          if (fetchError) {
+            console.error('Error fetching item for deletion:', fetchError);
+            return;
+          }
+
+          const { error: transactionError } = await supabaseClient
+            .from('transactions')
+            .delete()
+            .match({ item_code: inventoryItem.item_code, batch_no: inventoryItem.batch_no, warehouse_id: warehouseId });
+
+          if (transactionError) {
+            console.error('Error deleting transaction:', transactionError);
+          }
+
+          const { error: inventoryError } = await supabaseClient
             .from('inventory')
             .delete()
             .eq('id', id);
 
-          if (error) {
-            console.error('Error deleting item:', error);
+          if (inventoryError) {
+            console.error('Error deleting item:', inventoryError);
           } else {
             loadInventoryData();
           }
