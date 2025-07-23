@@ -119,7 +119,7 @@
       const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
       summaryTableRows.forEach(row => {
         row.addEventListener('click', () => {
-          const modal = document.getElementById('jordon-withdrawal-modal');
+          const modal = document.querySelector('.jordon-withdrawal-modal');
           const productName = row.cells[1].textContent;
           const packingSize = row.cells[2].textContent;
           const batchNo = row.cells[5].textContent;
@@ -246,7 +246,7 @@
         }
       }
 
-      const modal = document.getElementById('jordon-withdrawal-modal');
+      const modal = document.querySelector('.jordon-withdrawal-modal');
       const closeButton = document.getElementById('jordon-modal-close-button');
       const modalSubmitButton = document.getElementById('modal-submit-btn');
 
