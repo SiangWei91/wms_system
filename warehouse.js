@@ -116,6 +116,30 @@
           }
         });
 
+      const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
+      summaryTableRows.forEach(row => {
+        row.addEventListener('click', () => {
+          const modal = document.getElementById('jordon-withdrawal-modal');
+          const productName = row.cells[1].textContent;
+          const packingSize = row.cells[2].textContent;
+          const batchNo = row.cells[5].textContent;
+          const location = row.cells[4].textContent;
+          const lotNumber = row.cells[6].textContent;
+          const currentQuantity = row.cells[9].textContent;
+          const currentPallet = row.cells[10].textContent;
+
+          document.getElementById('modal-product-name').textContent = productName;
+          document.getElementById('modal-packing-size').textContent = packingSize;
+          document.getElementById('modal-batch-no').textContent = batchNo;
+          document.getElementById('modal-location').textContent = location;
+          document.getElementById('modal-lot-number').textContent = lotNumber;
+          document.getElementById('modal-current-quantity').textContent = currentQuantity;
+          document.getElementById('modal-current-pallet').textContent = currentPallet;
+
+          modal.style.display = 'flex';
+        });
+      });
+
       const summaryFooter = document.querySelector(`#${warehouseId}-inventory-summary-table tfoot`);
       if (summaryFooter) {
         summaryFooter.innerHTML = `
@@ -220,6 +244,54 @@
             }
           });
         }
+      }
+
+      const modal = document.getElementById('jordon-withdrawal-modal');
+      const closeButton = document.getElementById('jordon-modal-close-button');
+      const modalSubmitButton = document.getElementById('modal-submit-btn');
+
+      if(modal) {
+        closeButton.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+
+        modalSubmitButton.addEventListener('click', () => {
+          const withdrawQuantity = Number(document.getElementById('withdraw-quantity').value);
+          const withdrawPallet = Number(document.getElementById('withdraw-pallet').value);
+          const currentQuantity = Number(document.getElementById('modal-current-quantity').textContent);
+          const currentPallet = Number(document.getElementById('modal-current-pallet').textContent);
+
+          if (withdrawQuantity > currentQuantity) {
+            alert('Withdraw quantity cannot be greater than current quantity.');
+            return;
+          }
+
+          if (withdrawPallet > currentPallet) {
+            alert('Withdraw pallet cannot be greater than current pallet.');
+            return;
+          }
+
+          const productName = document.getElementById('modal-product-name').textContent;
+          const packingSize = document.getElementById('modal-packing-size').textContent;
+          const batchNo = document.getElementById('modal-batch-no').textContent;
+          const location = document.getElementById('modal-location').textContent;
+          const lotNumber = document.getElementById('modal-lot-number').textContent;
+
+          const stockOutTableBody = document.querySelector('#jordon-stock-out-table tbody');
+          const newRow = document.createElement('tr');
+          newRow.innerHTML = `
+            <td>${productName}</td>
+            <td>${packingSize}</td>
+            <td>${batchNo}</td>
+            <td>${location}</td>
+            <td>${lotNumber}</td>
+            <td>${withdrawQuantity}</td>
+            <td>${withdrawPallet}</td>
+          `;
+          stockOutTableBody.appendChild(newRow);
+
+          modal.style.display = 'none';
+        });
       }
 
       const submitButton = document.querySelector(`#${warehouseId}-submit-btn`);

@@ -127,6 +127,12 @@ nav ul li i {
   cursor: pointer;
 }
 
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
 .tab-nav {
   display: flex;
   border-bottom: 2px solid #ccc;
