@@ -117,24 +117,44 @@
         });
 
       const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
-      summaryTableRows.forEach(row => {
+      summaryTableRows.forEach((row, index) => {
         row.addEventListener('click', () => {
           const modal = document.querySelector('.jordon-withdrawal-modal');
-          const productName = row.cells[1].textContent;
-          const packingSize = row.cells[2].textContent;
-          const batchNo = row.cells[5].textContent;
-          const location = row.cells[4].textContent;
-          const lotNumber = row.cells[6].textContent;
-          const currentQuantity = row.cells[9].textContent;
-          const currentPallet = row.cells[10].textContent;
+          const modalBody = document.getElementById('jordon-modal-body');
+          modalBody.innerHTML = '';
 
-          document.getElementById('modal-product-name').textContent = productName;
-          document.getElementById('modal-packing-size').textContent = packingSize;
-          document.getElementById('modal-batch-no').textContent = batchNo;
-          document.getElementById('modal-location').textContent = location;
-          document.getElementById('modal-lot-number').textContent = lotNumber;
-          document.getElementById('modal-current-quantity').textContent = currentQuantity;
-          document.getElementById('modal-current-pallet').textContent = currentPallet;
+          const item = inventoryData[index];
+          const mixPallet = item.details.mixPallet;
+          const dateStored = item.details.dateStored;
+
+          let itemsToShow = [item];
+          if (mixPallet) {
+            itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
+          }
+
+          itemsToShow.forEach(itemToShow => {
+            const product = productsMap.get(itemToShow.item_code) || {};
+            const itemElement = document.createElement('div');
+            itemElement.innerHTML = `
+              <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
+              <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
+              <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
+              <p><strong>Location:</strong> ${itemToShow.details.location}</p>
+              <p><strong>Lot Number:</strong> ${itemToShow.details.lotNumber}</p>
+              <p><strong>Current Quantity:</strong> ${itemToShow.quantity}</p>
+              <p><strong>Current Pallet:</strong> ${itemToShow.details.pallet}</p>
+              <div class="form-group">
+                <label>Withdraw Quantity:</label>
+                <input type="number" class="withdraw-quantity" min="0" data-item-id="${itemToShow.id}">
+              </div>
+              <div class="form-group">
+                <label>Withdraw Pallet:</label>
+                <input type="number" class="withdraw-pallet" min="0" data-item-id="${itemToShow.id}">
+              </div>
+              <hr>
+            `;
+            modalBody.appendChild(itemElement);
+          });
 
           modal.style.display = 'flex';
         });
@@ -256,39 +276,47 @@
         });
 
         modalSubmitButton.addEventListener('click', () => {
-          const withdrawQuantity = Number(document.getElementById('withdraw-quantity').value);
-          const withdrawPallet = Number(document.getElementById('withdraw-pallet').value);
-          const currentQuantity = Number(document.getElementById('modal-current-quantity').textContent);
-          const currentPallet = Number(document.getElementById('modal-current-pallet').textContent);
-
-          if (withdrawQuantity > currentQuantity) {
-            alert('Withdraw quantity cannot be greater than current quantity.');
-            return;
-          }
-
-          if (withdrawPallet > currentPallet) {
-            alert('Withdraw pallet cannot be greater than current pallet.');
-            return;
-          }
-
-          const productName = document.getElementById('modal-product-name').textContent;
-          const packingSize = document.getElementById('modal-packing-size').textContent;
-          const batchNo = document.getElementById('modal-batch-no').textContent;
-          const location = document.getElementById('modal-location').textContent;
-          const lotNumber = document.getElementById('modal-lot-number').textContent;
-
           const stockOutTableBody = document.querySelector('#jordon-stock-out-table tbody');
-          const newRow = document.createElement('tr');
-          newRow.innerHTML = `
-            <td>${productName}</td>
-            <td>${packingSize}</td>
-            <td>${batchNo}</td>
-            <td>${location}</td>
-            <td>${lotNumber}</td>
-            <td>${withdrawQuantity}</td>
-            <td>${withdrawPallet}</td>
-          `;
-          stockOutTableBody.appendChild(newRow);
+          const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
+
+          withdrawalItems.forEach(itemElement => {
+            const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
+            const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
+            const batchNo = itemElement.querySelector('p:nth-child(3)').textContent.replace('Batch No: ', '');
+            const location = itemElement.querySelector('p:nth-child(4)').textContent.replace('Location: ', '');
+            const lotNumber = itemElement.querySelector('p:nth-child(5)').textContent.replace('Lot Number: ', '');
+            const currentQuantity = Number(itemElement.querySelector('p:nth-child(6)').textContent.replace('Current Quantity: ', ''));
+            const currentPallet = Number(itemElement.querySelector('p:nth-child(7)').textContent.replace('Current Pallet: ', ''));
+
+            const withdrawQuantityInput = itemElement.querySelector('.withdraw-quantity');
+            const withdrawPalletInput = itemElement.querySelector('.withdraw-pallet');
+            const withdrawQuantity = Number(withdrawQuantityInput.value);
+            const withdrawPallet = Number(withdrawPalletInput.value);
+
+            if (withdrawQuantity > 0 || withdrawPallet > 0) {
+              if (withdrawQuantity > currentQuantity) {
+                alert(`Withdraw quantity for ${productName} cannot be greater than current quantity.`);
+                return;
+              }
+
+              if (withdrawPallet > currentPallet) {
+                alert(`Withdraw pallet for ${productName} cannot be greater than current pallet.`);
+                return;
+              }
+
+              const newRow = document.createElement('tr');
+              newRow.innerHTML = `
+                <td>${productName}</td>
+                <td>${packingSize}</td>
+                <td>${batchNo}</td>
+                <td>${location}</td>
+                <td>${lotNumber}</td>
+                <td>${withdrawQuantity}</td>
+                <td>${withdrawPallet}</td>
+              `;
+              stockOutTableBody.appendChild(newRow);
+            }
+          });
 
           modal.style.display = 'none';
         });
