@@ -20,12 +20,16 @@ const createWarehousePage = (warehouseId, supabaseClient) => {
 
       const productsMap = new Map(productsData.map(p => [p.item_code, p]));
 
-      const tableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
-      if (!tableBody) {
-        console.error(`Table body not found for ${warehouseId}`);
+      const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
+      const stockInTableBody = document.querySelector(`#${warehouseId}-stock-in-table tbody`);
+
+      if (!inventorySummaryTableBody || !stockInTableBody) {
+        console.error(`Table bodies not found for ${warehouseId}`);
         return;
       }
-      tableBody.innerHTML = ''; // Clear existing data
+
+      inventorySummaryTableBody.innerHTML = '';
+      stockInTableBody.innerHTML = '';
 
       inventoryData.forEach(item => {
         const product = productsMap.get(item.item_code) || {};
@@ -59,7 +63,12 @@ const createWarehousePage = (warehouseId, supabaseClient) => {
             <td>${item.details.pallet}</td>
           `;
         }
-        tableBody.appendChild(row);
+
+        if (item.details.status === 'Pending') {
+          stockInTableBody.appendChild(row);
+        } else {
+          inventorySummaryTableBody.appendChild(row);
+        }
       });
     } catch (error) {
       console.error('Error loading inventory data:', error);
