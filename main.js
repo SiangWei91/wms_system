@@ -40,32 +40,18 @@ const handleAuthError = (error) => {
 
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
-        const existingScript = document.querySelector(`script[src="${url}"]`);
-        if (existingScript) {
-            console.log(`Script already loaded: ${url}`);
-            // Ensure the script is fully parsed before resolving
-            if (window.loadInventoryPage) {
-                resolve();
-            } else {
-                existingScript.addEventListener('load', () => resolve());
-            }
-            return;
-        }
-
+        // Always create a new script element to ensure re-execution
         console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
-
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
             resolve();
         };
-
         script.onerror = (error) => {
             console.error(`❌ Script failed to load: ${url}`, error);
             reject(new Error(`Failed to load script: ${url}`));
         };
-
         document.head.appendChild(script);
     });
 };
