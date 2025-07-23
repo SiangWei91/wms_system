@@ -77,6 +77,10 @@ nav ul li.active {
   transition: max-height 0.3s ease-in-out;
 }
 
+.sub-menu.open {
+  max-height: 500px; /* Adjust as needed */
+}
+
 nav ul li.active .sub-menu {
   max-height: 500px; /* Adjust as needed */
 }
