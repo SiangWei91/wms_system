@@ -227,7 +227,8 @@
             };
 
             if (warehouseId === 'jordon') {
-              updatedDetails.lotNumber = location;
+              updatedDetails.lotNumber = row.querySelector('.lot-number-input').value;
+              updatedDetails.location = row.querySelector('.short-input[value="LC01"]').value;
             } else {
               updatedDetails.location = location;
             }
