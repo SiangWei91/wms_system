@@ -128,15 +128,28 @@
           const currentQuantity = row.cells[9].textContent;
           const currentPallet = row.cells[10].textContent;
 
-          document.getElementById('modal-product-name').textContent = productName;
-          document.getElementById('modal-packing-size').textContent = packingSize;
-          document.getElementById('modal-batch-no').textContent = batchNo;
-          document.getElementById('modal-location').textContent = location;
-          document.getElementById('modal-lot-number').textContent = lotNumber;
-          document.getElementById('modal-current-quantity').textContent = currentQuantity;
-          document.getElementById('modal-current-pallet').textContent = currentPallet;
+          const modalProductName = document.getElementById('modal-product-name');
+          if (modalProductName) modalProductName.textContent = productName;
 
-          modal.style.display = 'flex';
+          const modalPackingSize = document.getElementById('modal-packing-size');
+          if (modalPackingSize) modalPackingSize.textContent = packingSize;
+
+          const modalBatchNo = document.getElementById('modal-batch-no');
+          if (modalBatchNo) modalBatchNo.textContent = batchNo;
+
+          const modalLocation = document.getElementById('modal-location');
+          if (modalLocation) modalLocation.textContent = location;
+
+          const modalLotNumber = document.getElementById('modal-lot-number');
+          if (modalLotNumber) modalLotNumber.textContent = lotNumber;
+
+          const modalCurrentQuantity = document.getElementById('modal-current-quantity');
+          if (modalCurrentQuantity) modalCurrentQuantity.textContent = currentQuantity;
+
+          const modalCurrentPallet = document.getElementById('modal-current-pallet');
+          if (modalCurrentPallet) modalCurrentPallet.textContent = currentPallet;
+
+          if (modal) modal.style.display = 'flex';
         });
       });
 
@@ -256,10 +269,19 @@
         });
 
         modalSubmitButton.addEventListener('click', () => {
-          const withdrawQuantity = Number(document.getElementById('withdraw-quantity').value);
-          const withdrawPallet = Number(document.getElementById('withdraw-pallet').value);
-          const currentQuantity = Number(document.getElementById('modal-current-quantity').textContent);
-          const currentPallet = Number(document.getElementById('modal-current-pallet').textContent);
+          const withdrawQuantityInput = document.getElementById('withdraw-quantity');
+          const withdrawPalletInput = document.getElementById('withdraw-pallet');
+          const currentQuantitySpan = document.getElementById('modal-current-quantity');
+          const currentPalletSpan = document.getElementById('modal-current-pallet');
+
+          if (!withdrawQuantityInput || !withdrawPalletInput || !currentQuantitySpan || !currentPalletSpan) {
+            return;
+          }
+
+          const withdrawQuantity = Number(withdrawQuantityInput.value);
+          const withdrawPallet = Number(withdrawPalletInput.value);
+          const currentQuantity = Number(currentQuantitySpan.textContent);
+          const currentPallet = Number(currentPalletSpan.textContent);
 
           if (withdrawQuantity > currentQuantity) {
             alert('Withdraw quantity cannot be greater than current quantity.');
