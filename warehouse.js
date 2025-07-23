@@ -179,6 +179,59 @@
           });
         }
       }
+
+      const submitButton = document.querySelector(`#${warehouseId}-submit-btn`);
+      if (submitButton) {
+        submitButton.addEventListener('click', async () => {
+          const stockInRows = stockInTableBody.querySelectorAll('tr');
+          const updates = [];
+          let validationError = false;
+
+          stockInRows.forEach(row => {
+            const id = row.querySelector('.delete-btn').dataset.id;
+            const palletType = row.querySelector('input[type="text"]').value;
+            const location = row.querySelector('.location-input, .lot-number-input').value;
+            const mixPallet = row.querySelector('.short-input[value=""]').value;
+            const pallet = Number(row.cells[10].textContent);
+
+            if ((warehouseId === 'jordon' && !location) || (warehouseId === 'lineage' && !location)) {
+              validationError = true;
+              alert('Please fill in all Lot Numbers or Locations.');
+            }
+
+            if (pallet === 0 && !mixPallet) {
+              validationError = true;
+              alert('Please fill in the Mix Pallet for rows with 0 pallet.');
+            }
+
+            updates.push({
+              id,
+              details: {
+                palletType,
+                location,
+                status: 'Complete',
+                mixPallet,
+              },
+            });
+          });
+
+          if (validationError) {
+            return;
+          }
+
+          const { error } = await supabaseClient
+            .from('inventory')
+            .upsert(updates);
+
+          if (error) {
+            console.error('Error updating records:', error);
+            alert('Error submitting records.');
+          } else {
+            alert('Records submitted successfully.');
+            loadInventoryData();
+          }
+        });
+      }
       } catch (error) {
         console.error('Error loading inventory data:', error);
       }
