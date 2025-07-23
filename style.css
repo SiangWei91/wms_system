@@ -70,13 +70,15 @@ nav ul li.active {
 }
 
 .sub-menu {
-  display: none;
   list-style: none;
   padding-left: 20px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
 }
 
 nav ul li.active .sub-menu {
-  display: block;
+  max-height: 500px; /* Adjust as needed */
 }
 
 nav ul li i {

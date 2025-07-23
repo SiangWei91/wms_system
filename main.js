@@ -108,8 +108,7 @@ const loadContent = async (page) => {
                             window.loadInventoryPage(supabaseClient);
                         }
                     } else if (page === 'jordon' || page === 'lineage' || page === 'sing-long') {
-                        const response = await fetch('templates/coming-soon.html');
-                        content.innerHTML = await response.text();
+                        navigateTo('coming-soon');
                     }
                 };
 
