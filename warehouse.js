@@ -142,12 +142,9 @@
         row.cells[11].style.display = 'none';
       });
 
-      let colorIndex = 0;
-      const colors = ['#FFDDC1', '#FFD1DC', '#D1FFDC', '#D1DCFF', '#FFDCD1'];
       for (const key in groups) {
         if (groups[key].length > 1) {
-          const color = colors[colorIndex % colors.length];
-          colorIndex++;
+          const color = `hsl(${Math.random() * 360}, 100%, 90%)`;
           groups[key].forEach(row => {
             row.cells[9].style.backgroundColor = color;
             row.cells[10].style.backgroundColor = color;
