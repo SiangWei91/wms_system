@@ -132,7 +132,13 @@
             itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
           }
 
-          itemsToShow.forEach(itemToShow => {
+          if (itemsToShow.length > 1) {
+            modal.classList.add('wide');
+          } else {
+            modal.classList.remove('wide');
+          }
+
+          itemsToShow.forEach((itemToShow, itemIndex) => {
             const product = productsMap.get(itemToShow.item_code) || {};
             const itemElement = document.createElement('div');
             itemElement.innerHTML = `
@@ -140,7 +146,7 @@
               <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
               <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
               <p><strong>Location:</strong> ${itemToShow.details.location}</p>
-              <p><strong>Lot Number:</strong> ${itemToShow.details.lotNumber}</p>
+              <p><strong>${warehouseId === 'lineage' ? 'LLM Item Code:' : 'Lot Number:'}</strong> ${warehouseId === 'lineage' ? itemToShow.details.llm_item_code : itemToShow.details.lotNumber}</p>
               <p><strong>Current Quantity:</strong> ${itemToShow.quantity}</p>
               <p><strong>Current Pallet:</strong> ${itemToShow.details.pallet}</p>
               <div class="form-group">
@@ -154,6 +160,10 @@
               <hr>
             `;
             modalBody.appendChild(itemElement);
+
+            if (itemIndex === 0) {
+              itemElement.querySelector('.withdraw-quantity').focus();
+            }
           });
 
           modal.style.display = 'flex';
@@ -275,13 +285,20 @@
           modal.style.display = 'none';
         });
 
+        modal.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            modalSubmitButton.click();
+          }
+        });
+
         modalSubmitButton.addEventListener('click', () => {
-          const stockOutTableBody = document.querySelector('#jordon-stock-out-table tbody');
+          const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
           const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
 
-          withdrawalItems.forEach(itemElement => {
-            const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
-            const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
+          if (stockOutTableBody) {
+            withdrawalItems.forEach(itemElement => {
+              const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
+              const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
             const batchNo = itemElement.querySelector('p:nth-child(3)').textContent.replace('Batch No: ', '');
             const location = itemElement.querySelector('p:nth-child(4)').textContent.replace('Location: ', '');
             const lotNumber = itemElement.querySelector('p:nth-child(5)').textContent.replace('Lot Number: ', '');
@@ -317,6 +334,7 @@
               stockOutTableBody.appendChild(newRow);
             }
           });
+          }
 
           modal.style.display = 'none';
         });

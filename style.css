@@ -548,6 +548,11 @@ nav ul li i {
   width: 550px;
   max-width: 90%;
   animation: modal-appear 0.3s ease-out;
+  transition: max-width 0.3s ease;
+}
+
+.modal.wide {
+  max-width: 1100px;
 }
 
 @keyframes modal-appear {
