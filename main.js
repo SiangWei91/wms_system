@@ -243,14 +243,7 @@ function setupEventListeners() {
         item.addEventListener('click', (e) => {
             const page = item.getAttribute('data-page');
             if (page) {
-                if (page === 'public-warehouse-main') {
-                    const subMenu = e.currentTarget.querySelector('.sub-menu');
-                    if (subMenu) {
-                        subMenu.classList.toggle('open');
-                    }
-                } else {
-                    navigateTo(page);
-                }
+                navigateTo(page);
             }
         });
     });

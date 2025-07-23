@@ -69,21 +69,6 @@ nav ul li.active {
   background-color: #3498db;
 }
 
-nav ul .sub-menu {
-  list-style: none;
-  padding-left: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
-}
-
-nav ul .sub-menu.open {
-  max-height: 500px; /* Adjust as needed */
-}
-
-nav ul .sub-menu li {
-  padding-left: 40px;
-}
 
 nav ul li.active .sub-menu {
   max-height: 500px; /* Adjust as needed */
