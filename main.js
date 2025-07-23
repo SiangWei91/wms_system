@@ -250,7 +250,11 @@ function setupEventListeners() {
     const sidebar = document.querySelector('.sidebar');
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('sidebar-collapsed');
+            }
         });
     }
 
