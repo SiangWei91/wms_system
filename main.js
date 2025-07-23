@@ -136,10 +136,18 @@ const navigateTo = (page) => {
     window.location.hash = page;
     document.querySelectorAll('nav ul li').forEach(item => {
         item.classList.remove('active');
-        if (item.getAttribute('data-page') === page) {
-            item.classList.add('active');
-        }
     });
+
+    const selectedNavItem = document.querySelector(`[data-page="${page}"]`);
+    if (selectedNavItem) {
+        selectedNavItem.classList.add('active');
+        if (selectedNavItem.classList.contains('warehouse-option')) {
+            const publicWarehouse = document.querySelector('[data-page="public-warehouse"]');
+            if (publicWarehouse) {
+                publicWarehouse.classList.add('active');
+            }
+        }
+    }
 };
 
 // ✅ 修复刷新页面时 active 状态不更新的问题
