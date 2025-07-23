@@ -69,6 +69,17 @@ nav ul li.active {
   background-color: #3498db;
 }
 
+.sidebar nav ul li.public-warehouse-arrow::after {
+  content: '▼';
+  float: right;
+  margin-right: 15px;
+  transition: transform 0.3s;
+}
+
+.sidebar nav ul li.public-warehouse-arrow.open::after {
+  transform: rotate(180deg);
+}
+
 
 nav ul li.active .sub-menu {
   max-height: 500px; /* Adjust as needed */

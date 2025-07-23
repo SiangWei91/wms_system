@@ -242,7 +242,15 @@ function setupEventListeners() {
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const page = item.getAttribute('data-page');
-            if (page) {
+            if (page === 'public-warehouse') {
+                e.preventDefault();
+                const warehouseOptions = document.querySelectorAll('.warehouse-option');
+                const publicWarehouseArrow = document.querySelector('[data-page="public-warehouse"]');
+                publicWarehouseArrow.classList.toggle('open');
+                warehouseOptions.forEach(option => {
+                    option.style.display = option.style.display === 'none' ? 'flex' : 'none';
+                });
+            } else if (page) {
                 navigateTo(page);
             }
         });
