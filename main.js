@@ -58,13 +58,6 @@ const loadScript = (url) => {
 const loadContent = async (page) => {
     const content = document.getElementById('content');
     if (content) {
-        // Clean up old event listeners before loading new content
-        const modal = document.querySelector('.jordon-withdrawal-modal');
-        if (modal) {
-            const newModal = modal.cloneNode(true);
-            modal.parentNode.replaceChild(newModal, modal);
-        }
-
         try {
             const response = await fetch(`templates/${page}.html`);
             if (response.ok) {

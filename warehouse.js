@@ -117,39 +117,61 @@
         });
 
       const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
-      summaryTableRows.forEach(row => {
+      summaryTableRows.forEach((row, index) => {
         row.addEventListener('click', () => {
-          const modal = document.getElementById('jordon-withdrawal-modal');
-          const productName = row.cells[1].textContent;
-          const packingSize = row.cells[2].textContent;
-          const batchNo = row.cells[5].textContent;
-          const location = row.cells[4].textContent;
-          const lotNumber = row.cells[6].textContent;
-          const currentQuantity = row.cells[9].textContent;
-          const currentPallet = row.cells[10].textContent;
+          const modal = document.querySelector('.jordon-withdrawal-modal');
+          const modalBody = document.getElementById('jordon-modal-body');
+          if (!modal || !modalBody) return;
 
-          const modalProductName = document.getElementById('modal-product-name');
-          if (modalProductName) modalProductName.textContent = productName;
+          modalBody.innerHTML = '';
 
-          const modalPackingSize = document.getElementById('modal-packing-size');
-          if (modalPackingSize) modalPackingSize.textContent = packingSize;
+          const item = inventoryData[index];
+          const mixPallet = item.details.mixPallet;
+          const dateStored = item.details.dateStored;
 
-          const modalBatchNo = document.getElementById('modal-batch-no');
-          if (modalBatchNo) modalBatchNo.textContent = batchNo;
+          let itemsToShow = [item];
+          if (mixPallet) {
+            itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
+          }
 
-          const modalLocation = document.getElementById('modal-location');
-          if (modalLocation) modalLocation.textContent = location;
+          if (itemsToShow.length > 1) {
+            modal.classList.add('wide');
+          } else {
+            modal.classList.remove('wide');
+          }
 
-          const modalLotNumber = document.getElementById('modal-lot-number');
-          if (modalLotNumber) modalLotNumber.textContent = lotNumber;
+          itemsToShow.forEach((itemToShow, itemIndex) => {
+            const product = productsMap.get(itemToShow.item_code) || {};
+            const itemElement = document.createElement('div');
+            itemElement.innerHTML = `
+              <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
+              <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
+              <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
+              <p><strong>Location:</strong> ${itemToShow.details.location}</p>
+              <p><strong>${warehouseId === 'lineage' ? 'LLM Item Code:' : 'Lot Number:'}</strong> ${warehouseId === 'lineage' ? (itemToShow.details.llm_item_code || '') : (itemToShow.details.lotNumber || '')}</p>
+              <p><strong>Current Quantity:</strong> ${itemToShow.quantity}</p>
+              <p><strong>Current Pallet:</strong> ${itemToShow.details.pallet}</p>
+              <div class="form-group">
+                <label>Withdraw Quantity:</label>
+                <input type="number" class="withdraw-quantity" min="0" data-item-id="${itemToShow.id}">
+              </div>
+              <div class="form-group">
+                <label>Withdraw Pallet:</label>
+                <input type="number" class="withdraw-pallet" min="0" data-item-id="${itemToShow.id}">
+              </div>
+              <hr>
+            `;
+            modalBody.appendChild(itemElement);
 
-          const modalCurrentQuantity = document.getElementById('modal-current-quantity');
-          if (modalCurrentQuantity) modalCurrentQuantity.textContent = currentQuantity;
+            if (itemIndex === 0) {
+              const firstInput = itemElement.querySelector('.withdraw-quantity');
+              if (firstInput) {
+                firstInput.focus();
+              }
+            }
+          });
 
-          const modalCurrentPallet = document.getElementById('modal-current-pallet');
-          if (modalCurrentPallet) modalCurrentPallet.textContent = currentPallet;
-
-          if (modal) modal.style.display = 'flex';
+          modal.style.display = 'flex';
         });
       });
 
@@ -259,61 +281,89 @@
         }
       }
 
-      const modal = document.getElementById('jordon-withdrawal-modal');
-      const closeButton = document.getElementById('jordon-modal-close-button');
-      const modalSubmitButton = document.getElementById('modal-submit-btn');
+      const modal = document.querySelector('.jordon-withdrawal-modal');
+      if (modal) {
+        const closeButton = document.getElementById('jordon-modal-close-button');
+        const modalSubmitButton = document.getElementById('modal-submit-btn');
 
-      if(modal) {
-        closeButton.addEventListener('click', () => {
+        const handleModalClose = () => {
           modal.style.display = 'none';
-        });
+        };
 
-        modalSubmitButton.addEventListener('click', () => {
-          const withdrawQuantityInput = document.getElementById('withdraw-quantity');
-          const withdrawPalletInput = document.getElementById('withdraw-pallet');
-          const currentQuantitySpan = document.getElementById('modal-current-quantity');
-          const currentPalletSpan = document.getElementById('modal-current-pallet');
+        const handleModalKeydown = (e) => {
+          if (e.key === 'Enter') {
+            modalSubmitButton.click();
+          }
+        };
 
-          if (!withdrawQuantityInput || !withdrawPalletInput || !currentQuantitySpan || !currentPalletSpan) {
-            return;
+        const handleModalSubmit = () => {
+          const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+          const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
+          let errorShown = false;
+
+          if (stockOutTableBody) {
+            withdrawalItems.forEach(itemElement => {
+              if (errorShown) return;
+
+              const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
+              const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
+              const batchNo = itemElement.querySelector('p:nth-child(3)').textContent.replace('Batch No: ', '');
+              const location = itemElement.querySelector('p:nth-child(4)').textContent.replace('Location: ', '');
+              const lotNumberText = itemElement.querySelector('p:nth-child(5)').textContent;
+              const lotNumber = lotNumberText.includes('LLM Item Code:')
+                ? lotNumberText.replace('LLM Item Code: ', '')
+                : lotNumberText.replace('Lot Number: ', '');
+
+              const currentQuantity = Number(itemElement.querySelector('p:nth-child(6)').textContent.replace('Current Quantity: ', ''));
+              const currentPallet = Number(itemElement.querySelector('p:nth-child(7)').textContent.replace('Current Pallet: ', ''));
+
+              const withdrawQuantityInput = itemElement.querySelector('.withdraw-quantity');
+              const withdrawPalletInput = itemElement.querySelector('.withdraw-pallet');
+              const withdrawQuantity = Number(withdrawQuantityInput.value);
+              const withdrawPallet = Number(withdrawPalletInput.value);
+
+              if (withdrawQuantity > 0 || withdrawPallet > 0) {
+                if (withdrawQuantity > currentQuantity) {
+                  alert(`Withdraw quantity for ${productName} cannot be greater than current quantity.`);
+                  errorShown = true;
+                  return;
+                }
+
+                if (withdrawPallet > currentPallet) {
+                  alert(`Withdraw pallet for ${productName} cannot be greater than current pallet.`);
+                  errorShown = true;
+                  return;
+                }
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                  <td>${productName}</td>
+                  <td>${packingSize}</td>
+                  <td>${batchNo}</td>
+                  <td>${location}</td>
+                  <td>${lotNumber}</td>
+                  <td>${withdrawQuantity}</td>
+                  <td>${withdrawPallet}</td>
+                `;
+                stockOutTableBody.appendChild(newRow);
+              }
+            });
           }
 
-          const withdrawQuantity = Number(withdrawQuantityInput.value);
-          const withdrawPallet = Number(withdrawPalletInput.value);
-          const currentQuantity = Number(currentQuantitySpan.textContent);
-          const currentPallet = Number(currentPalletSpan.textContent);
-
-          if (withdrawQuantity > currentQuantity) {
-            alert('Withdraw quantity cannot be greater than current quantity.');
-            return;
+          if (!errorShown) {
+            modal.style.display = 'none';
           }
+        };
 
-          if (withdrawPallet > currentPallet) {
-            alert('Withdraw pallet cannot be greater than current pallet.');
-            return;
-          }
+        // Remove existing listeners before adding new ones
+        closeButton.removeEventListener('click', handleModalClose);
+        modal.removeEventListener('keydown', handleModalKeydown);
+        modalSubmitButton.removeEventListener('click', handleModalSubmit);
 
-          const productName = document.getElementById('modal-product-name').textContent;
-          const packingSize = document.getElementById('modal-packing-size').textContent;
-          const batchNo = document.getElementById('modal-batch-no').textContent;
-          const location = document.getElementById('modal-location').textContent;
-          const lotNumber = document.getElementById('modal-lot-number').textContent;
-
-          const stockOutTableBody = document.querySelector('#jordon-stock-out-table tbody');
-          const newRow = document.createElement('tr');
-          newRow.innerHTML = `
-            <td>${productName}</td>
-            <td>${packingSize}</td>
-            <td>${batchNo}</td>
-            <td>${location}</td>
-            <td>${lotNumber}</td>
-            <td>${withdrawQuantity}</td>
-            <td>${withdrawPallet}</td>
-          `;
-          stockOutTableBody.appendChild(newRow);
-
-          modal.style.display = 'none';
-        });
+        // Add new listeners
+        closeButton.addEventListener('click', handleModalClose);
+        modal.addEventListener('keydown', handleModalKeydown);
+        modalSubmitButton.addEventListener('click', handleModalSubmit);
       }
 
       const submitButton = document.querySelector(`#${warehouseId}-submit-btn`);
