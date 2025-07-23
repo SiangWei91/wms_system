@@ -32,6 +32,11 @@
         inventorySummaryTableBody.innerHTML = '';
         stockInTableBody.innerHTML = '';
 
+        let summaryTotalQuantity = 0;
+        let summaryTotalPallet = 0;
+        let stockInTotalQuantity = 0;
+        let stockInTotalPallet = 0;
+
         inventoryData.forEach(item => {
           const product = productsMap.get(item.item_code) || {};
           const row = document.createElement('tr');
@@ -51,6 +56,7 @@
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
                 <td><input type="text" class="short-input" value=""></td>
+                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             } else if (warehouseId === 'lineage') {
               row.innerHTML = `
@@ -66,9 +72,12 @@
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
                 <td><input type="text" class="short-input" value=""></td>
+                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             }
             stockInTableBody.appendChild(row);
+            stockInTotalQuantity += item.quantity;
+            stockInTotalPallet += Number(item.details.pallet);
           } else {
             if (warehouseId === 'jordon') {
               row.innerHTML = `
@@ -83,6 +92,7 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
+                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             } else if (warehouseId === 'lineage') {
               row.innerHTML = `
@@ -97,11 +107,57 @@
                 <td>${item.container}</td>
                 <td>${item.quantity}</td>
                 <td>${item.details.pallet}</td>
+                <td><button class="delete-btn" data-id="${item.id}">&times;</button></td>
               `;
             }
             inventorySummaryTableBody.appendChild(row);
+            summaryTotalQuantity += item.quantity;
+            summaryTotalPallet += Number(item.details.pallet);
           }
         });
+
+      const summaryFooter = document.querySelector(`#${warehouseId}-inventory-summary-table tfoot`);
+      if (summaryFooter) {
+        summaryFooter.innerHTML = `
+          <tr>
+            <td colspan="8"></td>
+            <td>Total:</td>
+            <td>${summaryTotalQuantity}</td>
+            <td>${summaryTotalPallet}</td>
+            ${warehouseId === 'jordon' ? '<td></td>' : ''}
+          </tr>
+        `;
+      }
+
+      const stockInFooter = document.querySelector(`#${warehouseId}-stock-in-table tfoot`);
+      if (stockInFooter) {
+        stockInFooter.innerHTML = `
+          <tr>
+            <td colspan="9"></td>
+            <td>Total:</td>
+            <td>${stockInTotalQuantity}</td>
+            <td>${stockInTotalPallet}</td>
+            <td></td>
+          </tr>
+        `;
+      }
+
+      const deleteButtons = document.querySelectorAll('.delete-btn');
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          const { error } = await supabaseClient
+            .from('inventory')
+            .delete()
+            .eq('id', id);
+
+          if (error) {
+            console.error('Error deleting item:', error);
+          } else {
+            loadInventoryData();
+          }
+        });
+      });
 
       if (warehouseId === 'lineage') {
         const locationInputs = document.querySelectorAll('.location-input');
