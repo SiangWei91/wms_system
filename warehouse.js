@@ -120,11 +120,11 @@
       if (summaryFooter) {
         summaryFooter.innerHTML = `
           <tr>
-            <td colspan="8"></td>
+            <td colspan="${warehouseId === 'jordon' ? '9' : '8'}"></td>
             <td>Total:</td>
             <td>${summaryTotalQuantity}</td>
             <td>${summaryTotalPallet}</td>
-            ${warehouseId === 'jordon' ? '<td></td>' : ''}
+            <td></td>
           </tr>
         `;
       }
@@ -133,7 +133,7 @@
       if (stockInFooter) {
         stockInFooter.innerHTML = `
           <tr>
-            <td colspan="9"></td>
+            <td colspan="10"></td>
             <td>Total:</td>
             <td>${stockInTotalQuantity}</td>
             <td>${stockInTotalPallet}</td>

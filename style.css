@@ -119,6 +119,14 @@ nav ul li i {
   width: 100px;
 }
 
+.data-table .delete-btn {
+  background-color: transparent;
+  border: none;
+  color: red;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
 .tab-nav {
   display: flex;
   border-bottom: 2px solid #ccc;
