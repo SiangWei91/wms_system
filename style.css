@@ -588,6 +588,17 @@ nav ul li i {
   color: #e74c3c;
 }
 
+#jordon-modal-body {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+}
+
+#jordon-modal-body > div {
+  flex: 1;
+  min-width: 250px;
+}
+
 .modal-body p {
   margin-bottom: 15px;
   line-height: 1.6;
