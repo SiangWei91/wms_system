@@ -107,7 +107,15 @@ const loadContent = async (page) => {
                         if (window.loadInventoryPage) {
                             window.loadInventoryPage(supabaseClient);
                         }
-                    } else if (page === 'jordon' || page === 'lineage' || page === 'sing-long') {
+                    } else if (page === 'jordon') {
+                        // If you have a specific script for Jordon page, load it here
+                        // await loadScript('jordon.js');
+                        // window.loadJordonPage(supabaseClient);
+                    } else if (page === 'lineage') {
+                        // If you have a specific script for Lineage page, load it here
+                        // await loadScript('lineage.js');
+                        // window.loadLineagePage(supabaseClient);
+                    } else if (page === 'sing-long') {
                         navigateTo('coming-soon');
                     }
                 };
