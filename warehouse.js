@@ -187,7 +187,7 @@
           const updates = [];
           let validationError = false;
 
-          stockInRows.forEach(row => {
+          for (const row of stockInRows) {
             const id = row.querySelector('.delete-btn').dataset.id;
             const palletType = row.querySelector('input[type="text"]').value;
             const location = row.querySelector('.location-input, .lot-number-input').value;
@@ -197,23 +197,47 @@
             if ((warehouseId === 'jordon' && !location) || (warehouseId === 'lineage' && !location)) {
               validationError = true;
               alert('Please fill in all Lot Numbers or Locations.');
+              break;
             }
 
             if (pallet === 0 && !mixPallet) {
               validationError = true;
               alert('Please fill in the Mix Pallet for rows with 0 pallet.');
+              break;
             }
+
+            const { data: existingItem, error: fetchError } = await supabaseClient
+              .from('inventory')
+              .select('details')
+              .eq('id', id)
+              .single();
+
+            if (fetchError) {
+              console.error('Error fetching existing item:', fetchError);
+              alert('Error fetching existing item.');
+              validationError = true;
+              break;
+            }
+
+            const updatedDetails = {
+              ...existingItem.details,
+              palletType,
+              status: 'Complete',
+              mixPallet,
+            };
+
+            if (warehouseId === 'jordon') {
+              updatedDetails.lotNumber = location;
+            } else {
+              updatedDetails.location = location;
+            }
+
 
             updates.push({
               id,
-              details: {
-                palletType,
-                location,
-                status: 'Complete',
-                mixPallet,
-              },
+              details: updatedDetails,
             });
-          });
+          }
 
           if (validationError) {
             return;
