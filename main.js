@@ -135,14 +135,7 @@ const loadContent = async (page) => {
 const navigateTo = (page) => {
     console.log('Navigating to:', page);
     
-    // 避免重复导航到同一页面
-    const currentPage = window.location.hash.substring(1) || 'dashboard';
-    const contentElement = document.getElementById('content');
-    if (page === currentPage && contentElement && contentElement.innerHTML.trim() !== '') {
-        console.log('Already on page:', page, 'and content exists');
-        return;
-    }
-    
+    // 强制加载内容，不做重复检查（因为刷新后内容可能已经清空）
     loadContent(page);
     
     // 只有当 hash 真的需要改变时才更新
@@ -151,19 +144,38 @@ const navigateTo = (page) => {
     }
     
     // 更新导航状态
+    updateNavigationState(page);
+};
+
+// ✅ 单独的导航状态更新函数
+const updateNavigationState = (page) => {
+    console.log('Updating navigation state for:', page);
+    
+    // 清除所有 active 状态
     document.querySelectorAll('nav ul li').forEach(item => {
         item.classList.remove('active');
     });
 
+    // 设置当前页面的 active 状态
     const selectedNavItem = document.querySelector(`[data-page="${page}"]`);
     if (selectedNavItem) {
         selectedNavItem.classList.add('active');
+        console.log('Set active for:', page);
+        
+        // 如果是仓库选项，也要激活父级菜单
         if (selectedNavItem.classList.contains('warehouse-option')) {
             const publicWarehouse = document.querySelector('[data-page="public-warehouse"]');
             if (publicWarehouse) {
                 publicWarehouse.classList.add('active');
+                publicWarehouse.classList.add('open');
+                // 确保仓库子选项可见
+                document.querySelectorAll('.warehouse-option').forEach(option => {
+                    option.style.display = 'flex';
+                });
             }
         }
+    } else {
+        console.warn('Navigation item not found for page:', page);
     }
 };
 
@@ -223,31 +235,48 @@ if (loginForm) {
 // ✅ 页面加载完成后的处理
 window.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded');
-    if (window.location.pathname.endsWith('app.html')) {
-        setupEventListeners();
-        // 确保在 DOM 加载完成后初始化页面
-        initializePage();
-    }
+    // DOMContentLoaded 事件处理已经在上面的代码中处理了
+    // 这里不需要重复初始化
 });
 
 // ✅ 进入 app.html 时检查登录状态和初始化页面
 if (window.location.pathname.endsWith('app.html')) {
     const userName = getCookie('userName');
     if (userName) {
-        const userInfo = document.getElementById('user-info');
-        if (userInfo) {
-            userInfo.innerText = userName;
-        }
+        // 先设置用户信息
+        const setUserInfo = () => {
+            const userInfo = document.getElementById('user-info');
+            if (userInfo) {
+                userInfo.innerText = userName;
+            }
+        };
+
+        // 初始化页面的函数
+        const initializeApp = () => {
+            console.log('Initializing app...');
+            setupEventListeners();
+            
+            // 获取当前页面，如果没有 hash 则默认为 dashboard
+            const page = window.location.hash.substring(1) || 'dashboard';
+            console.log('Current hash page:', page);
+            
+            // 强制导航到当前页面，确保内容和导航状态都正确
+            navigateTo(page);
+        };
 
         // 如果 DOM 已经加载完成，直接初始化
         if (document.readyState === 'loading') {
             // DOM 还在加载中，等待 DOMContentLoaded 事件
             console.log('DOM still loading, waiting for DOMContentLoaded');
+            document.addEventListener('DOMContentLoaded', () => {
+                setUserInfo();
+                initializeApp();
+            });
         } else {
             // DOM 已经加载完成，直接初始化
             console.log('DOM already loaded, initializing immediately');
-            setupEventListeners();
-            initializePage();
+            setUserInfo();
+            initializeApp();
         }
     } else {
         window.location.href = 'index.html';
