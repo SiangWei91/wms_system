@@ -313,15 +313,28 @@ function setupEventListeners() {
 
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
+
+    const handleSidebarToggle = () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.remove('sidebar-collapsed');
+            sidebar.classList.toggle('show');
+        } else {
+            sidebar.classList.remove('show');
+            sidebar.classList.toggle('sidebar-collapsed');
+        }
+    };
+
     if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('sidebar-collapsed');
-            }
-        });
+        sidebarToggle.addEventListener('click', handleSidebarToggle);
     }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('show');
+        } else {
+            sidebar.classList.remove('sidebar-collapsed');
+        }
+    });
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
