@@ -729,7 +729,6 @@
           draw_out_time: drawOutTime,
           warehouse_id: warehouseId,
           stock_out_items: stockOutItems,
-          transaction_type: 'internal_transfer',
         });
 
       if (scheduledError) {
