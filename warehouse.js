@@ -247,6 +247,7 @@
             itemsToShow.forEach((itemToShow, itemIndex) => {
               const product = productsMap.get(itemToShow.item_code) || {};
               const itemElement = document.createElement('div');
+              itemElement.dataset.itemCode = itemToShow.item_code;
               itemElement.innerHTML = `
                 <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
                 <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
@@ -472,6 +473,7 @@
 
                   const newRow = document.createElement('tr');
                   newRow.innerHTML = `
+                    <td style="display:none;">${itemElement.dataset.itemCode}</td>
                     <td>${productName}</td>
                     <td>${packingSize}</td>
                     <td>${batchNo}</td>
@@ -685,52 +687,36 @@
         newOrderNumber = `${prefix}-${(lastNumber + 1).toString().padStart(4, '0')}`;
       }
 
+      // Prepare stock out items
+      const stockOutItems = [];
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        stockOutItems.push({
+          item_code: cells[0].textContent,
+          product_name: cells[1].textContent,
+          packing_size: cells[2].textContent,
+          batch_no: cells[3].textContent,
+          location: cells[4].textContent,
+          lot_number: cells[5].textContent,
+          withdraw_quantity: parseInt(cells[6].textContent),
+          withdraw_pallet: parseInt(cells[7].textContent),
+        });
+      });
+
       // Insert into scheduled_transactions
-      const { data: scheduledTransaction, error: scheduledError } = await supabaseClient
+      const { error: scheduledError } = await supabaseClient
         .from('scheduled_transactions')
         .insert({
           order_number: newOrderNumber,
           draw_out_date: drawOutDate,
           draw_out_time: drawOutTime,
           warehouse_id: warehouseId,
-        })
-        .select()
-        .single();
+          stock_out_items: stockOutItems,
+        });
 
       if (scheduledError) {
         console.error('Error creating scheduled transaction:', scheduledError);
         alert('Error creating scheduled transaction.');
-        return;
-      }
-
-      // Insert into stock_out_items
-      const stockOutItems = [];
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        stockOutItems.push({
-          scheduled_transaction_id: scheduledTransaction.id,
-          product_name: cells[0].textContent,
-          packing_size: cells[1].textContent,
-          batch_no: cells[2].textContent,
-          location: cells[3].textContent,
-          lot_number: cells[4].textContent,
-          withdraw_quantity: parseInt(cells[5].textContent),
-          withdraw_pallet: parseInt(cells[6].textContent),
-        });
-      });
-
-      const { error: itemsError } = await supabaseClient
-        .from('stock_out_items')
-        .insert(stockOutItems);
-
-      if (itemsError) {
-        console.error('Error inserting stock out items:', itemsError);
-        alert('Error inserting stock out items.');
-        // Rollback the scheduled transaction
-        await supabaseClient
-          .from('scheduled_transactions')
-          .delete()
-          .eq('id', scheduledTransaction.id);
         return;
       }
 
