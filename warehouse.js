@@ -1,12 +1,17 @@
 (() => {
   window.createWarehousePage = (warehouseId, supabaseClient) => {
-    // 用于管理事件监听器的 AbortController
+    // 添加调试计数器
+    let loadCounter = 0;
     let eventController = null;
 
     const loadInventoryData = async () => {
+      loadCounter++;
+      console.log(`🔄 loadInventoryData called ${loadCounter} times for ${warehouseId}`);
+      
       try {
         // 清理之前的事件监听器
         if (eventController) {
+          console.log(`🧹 Cleaning up previous event listeners for ${warehouseId}`);
           eventController.abort();
         }
         // 创建新的 AbortController
@@ -129,6 +134,8 @@
 
         // 为库存摘要表的行添加点击事件（用于打开模态框）
         const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
+        console.log(`📊 Adding click events to ${summaryTableRows.length} summary rows for ${warehouseId}`);
+        
         summaryTableRows.forEach((row, index) => {
           row.addEventListener('click', () => {
             const modal = document.querySelector('.jordon-withdrawal-modal');
@@ -305,27 +312,64 @@
           const closeButton = document.getElementById('jordon-modal-close-button');
           const modalSubmitButton = document.getElementById('modal-submit-btn');
 
+          // 检查是否找到了模态框按钮
+          console.log(`🔍 Modal elements found for ${warehouseId}:`, {
+            modal: !!modal,
+            closeButton: !!closeButton,
+            modalSubmitButton: !!modalSubmitButton
+          });
+
+          // 检查是否有重复的按钮
+          const allModalSubmitButtons = document.querySelectorAll('#modal-submit-btn');
+          if (allModalSubmitButtons.length > 1) {
+            console.warn(`⚠️ Found ${allModalSubmitButtons.length} modal submit buttons! This could cause duplicate events.`);
+          }
+
           // 关闭模态框
           const handleModalClose = () => {
+            console.log(`❌ Modal closed for ${warehouseId}`);
             modal.style.display = 'none';
           };
 
           // 键盘事件处理
           const handleModalKeydown = (e) => {
             if (e.key === 'Enter') {
+              console.log(`⌨️ Enter key pressed in modal for ${warehouseId}`);
               modalSubmitButton.click();
             }
           };
 
           // 模态框提交处理函数
-          const handleModalSubmit = () => {
+          const handleModalSubmit = (e) => {
+            console.log(`🚀 Modal submit triggered for ${warehouseId}`, {
+              timestamp: new Date().toISOString(),
+              eventType: e.type,
+              target: e.target.id
+            });
+
+            // 防止重复提交
+            if (e.target.disabled) {
+              console.log(`🛑 Submit button is disabled, preventing duplicate submission`);
+              return;
+            }
+
+            // 临时禁用按钮防止重复点击
+            e.target.disabled = true;
+            setTimeout(() => {
+              e.target.disabled = false;
+            }, 1000);
+
             const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
             const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
             let errorShown = false;
 
+            console.log(`📝 Processing ${withdrawalItems.length} withdrawal items`);
+
             if (stockOutTableBody) {
-              withdrawalItems.forEach(itemElement => {
+              withdrawalItems.forEach((itemElement, itemIndex) => {
                 if (errorShown) return;
+
+                console.log(`🔄 Processing withdrawal item ${itemIndex + 1}`);
 
                 const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
                 const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
@@ -357,6 +401,8 @@
                     return;
                   }
 
+                  console.log(`✅ Adding withdrawal record for ${productName}: Qty=${withdrawQuantity}, Pallet=${withdrawPallet}`);
+
                   const newRow = document.createElement('tr');
                   newRow.innerHTML = `
                     <td>${productName}</td>
@@ -373,14 +419,26 @@
             }
 
             if (!errorShown) {
+              console.log(`✨ Modal submission completed successfully for ${warehouseId}`);
               modal.style.display = 'none';
+            } else {
+              console.log(`❌ Modal submission failed due to validation error`);
             }
           };
 
           // 添加事件监听器（使用 signal 来管理）
-          closeButton.addEventListener('click', handleModalClose, { signal });
-          modalSubmitButton.addEventListener('click', handleModalSubmit, { signal });
+          if (closeButton) {
+            closeButton.addEventListener('click', handleModalClose, { signal });
+            console.log(`➕ Added close button listener for ${warehouseId}`);
+          }
+          
+          if (modalSubmitButton) {
+            modalSubmitButton.addEventListener('click', handleModalSubmit, { signal });
+            console.log(`➕ Added submit button listener for ${warehouseId}`);
+          }
+          
           modal.addEventListener('keydown', handleModalKeydown, { signal });
+          console.log(`➕ Added keydown listener for ${warehouseId}`);
         }
 
         // 处理提交按钮事件
@@ -466,6 +524,8 @@
       }
     };
 
+    // 初始化时只调用一次
+    console.log(`🎯 Initializing warehouse page for ${warehouseId}`);
     loadInventoryData();
   };
 })();
