@@ -656,9 +656,96 @@
       }
     };
 
+    const handleConfirmDateOut = async () => {
+      const drawOutDate = document.getElementById(`${warehouseId}-draw-out-date`).value;
+      const drawOutTime = document.getElementById(`${warehouseId}-draw-out-time`).value;
+      const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+      const rows = stockOutTableBody.querySelectorAll('tr');
+
+      if (rows.length === 0) {
+        alert('No items to withdraw.');
+        return;
+      }
+
+      // Generate order number
+      const prefix = warehouseId === 'jordon' ? 'LCJD' : 'LCMD';
+      const { data: lastOrder, error: orderError } = await supabaseClient
+        .from('scheduled_transactions')
+        .select('order_number')
+        .like('order_number', `${prefix}%`)
+        .order('order_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      let newOrderNumber;
+      if (orderError || !lastOrder) {
+        newOrderNumber = `${prefix}-0001`;
+      } else {
+        const lastNumber = parseInt(lastOrder.order_number.split('-')[1]);
+        newOrderNumber = `${prefix}-${(lastNumber + 1).toString().padStart(4, '0')}`;
+      }
+
+      // Insert into scheduled_transactions
+      const { data: scheduledTransaction, error: scheduledError } = await supabaseClient
+        .from('scheduled_transactions')
+        .insert({
+          order_number: newOrderNumber,
+          draw_out_date: drawOutDate,
+          draw_out_time: drawOutTime,
+          warehouse_id: warehouseId,
+        })
+        .select()
+        .single();
+
+      if (scheduledError) {
+        console.error('Error creating scheduled transaction:', scheduledError);
+        alert('Error creating scheduled transaction.');
+        return;
+      }
+
+      // Insert into stock_out_items
+      const stockOutItems = [];
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        stockOutItems.push({
+          scheduled_transaction_id: scheduledTransaction.id,
+          product_name: cells[0].textContent,
+          packing_size: cells[1].textContent,
+          batch_no: cells[2].textContent,
+          location: cells[3].textContent,
+          lot_number: cells[4].textContent,
+          withdraw_quantity: parseInt(cells[5].textContent),
+          withdraw_pallet: parseInt(cells[6].textContent),
+        });
+      });
+
+      const { error: itemsError } = await supabaseClient
+        .from('stock_out_items')
+        .insert(stockOutItems);
+
+      if (itemsError) {
+        console.error('Error inserting stock out items:', itemsError);
+        alert('Error inserting stock out items.');
+        // Rollback the scheduled transaction
+        await supabaseClient
+          .from('scheduled_transactions')
+          .delete()
+          .eq('id', scheduledTransaction.id);
+        return;
+      }
+
+      // Clear stock out table
+      clearStockOutData();
+      alert(`Stock out scheduled with order number: ${newOrderNumber}`);
+    };
+
     loadInventoryData().then(() => {
       initTabs();
       setDefaultDrawOutDateTime();
+      const confirmButton = document.getElementById(`${warehouseId}-confirm-date-out-btn`);
+      if (confirmButton) {
+        confirmButton.addEventListener('click', handleConfirmDateOut);
+      }
     });
 
     // 返回一个对象，包含一些有用的方法
