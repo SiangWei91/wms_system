@@ -630,8 +630,35 @@
       });
     };
 
+    const setDefaultDrawOutDateTime = () => {
+      const dateInput = document.getElementById(`${warehouseId}-draw-out-date`);
+      const timeInput = document.getElementById(`${warehouseId}-draw-out-time`);
+
+      if (dateInput && timeInput) {
+        const today = new Date();
+        let tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (warehouseId === 'jordon') {
+          if (tomorrow.getDay() === 0) { // Sunday
+            tomorrow.setDate(tomorrow.getDate() + 2);
+          }
+        } else if (warehouseId === 'lineage') {
+          if (tomorrow.getDay() === 6) { // Saturday
+            tomorrow.setDate(tomorrow.getDate() + 3);
+          } else if (tomorrow.getDay() === 0) { // Sunday
+            tomorrow.setDate(tomorrow.getDate() + 2);
+          }
+        }
+
+        dateInput.value = tomorrow.toISOString().split('T')[0];
+        timeInput.value = '10:00';
+      }
+    };
+
     loadInventoryData().then(() => {
       initTabs();
+      setDefaultDrawOutDateTime();
     });
 
     // 返回一个对象，包含一些有用的方法
