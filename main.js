@@ -55,78 +55,102 @@ const loadScript = (url) => {
     });
 };
 
+// ✅ 改进的 loadContent 函数，添加更好的错误处理和日志
 const loadContent = async (page) => {
+    console.log('Loading content for page:', page);
     const content = document.getElementById('content');
     if (content) {
         try {
             const response = await fetch(`templates/${page}.html`);
             if (response.ok) {
                 content.innerHTML = await response.text();
+                console.log('HTML content loaded for page:', page);
 
                 const runPageScript = async () => {
-                    if (page === 'product') {
-                        await loadScript('product.js');
-                        window.loadProducts(content, supabaseClient);
-                    } else if (page === 'stock-take') {
-                        await loadScript('stock-take.js');
-                        window.loadStockTakeData(content, supabaseClient);
-                    } else if (page === 'shipment') {
-                        await loadScript('shipment.js');
-                        await loadScript('shipment-allocation.js');
-                        window.loadShipmentPage(content, supabaseClient);
-                        window.loadShipmentAllocationPage(supabaseClient);
-                    } else if (page === 'transactions') {
-                        await loadScript('transaction.js');
-                        window.loadTransactions(content, supabaseClient);
-                    } else if (page === 'cr-temperature') {
-                        await loadScript('cr-temperature.js');
-                        window.loadCrTemperaturePage(supabaseClient);
-                    } else if (page === 'dashboard') {
-                        await loadScript('dashboard.js');
-                        window.loadDashboard(supabaseClient);
-                    } else if (page === 'service-record') {
-                        await loadScript('service-record.js');
-                        window.loadServiceRecordPage(content, supabaseClient);
-                    } else if (page === 'inventory') {
-                        await loadScript('inventory.js');
-                        if (window.loadInventoryPage) {
-                            window.loadInventoryPage(supabaseClient);
+                    console.log('Running page script for:', page);
+                    try {
+                        if (page === 'product') {
+                            await loadScript('product.js');
+                            window.loadProducts(content, supabaseClient);
+                        } else if (page === 'stock-take') {
+                            await loadScript('stock-take.js');
+                            window.loadStockTakeData(content, supabaseClient);
+                        } else if (page === 'shipment') {
+                            await loadScript('shipment.js');
+                            await loadScript('shipment-allocation.js');
+                            window.loadShipmentPage(content, supabaseClient);
+                            window.loadShipmentAllocationPage(supabaseClient);
+                        } else if (page === 'transactions') {
+                            await loadScript('transaction.js');
+                            window.loadTransactions(content, supabaseClient);
+                        } else if (page === 'cr-temperature') {
+                            await loadScript('cr-temperature.js');
+                            window.loadCrTemperaturePage(supabaseClient);
+                        } else if (page === 'dashboard') {
+                            await loadScript('dashboard.js');
+                            window.loadDashboard(supabaseClient);
+                        } else if (page === 'service-record') {
+                            await loadScript('service-record.js');
+                            window.loadServiceRecordPage(content, supabaseClient);
+                        } else if (page === 'inventory') {
+                            await loadScript('inventory.js');
+                            if (window.loadInventoryPage) {
+                                window.loadInventoryPage(supabaseClient);
+                            }
+                        } else if (page === 'jordon' || page === 'lineage') {
+                            await loadScript('warehouse.js');
+                            await loadScript('public-warehouse.js');
+                            if (page === 'jordon') {
+                                window.loadJordonPage(supabaseClient);
+                            } else {
+                                window.loadLineagePage(supabaseClient);
+                            }
+                        } else if (page === 'sing-long') {
+                            navigateTo('coming-soon');
+                            return;
                         }
-                    } else if (page === 'jordon' || page === 'lineage') {
-                        await loadScript('warehouse.js');
-                        await loadScript('public-warehouse.js');
-                        if (page === 'jordon') {
-                            window.loadJordonPage(supabaseClient);
-                        } else {
-                            window.loadLineagePage(supabaseClient);
-                        }
-                    } else if (page === 'sing-long') {
-                        navigateTo('coming-soon');
+                        console.log('Page script completed for:', page);
+                    } catch (scriptError) {
+                        console.error('Error running page script for', page, ':', scriptError);
                     }
                 };
 
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', runPageScript);
-                } else {
-                    runPageScript();
-                }
+                // 总是执行页面脚本，不管 DOM 状态如何
+                await runPageScript();
 
             } else {
+                console.error('Failed to load page template:', page, response.status);
                 content.innerHTML = '<p>Page not found.</p>';
             }
         } catch (error) {
-            console.error('Error loading page:', error);
+            console.error('Error loading page:', page, error);
             content.innerHTML = '<p>Error loading page.</p>';
         }
+    } else {
+        console.error('Content element not found');
     }
 };
 
+// ✅ 改进的 navigateTo 函数
 const navigateTo = (page) => {
-    if ('#' + page === window.location.hash) {
+    console.log('Navigating to:', page);
+    
+    // 避免重复导航到同一页面
+    const currentPage = window.location.hash.substring(1) || 'dashboard';
+    const contentElement = document.getElementById('content');
+    if (page === currentPage && contentElement && contentElement.innerHTML.trim() !== '') {
+        console.log('Already on page:', page, 'and content exists');
         return;
     }
+    
     loadContent(page);
-    window.location.hash = page;
+    
+    // 只有当 hash 真的需要改变时才更新
+    if ('#' + page !== window.location.hash) {
+        window.location.hash = page;
+    }
+    
+    // 更新导航状态
     document.querySelectorAll('nav ul li').forEach(item => {
         item.classList.remove('active');
     });
@@ -143,9 +167,17 @@ const navigateTo = (page) => {
     }
 };
 
+// ✅ 统一的页面初始化函数
+const initializePage = () => {
+    const page = window.location.hash.substring(1) || 'dashboard';
+    console.log('Initializing page:', page);
+    navigateTo(page);
+};
+
 // ✅ 修复刷新页面时 active 状态不更新的问题
 window.onhashchange = () => {
     const page = window.location.hash.substring(1) || 'dashboard';
+    console.log('Hash changed to:', page);
     navigateTo(page);
 };
 
@@ -188,6 +220,16 @@ if (loginForm) {
     });
 }
 
+// ✅ 页面加载完成后的处理
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded');
+    if (window.location.pathname.endsWith('app.html')) {
+        setupEventListeners();
+        // 确保在 DOM 加载完成后初始化页面
+        initializePage();
+    }
+});
+
 // ✅ 进入 app.html 时检查登录状态和初始化页面
 if (window.location.pathname.endsWith('app.html')) {
     const userName = getCookie('userName');
@@ -197,8 +239,16 @@ if (window.location.pathname.endsWith('app.html')) {
             userInfo.innerText = userName;
         }
 
-        const page = window.location.hash.substring(1) || 'dashboard';
-        navigateTo(page);
+        // 如果 DOM 已经加载完成，直接初始化
+        if (document.readyState === 'loading') {
+            // DOM 还在加载中，等待 DOMContentLoaded 事件
+            console.log('DOM still loading, waiting for DOMContentLoaded');
+        } else {
+            // DOM 已经加载完成，直接初始化
+            console.log('DOM already loaded, initializing immediately');
+            setupEventListeners();
+            initializePage();
+        }
     } else {
         window.location.href = 'index.html';
     }
@@ -278,8 +328,4 @@ function setupEventListeners() {
     });
 
     eventListenersAttached = true;
-}
-
-if (window.location.pathname.endsWith('app.html')) {
-    setupEventListeners();
 }
