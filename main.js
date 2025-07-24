@@ -38,13 +38,24 @@ const handleAuthError = (error) => {
     }
 };
 
+// ✅ 跟踪已加载的脚本，避免重复加载
+const loadedScripts = new Set();
+
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
+        // 如果脚本已经加载过，直接返回
+        if (loadedScripts.has(url)) {
+            console.log(`🔄 Script already loaded: ${url}`);
+            resolve();
+            return;
+        }
+
         console.log(`Loading script: ${url}`);
         const script = document.createElement('script');
         script.src = url;
         script.onload = () => {
             console.log(`✅ Script loaded successfully: ${url}`);
+            loadedScripts.add(url);
             resolve();
         };
         script.onerror = (error) => {
@@ -131,12 +142,25 @@ const loadContent = async (page) => {
     }
 };
 
+// ✅ 防止重复导航的标志
+let isNavigating = false;
+
 // ✅ 改进的 navigateTo 函数
 const navigateTo = (page) => {
     console.log('Navigating to:', page);
     
-    // 强制加载内容，不做重复检查（因为刷新后内容可能已经清空）
-    loadContent(page);
+    // 防止重复导航
+    if (isNavigating) {
+        console.log('Navigation already in progress, skipping');
+        return;
+    }
+    
+    isNavigating = true;
+    
+    // 异步加载内容，完成后重置标志
+    loadContent(page).finally(() => {
+        isNavigating = false;
+    });
     
     // 只有当 hash 真的需要改变时才更新
     if ('#' + page !== window.location.hash) {
@@ -190,6 +214,13 @@ const initializePage = () => {
 window.onhashchange = () => {
     const page = window.location.hash.substring(1) || 'dashboard';
     console.log('Hash changed to:', page);
+    
+    // 如果正在导航中，不要重复处理
+    if (isNavigating) {
+        console.log('Already navigating, ignoring hash change');
+        return;
+    }
+    
     navigateTo(page);
 };
 
@@ -260,8 +291,10 @@ if (window.location.pathname.endsWith('app.html')) {
             const page = window.location.hash.substring(1) || 'dashboard';
             console.log('Current hash page:', page);
             
-            // 强制导航到当前页面，确保内容和导航状态都正确
-            navigateTo(page);
+            // 直接加载内容，不通过 navigateTo 避免重复
+            loadContent(page).then(() => {
+                updateNavigationState(page);
+            });
         };
 
         // 如果 DOM 已经加载完成，直接初始化
