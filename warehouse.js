@@ -1,6 +1,97 @@
 (() => {
   window.createWarehousePage = (warehouseId, supabaseClient) => {
     let eventController = null;
+    
+    // 为每个仓库创建独立的 stock out 数据存储
+    const STOCK_OUT_KEY = `stockOut_${warehouseId}`;
+
+    // 保存 Stock Out 数据到内存
+    const saveStockOutData = () => {
+      const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+      if (!stockOutTableBody) return;
+      
+      const stockOutData = [];
+      const rows = stockOutTableBody.querySelectorAll('tr');
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 7) {
+          stockOutData.push({
+            productName: cells[0].textContent,
+            packingSize: cells[1].textContent,
+            batchNo: cells[2].textContent,
+            location: cells[3].textContent,
+            lotNumber: cells[4].textContent,
+            withdrawQuantity: cells[5].textContent,
+            withdrawPallet: cells[6].textContent
+          });
+        }
+      });
+      
+      // 存储到 window 对象中（会话级别持久化）
+      if (!window.warehouseStockOutData) {
+        window.warehouseStockOutData = {};
+      }
+      window.warehouseStockOutData[STOCK_OUT_KEY] = stockOutData;
+    };
+
+    // 从内存加载 Stock Out 数据
+    const loadStockOutData = () => {
+      const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+      if (!stockOutTableBody) return;
+      
+      if (window.warehouseStockOutData && window.warehouseStockOutData[STOCK_OUT_KEY]) {
+        const stockOutData = window.warehouseStockOutData[STOCK_OUT_KEY];
+        
+        // 清空现有数据
+        stockOutTableBody.innerHTML = '';
+        
+        // 重新添加保存的数据
+        stockOutData.forEach(item => {
+          const newRow = document.createElement('tr');
+          newRow.innerHTML = `
+            <td>${item.productName}</td>
+            <td>${item.packingSize}</td>
+            <td>${item.batchNo}</td>
+            <td>${item.location}</td>
+            <td>${item.lotNumber}</td>
+            <td>${item.withdrawQuantity}</td>
+            <td>${item.withdrawPallet}</td>
+            <td><button class="remove-stock-out-btn" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">&times;</button></td>
+          `;
+          stockOutTableBody.appendChild(newRow);
+        });
+        
+        // 为删除按钮添加事件监听器
+        addRemoveStockOutListeners();
+      }
+    };
+
+    // 添加 Stock Out 行删除功能
+    const addRemoveStockOutListeners = () => {
+      const removeButtons = document.querySelectorAll(`#${warehouseId}-stock-out-table .remove-stock-out-btn`);
+      removeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          if (confirm('确定要删除这条 Stock Out 记录吗？')) {
+            e.target.closest('tr').remove();
+            saveStockOutData(); // 删除后保存数据
+          }
+        });
+      });
+    };
+
+    // 清空 Stock Out 数据的函数
+    const clearStockOutData = () => {
+      const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+      if (stockOutTableBody) {
+        stockOutTableBody.innerHTML = '';
+      }
+      
+      // 清除存储的数据
+      if (window.warehouseStockOutData) {
+        delete window.warehouseStockOutData[STOCK_OUT_KEY];
+      }
+    };
 
     const loadInventoryData = async () => {
       try {
@@ -388,10 +479,15 @@
                     <td>${lotNumber}</td>
                     <td>${withdrawQuantity}</td>
                     <td>${withdrawPallet}</td>
+                    <td><button class="remove-stock-out-btn" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">&times;</button></td>
                   `;
                   stockOutTableBody.appendChild(newRow);
                 }
               });
+              
+              // 添加新行后保存数据并绑定删除事件
+              saveStockOutData();
+              addRemoveStockOutListeners();
             }
 
             if (!errorShown) {
@@ -482,6 +578,30 @@
             }
           }, { signal });
         }
+
+        // 在数据加载完成后，恢复 Stock Out 数据
+        loadStockOutData();
+        
+        // 添加清空 Stock Out 按钮（可选）
+        const addClearStockOutButton = () => {
+          const stockOutTable = document.querySelector(`#${warehouseId}-stock-out-table`);
+          if (stockOutTable && !document.querySelector(`#${warehouseId}-clear-stock-out-btn`)) {
+            const clearButton = document.createElement('button');
+            clearButton.id = `${warehouseId}-clear-stock-out-btn`;
+            clearButton.textContent = 'Clear All Stock Out Records';
+            clearButton.style.cssText = 'background: #ff6b6b; color: white; border: none; padding: 8px 16px; margin: 10px 0; border-radius: 4px; cursor: pointer;';
+            
+            clearButton.addEventListener('click', () => {
+              if (confirm('确定要清空所有 Stock Out 记录吗？此操作不可撤销。')) {
+                clearStockOutData();
+              }
+            });
+            
+            stockOutTable.parentNode.insertBefore(clearButton, stockOutTable);
+          }
+        };
+        
+        addClearStockOutButton();
         
       } catch (error) {
         console.error('Error loading inventory data:', error);
@@ -489,5 +609,12 @@
     };
 
     loadInventoryData();
+
+    // 返回一个对象，包含一些有用的方法
+    return {
+      clearStockOut: clearStockOutData,
+      saveStockOut: saveStockOutData,
+      loadStockOut: loadStockOutData
+    };
   };
 })();
