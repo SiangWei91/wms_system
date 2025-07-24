@@ -608,13 +608,38 @@
       }
     };
 
-    loadInventoryData();
+    const initTabs = () => {
+      const tabLinks = document.querySelectorAll(`.${warehouseId}-container .tab-link`);
+      const tabPanes = document.querySelectorAll(`.${warehouseId}-container .tab-pane`);
+
+      tabLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          const tab = link.dataset.tab;
+
+          tabLinks.forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+
+          tabPanes.forEach(pane => {
+            if (pane.id === tab) {
+              pane.classList.add('active');
+            } else {
+              pane.classList.remove('active');
+            }
+          });
+        });
+      });
+    };
+
+    loadInventoryData().then(() => {
+      initTabs();
+    });
 
     // 返回一个对象，包含一些有用的方法
     return {
       clearStockOut: clearStockOutData,
       saveStockOut: saveStockOutData,
-      loadStockOut: loadStockOutData
+      loadStockOut: loadStockOutData,
+      initTabs: initTabs
     };
   };
 })();
