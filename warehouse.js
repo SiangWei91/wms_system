@@ -359,12 +359,15 @@
         // Remove existing listeners before adding new ones
         closeButton.removeEventListener('click', handleModalClose);
         modal.removeEventListener('keydown', handleModalKeydown);
-        modalSubmitButton.removeEventListener('click', handleModalSubmit);
+        if (modalSubmitButton.handler) {
+          modalSubmitButton.removeEventListener('click', modalSubmitButton.handler);
+        }
 
         // Add new listeners
         closeButton.addEventListener('click', handleModalClose);
         modal.addEventListener('keydown', handleModalKeydown);
         modalSubmitButton.addEventListener('click', handleModalSubmit);
+        modalSubmitButton.handler = handleModalSubmit;
       }
 
       const submitButton = document.querySelector(`#${warehouseId}-submit-btn`);
