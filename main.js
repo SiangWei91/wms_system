@@ -313,27 +313,15 @@ function setupEventListeners() {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
 
-    const handleSidebar = () => {
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            sidebar.classList.remove('sidebar-collapsed');
-        } else {
-            sidebar.classList.remove('show');
-        }
-    };
-
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebar.classList.remove('sidebar-collapsed');
             } else {
-                sidebar.classList.toggle('sidebar-collapsed');
+                sidebar.classList.toggle('show');
             }
         });
     }
-
-    window.addEventListener('resize', handleSidebar);
-    handleSidebar(); // Initial check
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
