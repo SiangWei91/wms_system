@@ -530,7 +530,8 @@ async function updateInventory(supabase) {
                 .insert([inventoryData]);
             if (insertError) throw insertError;
 
-            const userName = getCookie('userName');
+            const { data: { session } } = await supabase.auth.getSession();
+            const userName = session.user.user_metadata.name || session.user.email;
             const transactionData = {
                 transaction_type: 'inbound',
                 item_code: item.itemCode,

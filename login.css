@@ -72,6 +72,27 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s;
+  position: relative;
+}
+
+.btn-login .loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 .btn-login:hover {

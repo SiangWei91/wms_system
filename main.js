@@ -3,30 +3,6 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-const setCookie = (name, value, days) => {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict; Secure";
-};
-
-const getCookie = (name) => {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-};
-
-const eraseCookie = (name) => {
-    document.cookie = name + '=; Max-Age=-99999999; path=/; domain=' + window.location.hostname;
-};
 
 const handleAuthError = (error) => {
     const errorMessage = document.getElementById('error-message');
@@ -186,10 +162,18 @@ window.onhashchange = () => {
 
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
-    eraseCookie('userName');
+    supabaseClient.auth.signOut();
 
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        const loginButton = loginForm.querySelector('.btn-login');
+        const buttonText = loginButton.querySelector('.btn-text');
+        const loader = loginButton.querySelector('.loader');
+
+        loginButton.disabled = true;
+        buttonText.style.display = 'none';
+        loader.style.display = 'block';
+
         const userId = document.getElementById('user-id').value;
         const password = document.getElementById('password').value;
 
@@ -201,6 +185,9 @@ if (loginForm) {
 
         if (profileError || !profile) {
             handleAuthError({ message: 'User ID not found' });
+            loginButton.disabled = false;
+            buttonText.style.display = 'inline';
+            loader.style.display = 'none';
             return;
         }
 
@@ -214,9 +201,22 @@ if (loginForm) {
 
         if (error) {
             handleAuthError(error);
+            loginButton.disabled = false;
+            buttonText.style.display = 'inline';
+            loader.style.display = 'none';
         } else {
-            setCookie('userName', name, 1);
-            window.location.href = 'app.html';
+            const { data: user, error: updateError } = await supabaseClient.auth.updateUser({
+                data: { name: name }
+            })
+
+            if (updateError) {
+                handleAuthError(updateError);
+                loginButton.disabled = false;
+                buttonText.style.display = 'inline';
+                loader.style.display = 'none';
+            } else {
+                window.location.href = 'app.html';
+            }
         }
     });
 }
@@ -226,37 +226,39 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 if (window.location.pathname.endsWith('app.html')) {
-    const userName = getCookie('userName');
-    if (userName) {
-        const setUserInfo = () => {
-            const userInfo = document.getElementById('user-info');
-            if (userInfo) {
-                userInfo.innerText = userName;
-            }
-        };
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            const userName = session.user.user_metadata.name || session.user.email;
+            const setUserInfo = () => {
+                const userInfo = document.getElementById('user-info');
+                if (userInfo) {
+                    userInfo.innerText = userName;
+                }
+            };
 
-        const initializeApp = () => {
-            setupEventListeners();
-            
-            const page = window.location.hash.substring(1) || 'dashboard';
-            
-            loadContent(page).then(() => {
-                updateNavigationState(page);
-            });
-        };
+            const initializeApp = () => {
+                setupEventListeners();
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
+                const page = window.location.hash.substring(1) || 'dashboard';
+
+                loadContent(page).then(() => {
+                    updateNavigationState(page);
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setUserInfo();
+                    initializeApp();
+                });
+            } else {
                 setUserInfo();
                 initializeApp();
-            });
+            }
         } else {
-            setUserInfo();
-            initializeApp();
+            window.location.href = 'index.html';
         }
-    } else {
-        window.location.href = 'index.html';
-    }
+    });
 }
 
 const logoutButton = document.getElementById('logout-button');
@@ -266,7 +268,6 @@ if (logoutButton) {
         if (error) {
             handleAuthError(error);
         } else {
-            eraseCookie('userName');
             window.location.href = 'index.html';
         }
     });
