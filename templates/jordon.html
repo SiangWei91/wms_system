@@ -31,6 +31,12 @@
       </table>
     </div>
     <div id="stock-out" class="tab-pane">
+      <div>
+        <label for="jordon-draw-out-date">Draw Out Date:</label>
+        <input type="date" id="jordon-draw-out-date">
+        <label for="jordon-draw-out-time">Draw Out Time:</label>
+        <input type="time" id="jordon-draw-out-time">
+      </div>
       <table id="jordon-stock-out-table" class="data-table">
         <thead>
           <tr>
@@ -47,6 +53,7 @@
           <!-- Data will be loaded here -->
         </tbody>
       </table>
+      <button id="jordon-confirm-date-out-btn" class="btn-primary">Confirm Date Out</button>
     </div>
     <div id="stock-in" class="tab-pane">
       <table id="jordon-stock-in-table" class="data-table">
