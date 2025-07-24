@@ -293,9 +293,12 @@ function setupEventListeners() {
     if (eventListenersAttached) return;
 
     const navItems = document.querySelectorAll('nav ul li');
+    const sidebar = document.querySelector('.sidebar');
+
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const page = item.getAttribute('data-page');
+
             if (page === 'public-warehouse') {
                 e.preventDefault();
                 const warehouseOptions = document.querySelectorAll('.warehouse-option');
@@ -307,12 +310,14 @@ function setupEventListeners() {
             } else if (page) {
                 navigateTo(page);
             }
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('show');
+            }
         });
     });
 
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebar = document.querySelector('.sidebar');
-
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
             if (sidebar.classList.contains('sidebar-collapsed')) {
@@ -322,14 +327,6 @@ function setupEventListeners() {
             }
         });
     }
-
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('show');
-            }
-        });
-    });
 
     eventListenersAttached = true;
 }
