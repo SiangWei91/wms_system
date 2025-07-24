@@ -93,6 +93,8 @@
       }
     };
 
+    let threePLWarehouses = [];
+
     const loadInventoryData = async () => {
       try {
         // 清理之前的事件监听器
@@ -102,6 +104,16 @@
         // 创建新的 AbortController
         eventController = new AbortController();
         const signal = eventController.signal;
+
+        const { data: warehouses, error: warehousesError } = await supabaseClient
+          .from('warehouses')
+          .select('warehouse_id, name')
+          .like('details', '%for_3pl_list%');
+
+        if (warehousesError) {
+          throw warehousesError;
+        }
+        threePLWarehouses = warehouses;
 
         const { data: inventoryData, error: inventoryError } = await supabaseClient
           .from('inventory')
@@ -472,6 +484,7 @@
                   }
 
                   const newRow = document.createElement('tr');
+                  const warehouseOptions = threePLWarehouses.map(w => `<option value="${w.warehouse_id}">${w.name}</option>`).join('');
                   newRow.innerHTML = `
                     <td style="display:none;">${itemElement.dataset.itemCode}</td>
                     <td>${productName}</td>
@@ -481,6 +494,7 @@
                     <td>${lotNumber}</td>
                     <td>${withdrawQuantity}</td>
                     <td>${withdrawPallet}</td>
+                    <td><select class="transfer-to-select">${warehouseOptions}</select></td>
                     <td><button class="remove-stock-out-btn" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer;">&times;</button></td>
                   `;
                   stockOutTableBody.appendChild(newRow);
@@ -691,6 +705,7 @@
       const stockOutItems = [];
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
+        const transferTo = row.querySelector('.transfer-to-select').value;
         stockOutItems.push({
           item_code: cells[0].textContent,
           product_name: cells[1].textContent,
@@ -700,6 +715,8 @@
           lot_number: cells[5].textContent,
           withdraw_quantity: parseInt(cells[6].textContent),
           withdraw_pallet: parseInt(cells[7].textContent),
+          source_warehouse_id: warehouseId,
+          destination_warehouse_id: transferTo,
         });
       });
 
@@ -712,6 +729,7 @@
           draw_out_time: drawOutTime,
           warehouse_id: warehouseId,
           stock_out_items: stockOutItems,
+          transaction_type: 'internal_transfer',
         });
 
       if (scheduledError) {
