@@ -312,12 +312,13 @@ function setupEventListeners() {
 
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
+
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebar.classList.remove('sidebar-collapsed');
             } else {
-                sidebar.classList.toggle('sidebar-collapsed');
+                sidebar.classList.toggle('show');
             }
         });
     }
