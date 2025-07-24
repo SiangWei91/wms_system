@@ -106,7 +106,7 @@ const loadContent = async (page) => {
                             } else {
                                 window.loadLineagePage(supabaseClient);
                             }
-                        } else if (page === 'sing-long') {
+                        } else if (page === 'sing-long' || page === 'transfer' || page === 'surimi' || page === 'packaging-material') {
                             navigateTo('coming-soon');
                             return;
                         }
@@ -293,12 +293,9 @@ function setupEventListeners() {
     if (eventListenersAttached) return;
 
     const navItems = document.querySelectorAll('nav ul li');
-    const sidebar = document.querySelector('.sidebar');
-
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const page = item.getAttribute('data-page');
-
             if (page === 'public-warehouse') {
                 e.preventDefault();
                 const warehouseOptions = document.querySelectorAll('.warehouse-option');
@@ -310,23 +307,28 @@ function setupEventListeners() {
             } else if (page) {
                 navigateTo(page);
             }
+        });
+    });
 
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('sidebar-collapsed');
+            }
+        });
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('show');
             }
         });
     });
-
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => {
-            if (sidebar.classList.contains('sidebar-collapsed')) {
-                sidebar.classList.remove('sidebar-collapsed');
-            } else {
-                sidebar.classList.toggle('show');
-            }
-        });
-    }
 
     eventListenersAttached = true;
 }
