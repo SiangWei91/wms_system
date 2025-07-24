@@ -1,3 +1,11 @@
+window.loadJordonPage = (supabaseClient) => {
+  createWarehousePage('jordon', supabaseClient);
+};
+
+window.loadLineagePage = (supabaseClient) => {
+  createWarehousePage('lineage', supabaseClient);
+};
+
 (() => {
   const initTabs = () => {
     const tabLinks = document.querySelectorAll('.tab-link');

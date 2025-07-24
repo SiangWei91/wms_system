@@ -92,16 +92,14 @@ const loadContent = async (page) => {
                         if (window.loadInventoryPage) {
                             window.loadInventoryPage(supabaseClient);
                         }
-                    } else if (page === 'jordon') {
+                    } else if (page === 'jordon' || page === 'lineage') {
                         await loadScript('warehouse.js');
-                        await loadScript('jordon.js');
-                        await loadScript('tabs.js');
-                        window.loadJordonPage(supabaseClient);
-                    } else if (page === 'lineage') {
-                        await loadScript('warehouse.js');
-                        await loadScript('lineage.js');
-                        await loadScript('tabs.js');
-                        window.loadLineagePage(supabaseClient);
+                        await loadScript('public-warehouse.js');
+                        if (page === 'jordon') {
+                            window.loadJordonPage(supabaseClient);
+                        } else {
+                            window.loadLineagePage(supabaseClient);
+                        }
                     } else if (page === 'sing-long') {
                         navigateTo('coming-soon');
                     }

@@ -296,78 +296,83 @@
           }
         };
 
-        const handleModalSubmit = () => {
-          console.log(`handleModalSubmit called for warehouse: ${warehouseId}`);
-          const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
-          const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
-          let errorShown = false;
+        const eventHandlers = (() => {
+          let submitHandler;
+          return {
+            add: () => {
+              submitHandler = () => {
+                const stockOutTableBody = document.querySelector(`#${warehouseId}-stock-out-table tbody`);
+                const withdrawalItems = document.querySelectorAll('#jordon-modal-body > div');
+                let errorShown = false;
 
-          if (stockOutTableBody) {
-            withdrawalItems.forEach(itemElement => {
-              if (errorShown) return;
+                if (stockOutTableBody) {
+                  withdrawalItems.forEach(itemElement => {
+                    if (errorShown) return;
 
-              const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
-              const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
-              const batchNo = itemElement.querySelector('p:nth-child(3)').textContent.replace('Batch No: ', '');
-              const location = itemElement.querySelector('p:nth-child(4)').textContent.replace('Location: ', '');
-              const lotNumberText = itemElement.querySelector('p:nth-child(5)').textContent;
-              const lotNumber = lotNumberText.includes('LLM Item Code:')
-                ? lotNumberText.replace('LLM Item Code: ', '')
-                : lotNumberText.replace('Lot Number: ', '');
+                    const productName = itemElement.querySelector('p:nth-child(1)').textContent.replace('Product Name: ', '');
+                    const packingSize = itemElement.querySelector('p:nth-child(2)').textContent.replace('Packing Size: ', '');
+                    const batchNo = itemElement.querySelector('p:nth-child(3)').textContent.replace('Batch No: ', '');
+                    const location = itemElement.querySelector('p:nth-child(4)').textContent.replace('Location: ', '');
+                    const lotNumberText = itemElement.querySelector('p:nth-child(5)').textContent;
+                    const lotNumber = lotNumberText.includes('LLM Item Code:')
+                      ? lotNumberText.replace('LLM Item Code: ', '')
+                      : lotNumberText.replace('Lot Number: ', '');
 
-              const currentQuantity = Number(itemElement.querySelector('p:nth-child(6)').textContent.replace('Current Quantity: ', ''));
-              const currentPallet = Number(itemElement.querySelector('p:nth-child(7)').textContent.replace('Current Pallet: ', ''));
+                    const currentQuantity = Number(itemElement.querySelector('p:nth-child(6)').textContent.replace('Current Quantity: ', ''));
+                    const currentPallet = Number(itemElement.querySelector('p:nth-child(7)').textContent.replace('Current Pallet: ', ''));
 
-              const withdrawQuantityInput = itemElement.querySelector('.withdraw-quantity');
-              const withdrawPalletInput = itemElement.querySelector('.withdraw-pallet');
-              const withdrawQuantity = Number(withdrawQuantityInput.value);
-              const withdrawPallet = Number(withdrawPalletInput.value);
+                    const withdrawQuantityInput = itemElement.querySelector('.withdraw-quantity');
+                    const withdrawPalletInput = itemElement.querySelector('.withdraw-pallet');
+                    const withdrawQuantity = Number(withdrawQuantityInput.value);
+                    const withdrawPallet = Number(withdrawPalletInput.value);
 
-              if (withdrawQuantity > 0 || withdrawPallet > 0) {
-                if (withdrawQuantity > currentQuantity) {
-                  alert(`Withdraw quantity for ${productName} cannot be greater than current quantity.`);
-                  errorShown = true;
-                  return;
+                    if (withdrawQuantity > 0 || withdrawPallet > 0) {
+                      if (withdrawQuantity > currentQuantity) {
+                        alert(`Withdraw quantity for ${productName} cannot be greater than current quantity.`);
+                        errorShown = true;
+                        return;
+                      }
+
+                      if (withdrawPallet > currentPallet) {
+                        alert(`Withdraw pallet for ${productName} cannot be greater than current pallet.`);
+                        errorShown = true;
+                        return;
+                      }
+
+                      const newRow = document.createElement('tr');
+                      newRow.innerHTML = `
+                        <td>${productName}</td>
+                        <td>${packingSize}</td>
+                        <td>${batchNo}</td>
+                        <td>${location}</td>
+                        <td>${lotNumber}</td>
+                        <td>${withdrawQuantity}</td>
+                        <td>${withdrawPallet}</td>
+                      `;
+                      stockOutTableBody.appendChild(newRow);
+                    }
+                  });
                 }
 
-                if (withdrawPallet > currentPallet) {
-                  alert(`Withdraw pallet for ${productName} cannot be greater than current pallet.`);
-                  errorShown = true;
-                  return;
+                if (!errorShown) {
+                  modal.style.display = 'none';
                 }
-
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                  <td>${productName}</td>
-                  <td>${packingSize}</td>
-                  <td>${batchNo}</td>
-                  <td>${location}</td>
-                  <td>${lotNumber}</td>
-                  <td>${withdrawQuantity}</td>
-                  <td>${withdrawPallet}</td>
-                `;
-                stockOutTableBody.appendChild(newRow);
+              };
+              modalSubmitButton.addEventListener('click', submitHandler);
+            },
+            remove: () => {
+              if (submitHandler) {
+                modalSubmitButton.removeEventListener('click', submitHandler);
               }
-            });
+            }
           }
+        })();
 
-          if (!errorShown) {
-            modal.style.display = 'none';
-          }
-        };
+        eventHandlers.remove();
+        eventHandlers.add();
 
-        // Remove existing listeners before adding new ones
-        closeButton.removeEventListener('click', handleModalClose);
-        modal.removeEventListener('keydown', handleModalKeydown);
-        if (modalSubmitButton.handler) {
-          modalSubmitButton.removeEventListener('click', modalSubmitButton.handler);
-        }
-
-        // Add new listeners
         closeButton.addEventListener('click', handleModalClose);
         modal.addEventListener('keydown', handleModalKeydown);
-        modalSubmitButton.addEventListener('click', handleModalSubmit);
-        modalSubmitButton.handler = handleModalSubmit;
       }
 
       const submitButton = document.querySelector(`#${warehouseId}-submit-btn`);
