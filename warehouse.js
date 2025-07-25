@@ -1013,6 +1013,58 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       printWindow.print();
     };
 
+    const lineageShowRecordsButton = document.getElementById('lineage-show-records-btn');
+    if (lineageShowRecordsButton) {
+      lineageShowRecordsButton.addEventListener('click', async () => {
+        const modal = document.getElementById('lineage-records-modal');
+        const tableContainer = document.getElementById('lineage-records-table-container');
+        if (!modal || !tableContainer) return;
+
+        const { data, error } = await supabaseClient
+          .from('scheduled_transactions')
+          .select('*')
+          .eq('warehouse_id', 'lineage')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching Lineage records:', error);
+          alert('Error fetching Lineage records.');
+          return;
+        }
+
+        tableContainer.innerHTML = createLineageRecordsTable(data);
+        modal.style.display = 'block';
+
+        const closeButton = modal.querySelector('.close-button');
+        closeButton.onclick = () => {
+          modal.style.display = 'none';
+        };
+
+        window.onclick = (event) => {
+          if (event.target == modal) {
+            modal.style.display = 'none';
+          }
+        };
+      });
+    }
+
+    const createLineageRecordsTable = (data) => {
+      let table = '<table class="data-table"><thead><tr><th>Order Number</th><th>Draw Out Date</th><th>Draw Out Time</th><th>Status</th><th>Items</th></tr></thead><tbody>';
+      data.forEach(record => {
+        table += `
+          <tr>
+            <td>${record.order_number}</td>
+            <td>${new Date(record.draw_out_date).toLocaleDateString('en-GB')}</td>
+            <td>${record.draw_out_time}</td>
+            <td>${record.status}</td>
+            <td>${record.stock_out_items.map(item => `<div>${item.product_name} (${item.withdraw_quantity})</div>`).join('')}</td>
+          </tr>
+        `;
+      });
+      table += '</tbody></table>';
+      return table;
+    };
+
     // 返回一个对象，包含一些有用的方法
     return {
       clearStockOut: clearStockOutData,

@@ -100,7 +100,16 @@
       <button id="lineage-submit-btn" class="btn-primary">Submit</button>
     </div>
     <div id="report" class="tab-pane">
-      <!-- Report content will go here -->
+      <div class="report-container">
+        <button id="lineage-show-records-btn" class="btn-secondary">Lineage Drawing Form Records</button>
+      </div>
     </div>
   </div>
+    <div id="lineage-records-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Lineage Drawing Form Records</h2>
+        <div id="lineage-records-table-container"></div>
+      </div>
+    </div>
 </div>
