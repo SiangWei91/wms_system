@@ -16,21 +16,6 @@
   padding: 20px;
 }
 
-.report-container {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
-
-.report-container .form-group {
-  margin-bottom: 15px;
-}
-
-.report-container label {
-  font-weight: bold;
-  margin-right: 10px;
-}
 
 .inventory-header {
   display: flex;

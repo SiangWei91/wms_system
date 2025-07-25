@@ -1033,7 +1033,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
 
         tableContainer.innerHTML = createLineageRecordsTable(data);
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
 
         const closeButton = modal.querySelector('.close-button');
         closeButton.onclick = () => {
