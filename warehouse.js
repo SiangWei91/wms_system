@@ -825,8 +825,30 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
               pane.classList.remove('active');
             }
           });
+
+          if (tab === 'report' && warehouseId === 'jordon') {
+            loadReprintForm();
+          }
         });
       });
+    };
+
+    const loadReprintForm = async () => {
+      const orderNumberSelect = document.getElementById('jordon-reprint-order-number');
+      if (!orderNumberSelect) return;
+
+      const { data, error } = await supabaseClient
+        .from('scheduled_transactions')
+        .select('order_number, draw_out_date')
+        .eq('warehouse_id', 'jordon')
+        .order('draw_out_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching Jordon orders:', error);
+        return;
+      }
+
+      orderNumberSelect.innerHTML = data.map(order => `<option value="${order.order_number}">${order.order_number} (${new Date(order.draw_out_date).toLocaleDateString('en-GB')})</option>`).join('');
     };
 
     const setDefaultDrawOutDateTime = () => {
@@ -944,7 +966,38 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       if (confirmButton) {
         confirmButton.addEventListener('click', handleConfirmDateOut);
       }
+
+      const reprintButton = document.getElementById('jordon-reprint-btn');
+      if (reprintButton) {
+        reprintButton.addEventListener('click', handleReprint);
+      }
     });
+
+    const handleReprint = async () => {
+      const orderNumber = document.getElementById('jordon-reprint-order-number').value;
+      if (!orderNumber) {
+        alert('Please select an order number.');
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from('scheduled_transactions')
+        .select('*')
+        .eq('order_number', orderNumber)
+        .single();
+
+      if (error || !data) {
+        console.error('Error fetching order details for reprint:', error);
+        alert('Could not fetch order details for reprinting.');
+        return;
+      }
+
+      const printHtml = generateJordonPrintHTML(data.order_number, data.draw_out_date, data.draw_out_time, data.stock_out_items);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      printWindow.print();
+    };
 
     // 返回一个对象，包含一些有用的方法
     return {
