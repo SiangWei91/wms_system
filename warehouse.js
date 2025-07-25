@@ -132,7 +132,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     </div>
                 </div>
                 <div class="date-container">
-                    <p class="date">Withdraw Date: ${draw_out_date}</p>
+                    <p class="date">Withdraw Date: ${new Date(draw_out_date).toLocaleDateString('en-GB')}</p>
                 </div>
                 <p class="attn">Attn: Jordon Food Industries Pte Ltd</p>
                 <p>13 Woodlands Loop, Singapore 738284</p>
