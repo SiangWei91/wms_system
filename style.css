@@ -556,7 +556,7 @@ nav ul li i {
   z-index: 1001;
 }
 
-.modal {
+.report-modal {
   display: none;
   position: fixed;
   z-index: 1000;
