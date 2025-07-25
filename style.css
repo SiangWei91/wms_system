@@ -556,7 +556,18 @@ nav ul li i {
   z-index: 1001;
 }
 
-.report-modal {
+.jordon-withdrawal-modal .modal {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 550px;
+  max-width: 90%;
+  animation: modal-appear 0.3s ease-out;
+  transition: max-width 0.3s ease;
+}
+
+.lineage-modal {
   display: none;
   position: fixed;
   z-index: 1000;
