@@ -709,7 +709,7 @@
         const transferTo = row.querySelector('.transfer-to-select').value;
         stockOutItems.push({
           item_code: cells[0].textContent,
-          inventory_id: parseInt(cells[1].textContent),
+          inventory_id: cells[1].textContent,
           product_name: cells[2].textContent,
           packing_size: cells[3].textContent,
           batch_no: cells[4].textContent,
