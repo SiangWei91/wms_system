@@ -1,5 +1,8 @@
 const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, items) => {
   const escapeHtml = (unsafe) => {
+    if (typeof unsafe !== 'string') {
+      unsafe = String(unsafe);
+    }
     return unsafe
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
