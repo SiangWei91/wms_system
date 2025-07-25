@@ -967,9 +967,23 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         confirmButton.addEventListener('click', handleConfirmDateOut);
       }
 
+      if (confirmButton) {
+        confirmButton.addEventListener('click', handleConfirmDateOut);
+      }
+
       const reprintButton = document.getElementById('jordon-reprint-btn');
       if (reprintButton) {
         reprintButton.addEventListener('click', handleReprint);
+      }
+
+      const showReprintFormButton = document.getElementById('jordon-show-reprint-form-btn');
+      if (showReprintFormButton) {
+        showReprintFormButton.addEventListener('click', () => {
+          const reprintFormContainer = document.getElementById('jordon-reprint-form-container');
+          if (reprintFormContainer) {
+            reprintFormContainer.style.display = reprintFormContainer.style.display === 'none' ? 'block' : 'none';
+          }
+        });
       }
     });
 

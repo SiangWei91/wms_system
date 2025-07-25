@@ -100,12 +100,16 @@
       <button id="jordon-submit-btn" class="btn-primary">Submit</button>
     </div>
     <div id="report" class="tab-pane">
-      <h3>Jordon Drawing Form Reprint</h3>
-      <div class="form-group">
-        <label for="jordon-reprint-order-number">Order Number:</label>
-        <select id="jordon-reprint-order-number"></select>
+      <div class="report-container">
+        <button id="jordon-show-reprint-form-btn" class="btn-secondary">Jordon Drawing Form Reprint</button>
+        <div id="jordon-reprint-form-container" style="display: none; margin-top: 10px;">
+          <div class="form-group">
+            <label for="jordon-reprint-order-number">Order Number:</label>
+            <select id="jordon-reprint-order-number"></select>
+          </div>
+          <button id="jordon-reprint-btn" class="btn-primary">Reprint</button>
+        </div>
       </div>
-      <button id="jordon-reprint-btn" class="btn-primary">Reprint</button>
     </div>
   </div>
 </div>
