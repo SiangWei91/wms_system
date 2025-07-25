@@ -487,6 +487,7 @@
                   const warehouseOptions = threePLWarehouses.map(w => `<option value="${w.warehouse_id}">${w.name}</option>`).join('');
                   newRow.innerHTML = `
                     <td style="display:none;">${itemElement.dataset.itemCode}</td>
+                    <td style="display:none;">${withdrawQuantityInput.dataset.itemId}</td>
                     <td>${productName}</td>
                     <td>${packingSize}</td>
                     <td>${batchNo}</td>
@@ -708,19 +709,21 @@
         const transferTo = row.querySelector('.transfer-to-select').value;
         stockOutItems.push({
           item_code: cells[0].textContent,
-          product_name: cells[1].textContent,
-          packing_size: cells[2].textContent,
-          batch_no: cells[3].textContent,
-          location: cells[4].textContent,
-          lot_number: cells[5].textContent,
-          withdraw_quantity: parseInt(cells[6].textContent),
-          withdraw_pallet: parseInt(cells[7].textContent),
+          inventory_id: parseInt(cells[1].textContent),
+          product_name: cells[2].textContent,
+          packing_size: cells[3].textContent,
+          batch_no: cells[4].textContent,
+          location: cells[5].textContent,
+          lot_number: cells[6].textContent,
+          withdraw_quantity: parseInt(cells[7].textContent),
+          withdraw_pallet: parseInt(cells[8].textContent),
           source_warehouse_id: warehouseId,
           destination_warehouse_id: transferTo,
         });
       });
 
       // Insert into scheduled_transactions
+      const operator_id = getCookie('userName') || 'unknown';
       const { error: scheduledError } = await supabaseClient
         .from('scheduled_transactions')
         .insert({
@@ -729,6 +732,7 @@
           draw_out_time: drawOutTime,
           warehouse_id: warehouseId,
           stock_out_items: stockOutItems,
+          operator_id: operator_id,
         });
 
       if (scheduledError) {
