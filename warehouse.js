@@ -1,3 +1,182 @@
+const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, items) => {
+  const escapeHtml = (unsafe) => {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  const tableRowsHtml = items.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(item.product_name)}</td>
+      <td>${escapeHtml(item.packing_size)}</td>
+      <td>${escapeHtml(item.location)}</td>
+      <td>${escapeHtml(item.lot_number)}</td>
+      <td>${escapeHtml(item.withdraw_pallet)}</td>
+      <td>${escapeHtml(item.withdraw_quantity)}</td>
+      <td>${escapeHtml(item.batch_no)}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jordon Withdraw Form - ${escapeHtml(order_number)}</title>
+        <style>
+            @page { size: A4; margin: 0; }
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 12pt;
+                margin: 0;
+                line-height: 1.3;
+            }
+            .content {
+                margin: 30px;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 20px;
+                margin-bottom: 20px;
+                font-size: 10pt; /* Smaller font size for table */
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 6px; /* Reduced padding for smaller text */
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+                font-size: 10pt; /* Match header font size with table */
+            }
+            .header { margin-bottom: 20px; }
+            .header p { margin: 3px 0; }
+            .company-name-container {
+                margin-top: 30px;
+            }
+            .company-name {
+                font-weight: bold;
+                text-decoration: underline;
+                font-size: 16pt;
+                margin-bottom: 5px;
+            }
+            .date-container {
+                margin: 40px 0;
+            }
+            .date {
+                font-weight: bold;
+                font-size: 14pt;
+            }
+            .bold { font-weight: bold; }
+            .right-align {
+                text-align: right;
+                margin-top: 10px;
+            }
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+            .header-left { flex: 1; }
+            .header-right { text-align: right; }
+            h2 {
+                font-size: 14pt;
+                margin-top: 20px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+            .footer { margin-top: 20px; }
+            .footer-row {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 40px;
+            }
+            .footer-item {
+                flex: 1;
+                text-align: left;
+                margin-right: 30px;
+            }
+            .footer-line {
+                border-top: 1px solid black;
+                margin-top: 60px;
+                width: 100%;
+            }
+            .withdraw-date-styled {
+                font-weight: bold;
+                font-size: 14pt;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="content">
+            <div class="header">
+                <div class="header-row">
+                    <div class="header-left">
+                        <div class="company-name-container">
+                            <p class="company-name">Li Chuan Food Product Pte Ltd</p>
+                            <p>40 Woodlands Terrace 738456</p>
+                            <p>Tel 65 6755 7688 Fax 65 6755 6698</p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <p class="bold">S/N: ${escapeHtml(order_number)}</p>
+                    </div>
+                </div>
+                <div class="date-container">
+                    <p class="date">Withdraw Date: ${draw_out_date}</p>
+                </div>
+                <p class="attn">Attn: Jordon Food Industries Pte Ltd</p>
+                <p>13 Woodlands Loop, Singapore 738284</p>
+                <p>Tel: +65 6551 5083 Fax: +65 6257 8660</p>
+                <p class="right-align"><span class="bold">Collection Time: ${escapeHtml(draw_out_time)}</span></p>
+            </div>
+            <h2>Jordon Withdraw Form</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Product Name</th>
+                        <th>Packing Size</th>
+                        <th>Loc</th> <!-- Changed from "Location" to "Loc" -->
+                        <th>Lot No</th>
+                        <th>Plts</th>
+                        <th>Qty</th> <!-- Changed from "Quantity" to "Qty" -->
+                        <th>Batch No</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRowsHtml}
+                </tbody>
+            </table>
+            <div class="footer">
+                <p>Regards,</p>
+                <div class="footer-row">
+                    <div class="footer-item">
+                        <p>Issue By:</p>
+                        <div class="footer-line"></div>
+                    </div>
+                    <div class="footer-item">
+                        <p>Collected By:</p>
+                        <div class="footer-line"></div>
+                    </div>
+                    <div class="footer-item">
+                        <p>Verified By:</p>
+                        <div class="footer-line"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
 (() => {
   window.createWarehousePage = (warehouseId, supabaseClient) => {
     let eventController = null;
@@ -744,6 +923,15 @@
       // Clear stock out table
       clearStockOutData();
       alert(`Stock out scheduled with order number: ${newOrderNumber}`);
+
+      // Generate and print Jordon form
+      if (warehouseId === 'jordon') {
+        const printHtml = generateJordonPrintHTML(newOrderNumber, drawOutDate, drawOutTime, stockOutItems);
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printHtml);
+        printWindow.document.close();
+        printWindow.print();
+      }
     };
 
     loadInventoryData().then(() => {
