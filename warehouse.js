@@ -1182,182 +1182,182 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       });
     };
 
-    const generateAndDisplayReport = async (snapshotDate) => {
-      const reportContent = document.getElementById('report-content');
-      reportContent.innerHTML = '<p>Generating report...</p>';
+const generateAndDisplayReport = async (snapshotDate) => {
+  const reportContent = document.getElementById('report-content');
+  reportContent.innerHTML = '<p>Generating report...</p>';
 
-      const { data: openingStock, error: openingStockError } = await supabaseClient
-        .from('month_end_snapshot')
-        .select('item_code, batch_no, quantity, details')
-        .eq('warehouse_id', 'jordon')
-        .eq('snapshot_date', snapshotDate);
+  const { data: openingStock, error: openingStockError } = await supabaseClient
+    .from('month_end_snapshot')
+    .select('item_code, batch_no, quantity, details')
+    .eq('warehouse_id', 'jordon')
+    .eq('snapshot_date', snapshotDate);
 
-      if (openingStockError) {
-        reportContent.innerHTML = '<p>Error fetching opening stock.</p>';
-        console.error('Error fetching opening stock:', openingStockError);
-        return;
-      }
+  if (openingStockError) {
+    reportContent.innerHTML = '<p>Error fetching opening stock.</p>';
+    console.error('Error fetching opening stock:', openingStockError);
+    return;
+  }
 
-      const startDate = new Date(snapshotDate);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+  const startDate = new Date(snapshotDate);
+  const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
 
-      const { data: transactions, error: transactionsError } = await supabaseClient
-        .from('transactions')
-        .select('transaction_date, transaction_type, item_code, batch_no, quantity, source_warehouse_id, destination_warehouse_id, inventory_details')
-        .eq('warehouse_id', 'jordon')
-        .gte('transaction_date', startDate.toISOString().split('T')[0])
-        .lte('transaction_date', endDate.toISOString().split('T')[0])
-        .order('transaction_date', { ascending: true });
+  const { data: transactions, error: transactionsError } = await supabaseClient
+    .from('transactions')
+    .select('transaction_date, transaction_type, item_code, batch_no, quantity, source_warehouse_id, destination_warehouse_id, inventory_details')
+    .eq('warehouse_id', 'jordon')
+    .gte('transaction_date', startDate.toISOString().split('T')[0])
+    .lte('transaction_date', endDate.toISOString().split('T')[0])
+    .order('transaction_date', { ascending: true });
 
-      if (transactionsError) {
-        reportContent.innerHTML = '<p>Error fetching transactions.</p>';
-        console.error('Error fetching transactions:', transactionsError);
-        return;
-      }
+  if (transactionsError) {
+    reportContent.innerHTML = '<p>Error fetching transactions.</p>';
+    console.error('Error fetching transactions:', transactionsError);
+    return;
+  }
 
-      const { data: productsData, error: productsError } = await supabaseClient
-          .from('products')
-          .select('item_code, product_name');
+  const { data: productsData, error: productsError } = await supabaseClient
+      .from('products')
+      .select('item_code, product_name');
 
-      if (productsError) {
-        reportContent.innerHTML = '<p>Error fetching product data.</p>';
-        console.error('Error fetching products:', productsError);
-        return;
-      }
+  if (productsError) {
+    reportContent.innerHTML = '<p>Error fetching product data.</p>';
+    console.error('Error fetching products:', productsError);
+    return;
+  }
 
-      const productsMap = new Map(productsData.map(p => [p.item_code, p]));
+  const productsMap = new Map(productsData.map(p => [p.item_code, p]));
 
-      const reportData = {};
+  const reportData = {};
 
-      openingStock.forEach(item => {
-        if (!reportData[item.item_code]) {
-          reportData[item.item_code] = {
-            productName: productsMap.get(item.item_code)?.product_name || 'N/A',
-            opening: {
-              quantity: item.quantity,
-              pallet: item.details?.pallet || 0,
-              batch_no: item.batch_no,
-              lotNumber: item.details?.lotNumber || ''
-            },
-            transactions: [],
-            closing: {
-              quantity: item.quantity,
-              pallet: item.details?.pallet || 0
-            }
-          };
+  openingStock.forEach(item => {
+    if (!reportData[item.item_code]) {
+      reportData[item.item_code] = {
+        productName: productsMap.get(item.item_code)?.product_name || 'N/A',
+        opening: {
+          quantity: item.quantity,
+          pallet: Number(item.details?.pallet) || 0,  // 转换为数字
+          batch_no: item.batch_no,
+          lotNumber: item.details?.lotNumber || ''
+        },
+        transactions: [],
+        closing: {
+          quantity: item.quantity,
+          pallet: Number(item.details?.pallet) || 0  // 转换为数字
         }
-      });
+      };
+    }
+  });
 
-      transactions.forEach(tx => {
-        if (reportData[tx.item_code]) {
-          let quantityChange = 0;
-          let palletChange = tx.inventory_details?.pallet || 0;
-          let description = tx.transaction_type;
+  transactions.forEach(tx => {
+    if (reportData[tx.item_code]) {
+      let quantityChange = 0;
+      let palletChange = Number(tx.inventory_details?.pallet) || 0;  // 转换为数字
+      let description = tx.transaction_type;
 
-          if (tx.transaction_type === 'internal_transfer') {
-            if (tx.source_warehouse_id === 'jordon') {
-              quantityChange = -tx.quantity;
-              palletChange = -(tx.inventory_details?.pallet || 0);
-              description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
-            } else if (tx.destination_warehouse_id === 'jordon') {
-              quantityChange = tx.quantity;
-              description = `Internal Transfer In (${tx.source_warehouse_id})`;
-            }
-          } else if (tx.transaction_type.includes('in')) {
-            quantityChange = tx.quantity;
-          } else if (tx.transaction_type.includes('out')) {
-            quantityChange = -tx.quantity;
-            palletChange = -(tx.inventory_details?.pallet || 0);
-          }
-
-          reportData[tx.item_code].transactions.push({
-            date: tx.transaction_date,
-            type: description,
-            quantity: quantityChange,
-            pallet: palletChange,
-            batch_no: tx.batch_no,
-            lotNumber: tx.inventory_details?.lotNumber || ''
-          });
-          reportData[tx.item_code].closing.quantity += quantityChange;
-          reportData[tx.item_code].closing.pallet += palletChange;
+      if (tx.transaction_type === 'internal_transfer') {
+        if (tx.source_warehouse_id === 'jordon') {
+          quantityChange = -tx.quantity;
+          palletChange = -(Number(tx.inventory_details?.pallet) || 0);  // 转换为数字
+          description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
+        } else if (tx.destination_warehouse_id === 'jordon') {
+          quantityChange = tx.quantity;
+          description = `Internal Transfer In (${tx.source_warehouse_id})`;
         }
-      });
-
-      let totalQtyBalance = 0;
-      let totalPltBalance = 0;
-
-      let reportHTML = `<h3 style="margin-bottom: 10px;">Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
-
-      for (const itemCode in reportData) {
-        const item = reportData[itemCode];
-        totalQtyBalance += item.closing.quantity;
-        totalPltBalance += item.closing.pallet;
-        let quantityBalance = item.opening.quantity;
-        let palletBalance = item.opening.pallet;
-
-        reportHTML += `
-          <h4 style="margin-top: 20px;">Item: ${itemCode} - ${item.productName}</h4>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Batch No</th>
-                <th>Lot Number</th>
-                <th>Qty</th>
-                <th>Plt</th>
-                <th>Qty Balance</th>
-                <th>Plt Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${new Date(snapshotDate).toLocaleDateString('en-GB')}</td>
-                <td>Opening Stock</td>
-                <td>${item.opening.batch_no}</td>
-                <td>${item.opening.lotNumber}</td>
-                <td></td>
-                <td></td>
-                <td>${item.opening.quantity}</td>
-                <td>${item.opening.pallet}</td>
-              </tr>
-              ${item.transactions.map(t => {
-                quantityBalance += t.quantity;
-                palletBalance += t.pallet;
-                const qtyColor = t.quantity > 0 ? 'green' : 'red';
-                const pltColor = t.pallet > 0 ? 'green' : 'red';
-                return `
-                  <tr>
-                    <td>${new Date(t.date).toLocaleDateString('en-GB')}</td>
-                    <td>${t.type}</td>
-                    <td>${t.batch_no}</td>
-                    <td>${t.lotNumber}</td>
-                    <td style="color:${qtyColor};">${t.quantity > 0 ? `+${t.quantity}`: t.quantity}</td>
-                    <td style="color:${pltColor};">${t.pallet > 0 ? `+${t.pallet}`: t.pallet}</td>
-                    <td>${quantityBalance}</td>
-                    <td>${palletBalance}</td>
-                  </tr>
-                `
-              }).join('')}
-              <tr>
-                <td colspan="6"><strong>Closing Stock</strong></td>
-                <td><strong>${item.closing.quantity}</strong></td>
-                <td><strong>${item.closing.pallet}</strong></td>
-              </tr>
-            </tbody>
-          </table>
-        `;
+      } else if (tx.transaction_type.includes('in')) {
+        quantityChange = tx.quantity;
+      } else if (tx.transaction_type.includes('out')) {
+        quantityChange = -tx.quantity;
+        palletChange = -(Number(tx.inventory_details?.pallet) || 0);  // 转换为数字
       }
 
-      const summaryHTML = `
-        <div style="margin-top: 20px; margin-bottom: 20px; font-weight: bold;">
-            <span>Total Quantity Balance: ${totalQtyBalance}</span>
-            <span style="margin-left: 20px;">Total Pallet Balance: ${totalPltBalance}</span>
-        </div>
-      `;
+      reportData[tx.item_code].transactions.push({
+        date: tx.transaction_date,
+        type: description,
+        quantity: quantityChange,
+        pallet: palletChange,
+        batch_no: tx.batch_no,
+        lotNumber: tx.inventory_details?.lotNumber || ''
+      });
+      reportData[tx.item_code].closing.quantity += quantityChange;
+      reportData[tx.item_code].closing.pallet += palletChange;
+    }
+  });
 
-      reportContent.innerHTML = summaryHTML + reportHTML;
-    };
+  let totalQtyBalance = 0;
+  let totalPltBalance = 0;
+
+  let reportHTML = `<h3 style="margin-bottom: 10px;">Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
+
+  for (const itemCode in reportData) {
+    const item = reportData[itemCode];
+    totalQtyBalance += item.closing.quantity;
+    totalPltBalance += item.closing.pallet;
+    let quantityBalance = item.opening.quantity;
+    let palletBalance = Number(item.opening.pallet);  // 确保初始值也是数字
+
+    reportHTML += `
+      <h4 style="margin-top: 20px;">Item: ${itemCode} - ${item.productName}</h4>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Batch No</th>
+            <th>Lot Number</th>
+            <th>Qty</th>
+            <th>Plt</th>
+            <th>Qty Balance</th>
+            <th>Plt Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${new Date(snapshotDate).toLocaleDateString('en-GB')}</td>
+            <td>Opening Stock</td>
+            <td>${item.opening.batch_no}</td>
+            <td>${item.opening.lotNumber}</td>
+            <td></td>
+            <td></td>
+            <td>${item.opening.quantity}</td>
+            <td>${item.opening.pallet}</td>
+          </tr>
+          ${item.transactions.map(t => {
+            quantityBalance += t.quantity;
+            palletBalance += t.pallet;
+            const qtyColor = t.quantity > 0 ? 'green' : 'red';
+            const pltColor = t.pallet > 0 ? 'green' : 'red';
+            return `
+              <tr>
+                <td>${new Date(t.date).toLocaleDateString('en-GB')}</td>
+                <td>${t.type}</td>
+                <td>${t.batch_no}</td>
+                <td>${t.lotNumber}</td>
+                <td style="color:${qtyColor};">${t.quantity > 0 ? `+${t.quantity}`: t.quantity}</td>
+                <td style="color:${pltColor};">${t.pallet > 0 ? `+${t.pallet}`: t.pallet}</td>
+                <td>${quantityBalance}</td>
+                <td>${palletBalance}</td>
+              </tr>
+            `
+          }).join('')}
+          <tr>
+            <td colspan="6"><strong>Closing Stock</strong></td>
+            <td><strong>${item.closing.quantity}</strong></td>
+            <td><strong>${item.closing.pallet}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  const summaryHTML = `
+    <div style="margin-top: 20px; margin-bottom: 20px; font-weight: bold;">
+        <span>Total Quantity Balance: ${totalQtyBalance}</span>
+        <span style="margin-left: 20px;">Total Pallet Balance: ${totalPltBalance}</span>
+    </div>
+  `;
+
+  reportContent.innerHTML = summaryHTML + reportHTML;
+};
 
     const handleReprint = async () => {
       const orderNumber = document.getElementById('jordon-reprint-order-number').value;
