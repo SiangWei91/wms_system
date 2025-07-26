@@ -184,6 +184,28 @@ window.loadInventoryPage = async (supabaseClient) => {
   const data = await fetchProductStockSummary();
   renderTable(data);
 
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('keyup', () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      const tableRows = document.querySelectorAll('.table tbody tr');
+      tableRows.forEach(row => {
+        const itemCode = row.cells[0].textContent.toLowerCase();
+        const productName = row.cells[1].textContent.toLowerCase();
+        // The following indices are based on the headers array in renderTable
+        // and may need to be adjusted if the table structure changes.
+        const lotNumber = row.cells[6].textContent.toLowerCase(); // JD
+        const container = row.cells[8].textContent.toLowerCase(); // Lineage
+
+        if (itemCode.includes(searchTerm) || productName.includes(searchTerm) || lotNumber.includes(searchTerm) || container.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
+
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
     toggleButton.innerHTML = columnsHidden ? '&#x2795;' : '&#x2796;'; // Plus and Minus
