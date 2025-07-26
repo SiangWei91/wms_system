@@ -436,35 +436,50 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     cell.contentEditable = false;
                 });
 
-                const filteredData = inventoryData.filter(item => item.quantity > 0);
-                const item = filteredData[index];
-                const updatedData = {
-                    item_code: row.cells[0].textContent,
-                    details: {
-                        ...item.details,
-                        palletType: row.cells[3].textContent,
-                        location: row.cells[4].textContent,
-                        lotNumber: warehouseId === 'jordon' ? row.cells[6].textContent : item.details.lotNumber,
-                        llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
-                        dateStored: row.cells[7].textContent,
-                        mixPallet: row.cells[11].textContent,
-                    },
-                    quantity: parseInt(row.cells[9].textContent),
-                    pallet: parseInt(row.cells[10].textContent),
-                    container: row.cells[8].textContent,
-                    batch_no: row.cells[5].textContent,
-                };
+                // Add a visual indicator to show that the row is being saved
+                row.style.backgroundColor = '#f0f0f0';
 
-                const { error } = await supabaseClient
-                    .from('inventory')
-                    .update(updatedData)
-                    .eq('id', item.id);
+                try {
+                    const filteredData = inventoryData.filter(item => item.quantity > 0);
+                    const item = filteredData[index];
 
-                if (error) {
+                    if (!item) {
+                        throw new Error('Could not find the item to update.');
+                    }
+
+                    const updatedData = {
+                        item_code: row.cells[0].textContent,
+                        details: {
+                            ...item.details,
+                            palletType: row.cells[3].textContent,
+                            location: row.cells[4].textContent,
+                            lotNumber: warehouseId === 'jordon' ? row.cells[6].textContent : item.details.lotNumber,
+                            llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
+                            dateStored: row.cells[7].textContent,
+                            mixPallet: row.cells[11].textContent,
+                        },
+                        quantity: parseInt(row.cells[9].textContent),
+                        pallet: parseInt(row.cells[10].textContent),
+                        container: row.cells[8].textContent,
+                        batch_no: row.cells[5].textContent,
+                    };
+
+                    const { error } = await supabaseClient
+                        .from('inventory')
+                        .update(updatedData)
+                        .eq('id', item.id);
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    // Reload the data to reflect the changes
+                    await loadInventoryData();
+                } catch (error) {
                     console.error('Error updating record:', error);
-                    alert('Error updating record.');
-                } else {
-                    loadInventoryData();
+                    alert(`Error updating record: ${error.message}`);
+                    // Restore the original background color
+                    row.style.backgroundColor = '';
                 }
             });
 
