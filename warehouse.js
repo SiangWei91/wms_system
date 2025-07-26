@@ -1108,8 +1108,8 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       const uniqueDates = [...new Set(snapshotDates.map(d => d.snapshot_date))].sort((a, b) => new Date(b) - new Date(a));
 
       const modalHTML = `
-        <div id="report-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-          <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 800px;">
+        <div id="report-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001;">
+          <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
             <h2>Jordon Inventory Transaction Report</h2>
             <div class="form-group">
               <label for="snapshot-date-select">Select Snapshot Date:</label>
@@ -1124,6 +1124,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         </div>
       `;
 
+      if (document.getElementById('report-modal')) {
+        document.getElementById('report-modal').remove();
+      }
       document.body.insertAdjacentHTML('beforeend', modalHTML);
 
       const generateReportBtn = document.getElementById('generate-report-btn');
@@ -1146,7 +1149,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       const { data: openingStock, error: openingStockError } = await supabaseClient
         .from('month_end_snapshot')
-        .select('*')
+        .select('item_code, batch_no, quantity')
         .eq('warehouse_id', 'jordon')
         .eq('snapshot_date', snapshotDate);
 
@@ -1161,10 +1164,11 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       const { data: transactions, error: transactionsError } = await supabaseClient
         .from('transactions')
-        .select('*')
+        .select('transaction_date, transaction_type, item_code, quantity, source_warehouse_id, destination_warehouse_id')
         .eq('warehouse_id', 'jordon')
         .gte('transaction_date', startDate.toISOString().split('T')[0])
-        .lte('transaction_date', endDate.toISOString().split('T')[0]);
+        .lte('transaction_date', endDate.toISOString().split('T')[0])
+        .order('transaction_date', { ascending: true });
 
       if (transactionsError) {
         reportContent.innerHTML = '<p>Error fetching transactions.</p>';
@@ -1174,55 +1178,90 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       const { data: productsData, error: productsError } = await supabaseClient
           .from('products')
-          .select('item_code, product_name, packing_size');
+          .select('item_code, product_name');
 
       if (productsError) {
-        throw productsError;
+        reportContent.innerHTML = '<p>Error fetching product data.</p>';
+        console.error('Error fetching products:', productsError);
+        return;
       }
 
       const productsMap = new Map(productsData.map(p => [p.item_code, p]));
 
-      const closingStock = openingStock.reduce((acc, item) => {
-        acc[item.item_code] = { ...item, productName: productsMap.get(item.item_code)?.product_name || 'N/A' };
-        return acc;
-      }, {});
+      const reportData = {};
 
-      transactions.forEach(tx => {
-        const { item_code, quantity, transaction_type } = tx;
-        if (!closingStock[item_code]) {
-          closingStock[item_code] = { item_code, quantity: 0, batch_no: 'N/A', productName: productsMap.get(item_code)?.product_name || 'N/A' };
-        }
-        if (transaction_type.includes('in') || transaction_type === 'internal_transfer' && tx.destination_warehouse_id === 'jordon') {
-          closingStock[item_code].quantity += quantity;
-        } else if (transaction_type.includes('out') || transaction_type === 'internal_transfer' && tx.source_warehouse_id === 'jordon') {
-          closingStock[item_code].quantity -= quantity;
+      openingStock.forEach(item => {
+        if (!reportData[item.item_code]) {
+          reportData[item.item_code] = {
+            productName: productsMap.get(item.item_code)?.product_name || 'N/A',
+            opening: item.quantity,
+            transactions: [],
+            closing: item.quantity
+          };
         }
       });
 
-      let reportHTML = `
-        <h3>Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
-        <h4>Opening Stock (as of ${new Date(snapshotDate).toLocaleDateString('en-GB')})</h4>
-        <table class="data-table">
-          <thead><tr><th>Item Code</th><th>Product Name</th><th>Batch No</th><th>Quantity</th></tr></thead>
-          <tbody>
-            ${openingStock.map(item => `<tr><td>${item.item_code}</td><td>${productsMap.get(item.item_code)?.product_name || 'N/A'}</td><td>${item.batch_no}</td><td>${item.quantity}</td></tr>`).join('')}
-          </tbody>
-        </table>
-        <h4>Transactions</h4>
-        <table class="data-table">
-          <thead><tr><th>Date</th><th>Type</th><th>Item Code</th><th>Product Name</th><th>Quantity</th><th>Batch No</th></tr></thead>
-          <tbody>
-            ${transactions.map(tx => `<tr><td>${new Date(tx.transaction_date).toLocaleDateString('en-GB')}</td><td>${tx.transaction_type}</td><td>${tx.item_code}</td><td>${productsMap.get(tx.item_code)?.product_name || 'N/A'}</td><td>${tx.quantity}</td><td>${tx.batch_no}</td></tr>`).join('')}
-          </tbody>
-        </table>
-        <h4>Closing Stock (as of ${endDate.toLocaleDateString('en-GB')})</h4>
-        <table class="data-table">
-          <thead><tr><th>Item Code</th><th>Product Name</th><th>Batch No</th><th>Calculated Quantity</th></tr></thead>
-          <tbody>
-            ${Object.values(closingStock).map(item => `<tr><td>${item.item_code}</td><td>${item.productName}</td><td>${item.batch_no}</td><td>${item.quantity}</td></tr>`).join('')}
-          </tbody>
-        </table>
-      `;
+      transactions.forEach(tx => {
+        if (reportData[tx.item_code]) {
+          let quantityChange = 0;
+          if (tx.transaction_type.includes('in') || (tx.transaction_type === 'internal_transfer' && tx.destination_warehouse_id === 'jordon')) {
+            quantityChange = tx.quantity;
+          } else if (tx.transaction_type.includes('out') || (tx.transaction_type === 'internal_transfer' && tx.source_warehouse_id === 'jordon')) {
+            quantityChange = -tx.quantity;
+          }
+
+          reportData[tx.item_code].transactions.push({
+            date: tx.transaction_date,
+            type: tx.transaction_type,
+            quantity: quantityChange
+          });
+          reportData[tx.item_code].closing += quantityChange;
+        }
+      });
+
+      let reportHTML = `<h3>Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
+
+      let balance = 0;
+      for (const itemCode in reportData) {
+        const item = reportData[itemCode];
+        balance = item.opening;
+        reportHTML += `
+          <h4>Item: ${itemCode} - ${item.productName}</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${new Date(snapshotDate).toLocaleDateString('en-GB')}</td>
+                <td>Opening Stock</td>
+                <td></td>
+                <td>${item.opening}</td>
+              </tr>
+              ${item.transactions.map(t => {
+                balance += t.quantity;
+                return `
+                  <tr>
+                    <td>${new Date(t.date).toLocaleDateString('en-GB')}</td>
+                    <td>${t.type}</td>
+                    <td>${t.quantity > 0 ? `+${t.quantity}`: t.quantity}</td>
+                    <td>${balance}</td>
+                  </tr>
+                `
+              }).join('')}
+              <tr>
+                <td colspan="3"><strong>Closing Stock</strong></td>
+                <td><strong>${item.closing}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+      }
 
       reportContent.innerHTML = reportHTML;
     };
