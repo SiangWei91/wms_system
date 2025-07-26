@@ -316,6 +316,15 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
         const productsMap = new Map(productsData.map(p => [p.item_code, p]));
 
+        const inventorySummaryTable = document.querySelector(`#${warehouseId}-inventory-summary-table`);
+        if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-container`)) {
+            const searchContainer = document.createElement('div');
+            searchContainer.id = `${warehouseId}-search-container`;
+            searchContainer.style.marginBottom = '20px';
+            searchContainer.innerHTML = `<input type="text" id="${warehouseId}-search-input" placeholder="Search..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">`;
+            inventorySummaryTable.parentNode.insertBefore(searchContainer, inventorySummaryTable);
+        }
+
         const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
         const stockInTableBody = document.querySelector(`#${warehouseId}-stock-in-table tbody`);
 
@@ -780,6 +789,26 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
         // 在数据加载完成后，恢复 Stock Out 数据
         loadStockOutData();
+
+        const searchInput = document.getElementById(`${warehouseId}-search-input`);
+        if (searchInput) {
+            searchInput.addEventListener('keyup', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const tableRows = document.querySelectorAll(`#${warehouseId}-inventory-summary-table tbody tr`);
+                tableRows.forEach(row => {
+                    const itemCode = row.cells[0].textContent.toLowerCase();
+                    const productName = row.cells[1].textContent.toLowerCase();
+                    const lotNumber = row.cells[6].textContent.toLowerCase();
+                    const container = row.cells[8].textContent.toLowerCase();
+
+                    if (itemCode.includes(searchTerm) || productName.includes(searchTerm) || lotNumber.includes(searchTerm) || container.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }, { signal });
+        }
         
         // 添加清空 Stock Out 按钮（可选）
         const addClearStockOutButton = () => {
