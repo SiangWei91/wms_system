@@ -341,7 +341,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         let stockInTotalQuantity = 0;
         let stockInTotalPallet = 0;
 
-        inventoryData.forEach(item => {
+        inventoryData.filter(item => item.quantity > 0).forEach(item => {
           const product = productsMap.get(item.item_code) || {};
           const row = document.createElement('tr');
 
@@ -423,64 +423,108 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         // 为库存摘要表的行添加点击事件（用于打开模态框）
         const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
         summaryTableRows.forEach((row, index) => {
-          row.addEventListener('click', () => {
-            const modal = document.querySelector('.jordon-withdrawal-modal');
-            const modalBody = document.getElementById('jordon-modal-body');
-            if (!modal || !modalBody) return;
-
-            // 设置模态框的数据属性，标识当前操作的仓库
-            modal.setAttribute('data-current-warehouse', warehouseId);
-            modalBody.innerHTML = '';
-
-            const item = inventoryData[index];
-            const mixPallet = item.details.mixPallet;
-            const dateStored = item.details.dateStored;
-
-            let itemsToShow = [item];
-            if (mixPallet) {
-              itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
-            }
-
-            if (itemsToShow.length > 1) {
-              modal.classList.add('wide');
-            } else {
-              modal.classList.remove('wide');
-            }
-
-            itemsToShow.forEach((itemToShow, itemIndex) => {
-              const product = productsMap.get(itemToShow.item_code) || {};
-              const itemElement = document.createElement('div');
-              itemElement.dataset.itemCode = itemToShow.item_code;
-              itemElement.innerHTML = `
-                <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
-                <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
-                <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
-                <p><strong>Location:</strong> ${itemToShow.details.location}</p>
-                <p><strong>${warehouseId === 'lineage' ? 'LLM Item Code:' : 'Lot Number:'}</strong> ${warehouseId === 'lineage' ? (itemToShow.details.llm_item_code || '') : (itemToShow.details.lotNumber || '')}</p>
-                <p><strong>Current Quantity:</strong> ${itemToShow.quantity}</p>
-                <p><strong>Current Pallet:</strong> ${itemToShow.details.pallet}</p>
-                <div class="form-group">
-                  <label>Withdraw Quantity:</label>
-                  <input type="number" class="withdraw-quantity" min="0" data-item-id="${itemToShow.id}">
-                </div>
-                <div class="form-group">
-                  <label>Withdraw Pallet:</label>
-                  <input type="number" class="withdraw-pallet" min="0" data-item-id="${itemToShow.id}">
-                </div>
-                <hr>
-              `;
-              modalBody.appendChild(itemElement);
-
-              if (itemIndex === 0) {
-                const firstInput = itemElement.querySelector('.withdraw-quantity');
-                if (firstInput) {
-                  firstInput.focus();
-                }
-              }
+            row.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                row.querySelectorAll('td').forEach(cell => {
+                    cell.contentEditable = true;
+                });
+                row.focus();
             });
 
-            modal.style.display = 'flex';
-          }, { signal });
+            row.addEventListener('blur', async () => {
+                row.querySelectorAll('td').forEach(cell => {
+                    cell.contentEditable = false;
+                });
+
+                const item = inventoryData.filter(item => item.quantity > 0)[index];
+                const updatedData = {
+                    item_code: row.cells[0].textContent,
+                    details: {
+                        ...item.details,
+                        palletType: row.cells[3].textContent,
+                        location: row.cells[4].textContent,
+                        lotNumber: warehouseId === 'jordon' ? row.cells[6].textContent : item.details.lotNumber,
+                        llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
+                        dateStored: row.cells[7].textContent,
+                        mixPallet: row.cells[11].textContent,
+                    },
+                    quantity: parseInt(row.cells[9].textContent),
+                    pallet: parseInt(row.cells[10].textContent),
+                    container: row.cells[8].textContent,
+                    batch_no: row.cells[5].textContent,
+                };
+
+                const { error } = await supabaseClient
+                    .from('inventory')
+                    .update(updatedData)
+                    .eq('id', item.id);
+
+                if (error) {
+                    console.error('Error updating record:', error);
+                    alert('Error updating record.');
+                } else {
+                    loadInventoryData();
+                }
+            });
+
+            row.addEventListener('click', () => {
+                const modal = document.querySelector('.jordon-withdrawal-modal');
+                const modalBody = document.getElementById('jordon-modal-body');
+                if (!modal || !modalBody) return;
+
+                // 设置模态框的数据属性，标识当前操作的仓库
+                modal.setAttribute('data-current-warehouse', warehouseId);
+                modalBody.innerHTML = '';
+
+                const item = inventoryData.filter(item => item.quantity > 0)[index];
+                const mixPallet = item.details.mixPallet;
+                const dateStored = item.details.dateStored;
+
+                let itemsToShow = [item];
+                if (mixPallet) {
+                    itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
+                }
+
+                if (itemsToShow.length > 1) {
+                    modal.classList.add('wide');
+                } else {
+                    modal.classList.remove('wide');
+                }
+
+                itemsToShow.forEach((itemToShow, itemIndex) => {
+                    const product = productsMap.get(itemToShow.item_code) || {};
+                    const itemElement = document.createElement('div');
+                    itemElement.dataset.itemCode = itemToShow.item_code;
+                    itemElement.innerHTML = `
+                        <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
+                        <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
+                        <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
+                        <p><strong>Location:</strong> ${itemToShow.details.location}</p>
+                        <p><strong>${warehouseId === 'lineage' ? 'LLM Item Code:' : 'Lot Number:'}</strong> ${warehouseId === 'lineage' ? (itemToShow.details.llm_item_code || '') : (itemToShow.details.lotNumber || '')}</p>
+                        <p><strong>Current Quantity:</strong> ${itemToShow.quantity}</p>
+                        <p><strong>Current Pallet:</strong> ${itemToShow.details.pallet}</p>
+                        <div class="form-group">
+                            <label>Withdraw Quantity:</label>
+                            <input type="number" class="withdraw-quantity" min="0" data-item-id="${itemToShow.id}">
+                        </div>
+                        <div class="form-group">
+                            <label>Withdraw Pallet:</label>
+                            <input type="number" class="withdraw-pallet" min="0" data-item-id="${itemToShow.id}">
+                        </div>
+                        <hr>
+                    `;
+                    modalBody.appendChild(itemElement);
+
+                    if (itemIndex === 0) {
+                        const firstInput = itemElement.querySelector('.withdraw-quantity');
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }
+                });
+
+                modal.style.display = 'flex';
+            }, { signal });
         });
 
         // 更新摘要表的页脚
