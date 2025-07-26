@@ -1229,58 +1229,92 @@ const generateAndDisplayReport = async (snapshotDate) => {
 
   const reportData = {};
 
+  // 处理 opening stock - 合并相同 item_code 的记录
   openingStock.forEach(item => {
     if (!reportData[item.item_code]) {
       reportData[item.item_code] = {
         productName: productsMap.get(item.item_code)?.product_name || 'N/A',
         opening: {
-          quantity: item.quantity,
-          pallet: Number(item.details?.pallet) || 0,  // 转换为数字
-          batch_no: item.batch_no,
-          lotNumber: item.details?.lotNumber || ''
+          quantity: 0,
+          pallet: 0,
+          batch_nos: [],
+          lotNumbers: []
         },
         transactions: [],
         closing: {
-          quantity: item.quantity,
-          pallet: Number(item.details?.pallet) || 0  // 转换为数字
+          quantity: 0,
+          pallet: 0
         }
       };
     }
+    
+    // 累加数量和 pallet
+    reportData[item.item_code].opening.quantity += item.quantity;
+    reportData[item.item_code].opening.pallet += Number(item.details?.pallet) || 0;
+    
+    // 收集所有 batch_no 和 lotNumber
+    if (item.batch_no && !reportData[item.item_code].opening.batch_nos.includes(item.batch_no)) {
+      reportData[item.item_code].opening.batch_nos.push(item.batch_no);
+    }
+    if (item.details?.lotNumber && !reportData[item.item_code].opening.lotNumbers.includes(item.details.lotNumber)) {
+      reportData[item.item_code].opening.lotNumbers.push(item.details.lotNumber);
+    }
+    
+    // 设置 closing 的初始值
+    reportData[item.item_code].closing.quantity = reportData[item.item_code].opening.quantity;
+    reportData[item.item_code].closing.pallet = reportData[item.item_code].opening.pallet;
   });
 
+  // 处理 transactions
   transactions.forEach(tx => {
-    if (reportData[tx.item_code]) {
-      let quantityChange = 0;
-      let palletChange = Number(tx.inventory_details?.pallet) || 0;  // 转换为数字
-      let description = tx.transaction_type;
-
-      if (tx.transaction_type === 'internal_transfer') {
-        if (tx.source_warehouse_id === 'jordon') {
-          quantityChange = -tx.quantity;
-          palletChange = -(Number(tx.inventory_details?.pallet) || 0);  // 转换为数字
-          description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
-        } else if (tx.destination_warehouse_id === 'jordon') {
-          quantityChange = tx.quantity;
-          description = `Internal Transfer In (${tx.source_warehouse_id})`;
+    // 如果 reportData 中没有这个 item_code，先创建（用于新商品）
+    if (!reportData[tx.item_code]) {
+      reportData[tx.item_code] = {
+        productName: productsMap.get(tx.item_code)?.product_name || 'N/A',
+        opening: {
+          quantity: 0,
+          pallet: 0,
+          batch_nos: [],
+          lotNumbers: []
+        },
+        transactions: [],
+        closing: {
+          quantity: 0,
+          pallet: 0
         }
-      } else if (tx.transaction_type.includes('in')) {
-        quantityChange = tx.quantity;
-      } else if (tx.transaction_type.includes('out')) {
-        quantityChange = -tx.quantity;
-        palletChange = -(Number(tx.inventory_details?.pallet) || 0);  // 转换为数字
-      }
-
-      reportData[tx.item_code].transactions.push({
-        date: tx.transaction_date,
-        type: description,
-        quantity: quantityChange,
-        pallet: palletChange,
-        batch_no: tx.batch_no,
-        lotNumber: tx.inventory_details?.lotNumber || ''
-      });
-      reportData[tx.item_code].closing.quantity += quantityChange;
-      reportData[tx.item_code].closing.pallet += palletChange;
+      };
     }
+    
+    let quantityChange = 0;
+    let palletChange = Number(tx.inventory_details?.pallet) || 0;
+    let description = tx.transaction_type;
+
+    if (tx.transaction_type === 'internal_transfer') {
+      if (tx.source_warehouse_id === 'jordon') {
+        quantityChange = -tx.quantity;
+        palletChange = -(Number(tx.inventory_details?.pallet) || 0);
+        description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
+      } else if (tx.destination_warehouse_id === 'jordon') {
+        quantityChange = tx.quantity;
+        description = `Internal Transfer In (${tx.source_warehouse_id})`;
+      }
+    } else if (tx.transaction_type.includes('in')) {
+      quantityChange = tx.quantity;
+    } else if (tx.transaction_type.includes('out')) {
+      quantityChange = -tx.quantity;
+      palletChange = -(Number(tx.inventory_details?.pallet) || 0);
+    }
+
+    reportData[tx.item_code].transactions.push({
+      date: tx.transaction_date,
+      type: description,
+      quantity: quantityChange,
+      pallet: palletChange,
+      batch_no: tx.batch_no,
+      lotNumber: tx.inventory_details?.lotNumber || ''
+    });
+    reportData[tx.item_code].closing.quantity += quantityChange;
+    reportData[tx.item_code].closing.pallet += palletChange;
   });
 
   let totalQtyBalance = 0;
@@ -1293,7 +1327,11 @@ const generateAndDisplayReport = async (snapshotDate) => {
     totalQtyBalance += item.closing.quantity;
     totalPltBalance += item.closing.pallet;
     let quantityBalance = item.opening.quantity;
-    let palletBalance = Number(item.opening.pallet);  // 确保初始值也是数字
+    let palletBalance = Number(item.opening.pallet);
+
+    // 格式化 batch_nos 和 lotNumbers 显示
+    const batchNosDisplay = item.opening.batch_nos.length > 0 ? item.opening.batch_nos.join(', ') : '';
+    const lotNumbersDisplay = item.opening.lotNumbers.length > 0 ? item.opening.lotNumbers.join(', ') : '';
 
     reportHTML += `
       <h4 style="margin-top: 20px;">Item: ${itemCode} - ${item.productName}</h4>
@@ -1314,8 +1352,8 @@ const generateAndDisplayReport = async (snapshotDate) => {
           <tr>
             <td>${new Date(snapshotDate).toLocaleDateString('en-GB')}</td>
             <td>Opening Stock</td>
-            <td>${item.opening.batch_no}</td>
-            <td>${item.opening.lotNumber}</td>
+            <td>${batchNosDisplay}</td>
+            <td>${lotNumbersDisplay}</td>
             <td></td>
             <td></td>
             <td>${item.opening.quantity}</td>
