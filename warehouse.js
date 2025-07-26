@@ -1204,15 +1204,19 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       transactions.forEach(tx => {
         if (reportData[tx.item_code]) {
           let quantityChange = 0;
+          let description = tx.transaction_type;
           if (tx.transaction_type.includes('in') || (tx.transaction_type === 'internal_transfer' && tx.destination_warehouse_id === 'jordon')) {
             quantityChange = tx.quantity;
           } else if (tx.transaction_type.includes('out') || (tx.transaction_type === 'internal_transfer' && tx.source_warehouse_id === 'jordon')) {
             quantityChange = -tx.quantity;
+            if (tx.transaction_type === 'internal_transfer') {
+              description = `internal_transfer (${tx.destination_warehouse_id})`
+            }
           }
 
           reportData[tx.item_code].transactions.push({
             date: tx.transaction_date,
-            type: tx.transaction_type,
+            type: description,
             quantity: quantityChange
           });
           reportData[tx.item_code].closing += quantityChange;
