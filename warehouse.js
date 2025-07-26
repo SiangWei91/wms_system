@@ -432,6 +432,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             });
 
             row.addEventListener('blur', async () => {
+                console.log('Blur event triggered');
                 row.querySelectorAll('td').forEach(cell => {
                     cell.contentEditable = false;
                 });
@@ -464,6 +465,8 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                         batch_no: row.cells[5].textContent,
                     };
 
+                    console.log('Updating record with data:', updatedData);
+
                     const { error } = await supabaseClient
                         .from('inventory')
                         .update(updatedData)
@@ -473,6 +476,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                         throw error;
                     }
 
+                    console.log('Record updated successfully');
                     // Reload the data to reflect the changes
                     await loadInventoryData();
                 } catch (error) {
