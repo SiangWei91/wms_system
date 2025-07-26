@@ -495,7 +495,6 @@ async function updateInventory(supabase) {
 
         for (const item of allItems) {
             const { productId } = await lookupOrCreateProduct(item.itemCode, item.productDescription, item.packingSize, supabase);
-
             if (!productId) {
                 showModal('Error', `Could not find or create product with item code ${item.itemCode}.`);
                 return;
@@ -524,14 +523,20 @@ async function updateInventory(supabase) {
                 };
             }
 
-            // Insert new record
-            const { error: insertError } = await supabase
+            // Insert inventory record and get the returned data (including ID)
+            const { data: insertedInventory, error: insertError } = await supabase
                 .from('inventory')
-                .insert([inventoryData]);
+                .insert([inventoryData])
+                .select('id'); // 重要：添加 .select() 来获取插入的记录
+
             if (insertError) throw insertError;
+
+            // 获取新插入的 inventory ID
+            const inventoryId = insertedInventory[0].id;
 
             const { data: { session } } = await supabase.auth.getSession();
             const userName = session.user.user_metadata.name || session.user.email;
+            
             const transactionData = {
                 transaction_type: 'inbound',
                 item_code: item.itemCode,
@@ -539,7 +544,9 @@ async function updateInventory(supabase) {
                 batch_no: item.batchNo,
                 quantity: parseFloat(item.quantity),
                 transaction_date: new Date().toISOString().split('T')[0],
-                operator_id: userName
+                operator_id: userName,
+                inventory_id: inventoryId, // 添加 inventory_id
+                inventory_details: inventoryData.details // 添加 inventory_details
             };
 
             const { error: transactionError } = await supabase
@@ -556,13 +563,9 @@ async function updateInventory(supabase) {
         console.error('Error updating inventory:', error);
         showModal('Error', `An unexpected error occurred: ${error.message}`);
     } finally {
-        // This block is not ideal because the modal is managed by showModal
-        // but it's a good safety net. A better refactor would be to have
-        // hideModal() be the only way to hide it.
         hideModal();
     }
 }
-
 function showModal(title, message) {
     const modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = `
