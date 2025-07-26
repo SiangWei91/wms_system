@@ -278,6 +278,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
     let threePLWarehouses = [];
 
     const loadInventoryData = async () => {
+      console.log('Loading inventory data...');
       try {
         // 清理之前的事件监听器
         if (eventController) {
