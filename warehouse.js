@@ -1119,7 +1119,13 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             </div>
             <button id="generate-report-btn" class="btn-primary">Generate Report</button>
             <button id="close-report-modal-btn" class="btn-secondary">Close</button>
-            <div id="report-content" style="margin-top: 20px;"></div>
+            <div id="report-content-wrapper" style="margin-top: 20px;">
+                <div id="report-controls" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <button id="export-pdf-btn" class="btn-secondary" style="margin-right: 10px;">Export to PDF</button>
+                    <button id="export-excel-btn" class="btn-secondary">Export to Excel</button>
+                </div>
+                <div id="report-content"></div>
+            </div>
           </div>
         </div>
       `;
@@ -1128,6 +1134,10 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         document.getElementById('report-modal').remove();
       }
       document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js';
+      document.head.appendChild(script);
 
       const generateReportBtn = document.getElementById('generate-report-btn');
       const closeReportModalBtn = document.getElementById('close-report-modal-btn');
@@ -1140,6 +1150,24 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       closeReportModalBtn.addEventListener('click', () => {
         reportModal.remove();
+      });
+
+      document.getElementById('export-pdf-btn').addEventListener('click', () => {
+          const reportContent = document.getElementById('report-content');
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write('<html><head><title>Jordon Inventory Report</title>');
+          printWindow.document.write('<link rel="stylesheet" href="inventory.css">');
+          printWindow.document.write('</head><body>');
+          printWindow.document.write(reportContent.innerHTML);
+          printWindow.document.write('</body></html>');
+          printWindow.document.close();
+          printWindow.print();
+      });
+
+      document.getElementById('export-excel-btn').addEventListener('click', () => {
+          const reportContent = document.getElementById('report-content');
+          const wb = XLSX.utils.table_to_book(reportContent.querySelector('table'), {sheet:"Sheet JS"});
+          XLSX.writeFile(wb, 'Jordon_Inventory_Report.xlsx');
       });
     };
 
@@ -1244,15 +1272,20 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
       });
 
-      let reportHTML = `<h3>Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
+      let totalQtyBalance = 0;
+      let totalPltBalance = 0;
+
+      let reportHTML = `<h3 style="margin-bottom: 10px;">Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
 
       for (const itemCode in reportData) {
         const item = reportData[itemCode];
+        totalQtyBalance += item.closing.quantity;
+        totalPltBalance += item.closing.pallet;
         let quantityBalance = item.opening.quantity;
         let palletBalance = item.opening.pallet;
 
         reportHTML += `
-          <h4>Item: ${itemCode} - ${item.productName}</h4>
+          <h4 style="margin-top: 20px;">Item: ${itemCode} - ${item.productName}</h4>
           <table class="data-table">
             <thead>
               <tr>
@@ -1305,7 +1338,14 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         `;
       }
 
-      reportContent.innerHTML = reportHTML;
+      const summaryHTML = `
+        <div style="margin-top: 20px; margin-bottom: 20px; font-weight: bold;">
+            <span>Total Quantity Balance: ${totalQtyBalance}</span>
+            <span style="margin-left: 20px;">Total Pallet Balance: ${totalPltBalance}</span>
+        </div>
+      `;
+
+      reportContent.innerHTML = summaryHTML + reportHTML;
     };
 
     const handleReprint = async () => {
