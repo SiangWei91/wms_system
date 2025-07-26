@@ -1205,13 +1205,19 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         if (reportData[tx.item_code]) {
           let quantityChange = 0;
           let description = tx.transaction_type;
-          if (tx.transaction_type.includes('in') || (tx.transaction_type === 'internal_transfer' && tx.destination_warehouse_id === 'jordon')) {
-            quantityChange = tx.quantity;
-          } else if (tx.transaction_type.includes('out') || (tx.transaction_type === 'internal_transfer' && tx.source_warehouse_id === 'jordon')) {
-            quantityChange = -tx.quantity;
-            if (tx.transaction_type === 'internal_transfer') {
-              description = `internal_transfer (${tx.destination_warehouse_id})`
+
+          if (tx.transaction_type === 'internal_transfer') {
+            if (tx.source_warehouse_id === 'jordon') {
+              quantityChange = -tx.quantity;
+              description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
+            } else if (tx.destination_warehouse_id === 'jordon') {
+              quantityChange = tx.quantity;
+              description = `Internal Transfer In (${tx.source_warehouse_id})`;
             }
+          } else if (tx.transaction_type.includes('in')) {
+            quantityChange = tx.quantity;
+          } else if (tx.transaction_type.includes('out')) {
+            quantityChange = -tx.quantity;
           }
 
           reportData[tx.item_code].transactions.push({
