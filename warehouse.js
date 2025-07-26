@@ -1154,8 +1154,11 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       document.getElementById('export-pdf-btn').addEventListener('click', () => {
           const reportContent = document.getElementById('report-content');
+          const selectedDate = document.getElementById('snapshot-date-select').value;
+          const reportTitle = `Jordon Inventory Transaction Report for ${new Date(selectedDate).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
           const printWindow = window.open('', '_blank');
-          printWindow.document.write('<html><head><title>Jordon Inventory Report</title>');
+          printWindow.document.write(`<html><head><title>${reportTitle}</title>`);
+          printWindow.document.write('<link rel="stylesheet" href="style.css">');
           printWindow.document.write('<link rel="stylesheet" href="inventory.css">');
           printWindow.document.write('</head><body>');
           printWindow.document.write(reportContent.innerHTML);
@@ -1165,9 +1168,17 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       });
 
       document.getElementById('export-excel-btn').addEventListener('click', () => {
-          const reportContent = document.getElementById('report-content');
-          const wb = XLSX.utils.table_to_book(reportContent.querySelector('table'), {sheet:"Sheet JS"});
-          XLSX.writeFile(wb, 'Jordon_Inventory_Report.xlsx');
+        const selectedDate = document.getElementById('snapshot-date-select').value;
+        const reportTitle = `Jordon Inventory Transaction Report for ${new Date(selectedDate).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+        const tables = document.querySelectorAll('#report-content .data-table');
+        const wb = XLSX.utils.book_new();
+
+        tables.forEach((table, index) => {
+            const ws = XLSX.utils.table_to_sheet(table);
+            XLSX.utils.book_append_sheet(wb, ws, `Product_${index + 1}`);
+        });
+
+        XLSX.writeFile(wb, `${reportTitle}.xlsx`);
       });
     };
 
