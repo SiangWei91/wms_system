@@ -434,10 +434,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     row.focus();
                 });
 
-                row.addEventListener('blur', async () => {
-                    // Add a small delay to prevent the blur event from firing immediately
-                    setTimeout(async () => {
-                        console.log('Blur event triggered');
+                row.addEventListener('keydown', async (e) => {
+                    if (e.key === 'Enter') {
+                        console.log('Enter key pressed');
                         row.querySelectorAll('td').forEach(cell => {
                             cell.contentEditable = false;
                         });
@@ -490,7 +489,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                             // Restore the original background color
                             row.style.backgroundColor = '';
                         }
-                    }, 100);
+                    }
                 });
 
                 row.addEventListener('click', () => {
