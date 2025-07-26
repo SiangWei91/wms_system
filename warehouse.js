@@ -1086,7 +1086,146 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
           }
         });
       }
+
+      const inventoryTransactionReportBtn = document.getElementById('jordon-inventory-transaction-report-btn');
+      if (inventoryTransactionReportBtn) {
+        inventoryTransactionReportBtn.addEventListener('click', handleInventoryTransactionReport);
+      }
     });
+
+    const handleInventoryTransactionReport = async () => {
+      const { data: snapshotDates, error: snapshotDatesError } = await supabaseClient
+        .from('month_end_snapshot')
+        .select('snapshot_date')
+        .eq('warehouse_id', 'jordon');
+
+      if (snapshotDatesError) {
+        console.error('Error fetching snapshot dates:', snapshotDatesError);
+        alert('Error fetching snapshot dates.');
+        return;
+      }
+
+      const uniqueDates = [...new Set(snapshotDates.map(d => d.snapshot_date))].sort((a, b) => new Date(b) - new Date(a));
+
+      const modalHTML = `
+        <div id="report-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+          <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 800px;">
+            <h2>Jordon Inventory Transaction Report</h2>
+            <div class="form-group">
+              <label for="snapshot-date-select">Select Snapshot Date:</label>
+              <select id="snapshot-date-select">
+                ${uniqueDates.map(date => `<option value="${date}">${new Date(date).toLocaleDateString('en-GB')}</option>`).join('')}
+              </select>
+            </div>
+            <button id="generate-report-btn" class="btn-primary">Generate Report</button>
+            <button id="close-report-modal-btn" class="btn-secondary">Close</button>
+            <div id="report-content" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      const generateReportBtn = document.getElementById('generate-report-btn');
+      const closeReportModalBtn = document.getElementById('close-report-modal-btn');
+      const reportModal = document.getElementById('report-modal');
+
+      generateReportBtn.addEventListener('click', async () => {
+        const selectedDate = document.getElementById('snapshot-date-select').value;
+        await generateAndDisplayReport(selectedDate);
+      });
+
+      closeReportModalBtn.addEventListener('click', () => {
+        reportModal.remove();
+      });
+    };
+
+    const generateAndDisplayReport = async (snapshotDate) => {
+      const reportContent = document.getElementById('report-content');
+      reportContent.innerHTML = '<p>Generating report...</p>';
+
+      const { data: openingStock, error: openingStockError } = await supabaseClient
+        .from('month_end_snapshot')
+        .select('*')
+        .eq('warehouse_id', 'jordon')
+        .eq('snapshot_date', snapshotDate);
+
+      if (openingStockError) {
+        reportContent.innerHTML = '<p>Error fetching opening stock.</p>';
+        console.error('Error fetching opening stock:', openingStockError);
+        return;
+      }
+
+      const startDate = new Date(snapshotDate);
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+
+      const { data: transactions, error: transactionsError } = await supabaseClient
+        .from('transactions')
+        .select('*')
+        .eq('warehouse_id', 'jordon')
+        .gte('transaction_date', startDate.toISOString().split('T')[0])
+        .lte('transaction_date', endDate.toISOString().split('T')[0]);
+
+      if (transactionsError) {
+        reportContent.innerHTML = '<p>Error fetching transactions.</p>';
+        console.error('Error fetching transactions:', transactionsError);
+        return;
+      }
+
+      const { data: productsData, error: productsError } = await supabaseClient
+          .from('products')
+          .select('item_code, product_name, packing_size');
+
+      if (productsError) {
+        throw productsError;
+      }
+
+      const productsMap = new Map(productsData.map(p => [p.item_code, p]));
+
+      const closingStock = openingStock.reduce((acc, item) => {
+        acc[item.item_code] = { ...item, productName: productsMap.get(item.item_code)?.product_name || 'N/A' };
+        return acc;
+      }, {});
+
+      transactions.forEach(tx => {
+        const { item_code, quantity, transaction_type } = tx;
+        if (!closingStock[item_code]) {
+          closingStock[item_code] = { item_code, quantity: 0, batch_no: 'N/A', productName: productsMap.get(item_code)?.product_name || 'N/A' };
+        }
+        if (transaction_type.includes('in') || transaction_type === 'internal_transfer' && tx.destination_warehouse_id === 'jordon') {
+          closingStock[item_code].quantity += quantity;
+        } else if (transaction_type.includes('out') || transaction_type === 'internal_transfer' && tx.source_warehouse_id === 'jordon') {
+          closingStock[item_code].quantity -= quantity;
+        }
+      });
+
+      let reportHTML = `
+        <h3>Report for ${new Date(snapshotDate).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+        <h4>Opening Stock (as of ${new Date(snapshotDate).toLocaleDateString('en-GB')})</h4>
+        <table class="data-table">
+          <thead><tr><th>Item Code</th><th>Product Name</th><th>Batch No</th><th>Quantity</th></tr></thead>
+          <tbody>
+            ${openingStock.map(item => `<tr><td>${item.item_code}</td><td>${productsMap.get(item.item_code)?.product_name || 'N/A'}</td><td>${item.batch_no}</td><td>${item.quantity}</td></tr>`).join('')}
+          </tbody>
+        </table>
+        <h4>Transactions</h4>
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Type</th><th>Item Code</th><th>Product Name</th><th>Quantity</th><th>Batch No</th></tr></thead>
+          <tbody>
+            ${transactions.map(tx => `<tr><td>${new Date(tx.transaction_date).toLocaleDateString('en-GB')}</td><td>${tx.transaction_type}</td><td>${tx.item_code}</td><td>${productsMap.get(tx.item_code)?.product_name || 'N/A'}</td><td>${tx.quantity}</td><td>${tx.batch_no}</td></tr>`).join('')}
+          </tbody>
+        </table>
+        <h4>Closing Stock (as of ${endDate.toLocaleDateString('en-GB')})</h4>
+        <table class="data-table">
+          <thead><tr><th>Item Code</th><th>Product Name</th><th>Batch No</th><th>Calculated Quantity</th></tr></thead>
+          <tbody>
+            ${Object.values(closingStock).map(item => `<tr><td>${item.item_code}</td><td>${item.productName}</td><td>${item.batch_no}</td><td>${item.quantity}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+
+      reportContent.innerHTML = reportHTML;
+    };
 
     const handleReprint = async () => {
       const orderNumber = document.getElementById('jordon-reprint-order-number').value;
