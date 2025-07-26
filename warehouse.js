@@ -436,7 +436,8 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     cell.contentEditable = false;
                 });
 
-                const item = inventoryData.filter(item => item.quantity > 0)[index];
+                const filteredData = inventoryData.filter(item => item.quantity > 0);
+                const item = filteredData[index];
                 const updatedData = {
                     item_code: row.cells[0].textContent,
                     details: {
