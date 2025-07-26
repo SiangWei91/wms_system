@@ -1164,7 +1164,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
       const { data: transactions, error: transactionsError } = await supabaseClient
         .from('transactions')
-        .select('transaction_date, transaction_type, item_code, quantity, source_warehouse_id, destination_warehouse_id, inventory_details')
+        .select('transaction_date, transaction_type, item_code, batch_no, quantity, source_warehouse_id, destination_warehouse_id, inventory_details')
         .eq('warehouse_id', 'jordon')
         .gte('transaction_date', startDate.toISOString().split('T')[0])
         .lte('transaction_date', endDate.toISOString().split('T')[0])
@@ -1196,7 +1196,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             productName: productsMap.get(item.item_code)?.product_name || 'N/A',
             opening: {
               quantity: item.quantity,
-              pallet: item.details?.pallet || 0
+              pallet: item.details?.pallet || 0,
+              batch_no: item.batch_no,
+              lotNumber: item.details?.lotNumber || ''
             },
             transactions: [],
             closing: {
@@ -1233,7 +1235,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             date: tx.transaction_date,
             type: description,
             quantity: quantityChange,
-            pallet: palletChange
+            pallet: palletChange,
+            batch_no: tx.batch_no,
+            lotNumber: tx.inventory_details?.lotNumber || ''
           });
           reportData[tx.item_code].closing.quantity += quantityChange;
           reportData[tx.item_code].closing.pallet += palletChange;
@@ -1254,16 +1258,20 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
               <tr>
                 <th>Date</th>
                 <th>Description</th>
-                <th>Quantity</th>
-                <th>Pallet</th>
+                <th>Batch No</th>
+                <th>Lot Number</th>
+                <th>Qty</th>
+                <th>Plt</th>
                 <th>Qty Balance</th>
-                <th>Pallet Balance</th>
+                <th>Plt Balance</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>${new Date(snapshotDate).toLocaleDateString('en-GB')}</td>
                 <td>Opening Stock</td>
+                <td>${item.opening.batch_no}</td>
+                <td>${item.opening.lotNumber}</td>
                 <td></td>
                 <td></td>
                 <td>${item.opening.quantity}</td>
@@ -1272,19 +1280,23 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
               ${item.transactions.map(t => {
                 quantityBalance += t.quantity;
                 palletBalance += t.pallet;
+                const qtyColor = t.quantity > 0 ? 'green' : 'red';
+                const pltColor = t.pallet > 0 ? 'green' : 'red';
                 return `
                   <tr>
                     <td>${new Date(t.date).toLocaleDateString('en-GB')}</td>
                     <td>${t.type}</td>
-                    <td>${t.quantity > 0 ? `+${t.quantity}`: t.quantity}</td>
-                    <td>${t.pallet > 0 ? `+${t.pallet}`: t.pallet}</td>
+                    <td>${t.batch_no}</td>
+                    <td>${t.lotNumber}</td>
+                    <td style="color:${qtyColor};">${t.quantity > 0 ? `+${t.quantity}`: t.quantity}</td>
+                    <td style="color:${pltColor};">${t.pallet > 0 ? `+${t.pallet}`: t.pallet}</td>
                     <td>${quantityBalance}</td>
                     <td>${palletBalance}</td>
                   </tr>
                 `
               }).join('')}
               <tr>
-                <td colspan="4"><strong>Closing Stock</strong></td>
+                <td colspan="6"><strong>Closing Stock</strong></td>
                 <td><strong>${item.closing.quantity}</strong></td>
                 <td><strong>${item.closing.pallet}</strong></td>
               </tr>
