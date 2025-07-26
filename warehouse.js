@@ -462,9 +462,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                                     llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
                                     dateStored: row.cells[7].textContent,
                                     mixPallet: row.cells[11].textContent,
+                                    pallet: parseInt(row.cells[10].textContent),
                                 },
                                 quantity: parseInt(row.cells[9].textContent),
-                                pallet: parseInt(row.cells[10].textContent),
                                 container: row.cells[8].textContent,
                                 batch_no: row.cells[5].textContent,
                             };
