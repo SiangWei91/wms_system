@@ -478,22 +478,22 @@ async function updateInventory(supabase) {
     `;
     modalContainer.style.display = 'flex';
 
-    const allItems = [];
-    for (const viewName in shipmentModuleState.allExtractedData) {
-        const viewData = shipmentModuleState.allExtractedData[viewName];
-        const { warehouseId } = await getWarehouseInfo(viewName);
-        for (let i = 0; i < viewData.length; i++) {
-            const item = viewData[i];
-            if (!item.itemCode) {
-                showModal('Error', `Row ${i + 1} in the ${viewName} table is missing an item code.`);
-                return;
+    try {
+        const allItems = [];
+        for (const viewName in shipmentModuleState.allExtractedData) {
+            const viewData = shipmentModuleState.allExtractedData[viewName];
+            const { warehouseId } = await getWarehouseInfo(viewName);
+            for (let i = 0; i < viewData.length; i++) {
+                const item = viewData[i];
+                if (!item.itemCode) {
+                    showModal('Error', `Row ${i + 1} in the ${viewName} table is missing an item code.`);
+                    return;
+                }
+                allItems.push({ ...item, warehouse_id: warehouseId });
             }
-            allItems.push({ ...item, warehouse_id: warehouseId });
         }
-    }
 
-    for (const item of allItems) {
-        try {
+        for (const item of allItems) {
             const { productId } = await lookupOrCreateProduct(item.itemCode, item.productDescription, item.packingSize, supabase);
 
             if (!productId) {
@@ -547,17 +547,20 @@ async function updateInventory(supabase) {
                 .insert([transactionData]);
 
             if (transactionError) throw transactionError;
-
-        } catch (error) {
-            console.error('Error updating inventory for item:', item.itemCode, error);
-            showModal('Error', `Error updating inventory for item ${item.itemCode}: ${error.message}`);
-            return;
         }
-    }
 
-    shipmentModuleState.allExtractedData = {};
-    displayExtractedData([]);
-    showModal('Success', 'Inventory updated successfully!');
+        shipmentModuleState.allExtractedData = {};
+        displayExtractedData([]);
+        showModal('Success', 'Inventory updated successfully!');
+    } catch (error) {
+        console.error('Error updating inventory:', error);
+        showModal('Error', `An unexpected error occurred: ${error.message}`);
+    } finally {
+        // This block is not ideal because the modal is managed by showModal
+        // but it's a good safety net. A better refactor would be to have
+        // hideModal() be the only way to hide it.
+        hideModal();
+    }
 }
 
 function showModal(title, message) {
@@ -575,6 +578,11 @@ function showModal(title, message) {
     `;
     modalContainer.style.display = 'flex';
     modalContainer.querySelector('.modal-close').addEventListener('click', () => {
-        modalContainer.style.display = 'none';
+        hideModal();
     });
+}
+
+function hideModal() {
+    const modalContainer = document.getElementById('modal-container');
+    modalContainer.style.display = 'none';
 }
