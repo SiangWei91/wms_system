@@ -387,9 +387,12 @@ function setupEventListeners() {
         }
 
         if (navItem && getComputedStyle(document.querySelector('.sidebar')).position === 'fixed') {
-            const appContainer = document.querySelector('.app-container');
-            if (appContainer.classList.contains('sidebar-show')) {
-                appContainer.classList.remove('sidebar-show');
+            const page = navItem.getAttribute('data-page');
+            if (page !== 'public-warehouse') {
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer.classList.contains('sidebar-show')) {
+                    appContainer.classList.remove('sidebar-show');
+                }
             }
         }
     });
