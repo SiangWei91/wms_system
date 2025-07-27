@@ -423,104 +423,111 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
         const attachEventListeners = () => {
             console.log('Attaching event listeners...');
-            const summaryTableRows = inventorySummaryTableBody.querySelectorAll('tr');
-            summaryTableRows.forEach((row, index) => {
-                row.addEventListener('contextmenu', (e) => {
-                    console.log('Context menu event triggered');
-                    e.preventDefault();
-                    row.querySelectorAll('td').forEach(cell => {
-                        cell.contentEditable = true;
-                    });
-                    row.focus();
+            inventorySummaryTableBody.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                if (!row) return;
+
+                console.log('Context menu event triggered');
+                row.querySelectorAll('td').forEach(cell => {
+                    cell.contentEditable = true;
+                });
+                row.focus();
+            }, { signal });
+
+            inventorySummaryTableBody.addEventListener('keydown', async (e) => {
+                const row = e.target.closest('tr');
+                if (!row || e.key !== 'Enter') return;
+
+                console.log('Enter key pressed');
+                row.querySelectorAll('td').forEach(cell => {
+                    cell.contentEditable = false;
                 });
 
-                row.addEventListener('keydown', async (e) => {
-                    if (e.key === 'Enter') {
-                        console.log('Enter key pressed');
-                        row.querySelectorAll('td').forEach(cell => {
-                            cell.contentEditable = false;
-                        });
+                row.style.backgroundColor = '#f0f0f0';
 
-                        // Add a visual indicator to show that the row is being saved
-                        row.style.backgroundColor = '#f0f0f0';
+                try {
+                    const rowIndex = Array.from(inventorySummaryTableBody.children).indexOf(row);
+                    const filteredData = inventoryData.filter(item => item.quantity > 0 && item.details.status !== 'Pending');
+                    const item = filteredData[rowIndex];
 
-                        try {
-                            const filteredData = inventoryData.filter(item => item.quantity > 0);
-                            const item = filteredData[index];
-
-                            if (!item) {
-                                throw new Error('Could not find the item to update.');
-                            }
-
-                            const updatedData = {
-                                item_code: row.cells[0].textContent,
-                                details: {
-                                    ...item.details,
-                                    palletType: row.cells[3].textContent,
-                                    location: row.cells[4].textContent,
-                                    lotNumber: warehouseId === 'jordon' ? row.cells[6].textContent : item.details.lotNumber,
-                                    llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
-                                    dateStored: row.cells[7].textContent,
-                                    mixPallet: row.cells[11].textContent,
-                                    pallet: parseInt(row.cells[10].textContent),
-                                },
-                                quantity: parseInt(row.cells[9].textContent),
-                                container: row.cells[8].textContent,
-                                batch_no: row.cells[5].textContent,
-                            };
-
-                            console.log('Updating record with data:', updatedData);
-
-                            const { error } = await supabaseClient
-                                .from('inventory')
-                                .update(updatedData)
-                                .eq('id', item.id);
-
-                            if (error) {
-                                throw error;
-                            }
-
-                            console.log('Record updated successfully');
-                            // Reload the data to reflect the changes
-                            await loadInventoryData();
-                        } catch (error) {
-                            console.error('Error updating record:', error);
-                            alert(`Error updating record: ${error.message}`);
-                            // Restore the original background color
-                            row.style.backgroundColor = '';
-                        }
-                    }
-                });
-
-                row.addEventListener('click', () => {
-                    const modal = document.querySelector('.jordon-withdrawal-modal');
-                    const modalBody = document.getElementById('jordon-modal-body');
-                    if (!modal || !modalBody) return;
-
-                    // 设置模态框的数据属性，标识当前操作的仓库
-                    modal.setAttribute('data-current-warehouse', warehouseId);
-                    modalBody.innerHTML = '';
-
-                    const item = inventoryData.filter(item => item.quantity > 0)[index];
-                    const mixPallet = item.details.mixPallet;
-                    const dateStored = item.details.dateStored;
-
-                    let itemsToShow = [item];
-                    if (mixPallet) {
-                        itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
+                    if (!item) {
+                        throw new Error('Could not find the item to update.');
                     }
 
-                    if (itemsToShow.length > 1) {
-                        modal.classList.add('wide');
-                    } else {
-                        modal.classList.remove('wide');
+                    const updatedData = {
+                        item_code: row.cells[0].textContent,
+                        details: {
+                            ...item.details,
+                            palletType: row.cells[3].textContent,
+                            location: row.cells[4].textContent,
+                            lotNumber: warehouseId === 'jordon' ? row.cells[6].textContent : item.details.lotNumber,
+                            llm_item_code: warehouseId === 'lineage' ? row.cells[6].textContent : item.details.llm_item_code,
+                            dateStored: row.cells[7].textContent,
+                            mixPallet: row.cells[11].textContent,
+                            pallet: parseInt(row.cells[10].textContent),
+                        },
+                        quantity: parseInt(row.cells[9].textContent),
+                        container: row.cells[8].textContent,
+                        batch_no: row.cells[5].textContent,
+                    };
+
+                    console.log('Updating record with data:', updatedData);
+
+                    const { error } = await supabaseClient
+                        .from('inventory')
+                        .update(updatedData)
+                        .eq('id', item.id);
+
+                    if (error) {
+                        throw error;
                     }
 
-                    itemsToShow.forEach((itemToShow, itemIndex) => {
-                        const product = productsMap.get(itemToShow.item_code) || {};
-                        const itemElement = document.createElement('div');
-                        itemElement.dataset.itemCode = itemToShow.item_code;
-                        itemElement.innerHTML = `
+                    console.log('Record updated successfully');
+                    await loadInventoryData();
+                } catch (error) {
+                    console.error('Error updating record:', error);
+                    alert(`Error updating record: ${error.message}`);
+                    row.style.backgroundColor = '';
+                }
+            }, { signal });
+
+            inventorySummaryTableBody.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                if (!row) return;
+
+                const modal = document.querySelector('.jordon-withdrawal-modal');
+                const modalBody = document.getElementById('jordon-modal-body');
+                if (!modal || !modalBody) return;
+
+                modal.setAttribute('data-current-warehouse', warehouseId);
+                modalBody.innerHTML = '';
+
+                const rowIndex = Array.from(inventorySummaryTableBody.children).indexOf(row);
+                const filteredData = inventoryData.filter(item => item.quantity > 0 && item.details.status !== 'Pending');
+                const item = filteredData[rowIndex];
+
+                if (!item) return;
+
+                const mixPallet = item.details.mixPallet;
+                const dateStored = item.details.dateStored;
+
+                let itemsToShow = [item];
+                if (mixPallet) {
+                    itemsToShow = inventoryData.filter(i => i.details.mixPallet === mixPallet && i.details.dateStored === dateStored);
+                }
+
+                if (itemsToShow.length > 1) {
+                    modal.classList.add('wide');
+                } else {
+                    modal.classList.remove('wide');
+                }
+
+                itemsToShow.forEach((itemToShow, itemIndex) => {
+                    const product = productsMap.get(itemToShow.item_code) || {};
+                    const itemElement = document.createElement('div');
+                    itemElement.dataset.itemCode = itemToShow.item_code;
+                    itemElement.innerHTML = `
                         <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
                         <p><strong>Packing Size:</strong> ${product.packing_size || ''}</p>
                         <p><strong>Batch No:</strong> ${itemToShow.batch_no}</p>
@@ -538,19 +545,18 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                         </div>
                         <hr>
                     `;
-                        modalBody.appendChild(itemElement);
+                    modalBody.appendChild(itemElement);
 
-                        if (itemIndex === 0) {
-                            const firstInput = itemElement.querySelector('.withdraw-quantity');
-                            if (firstInput) {
-                                firstInput.focus();
-                            }
+                    if (itemIndex === 0) {
+                        const firstInput = itemElement.querySelector('.withdraw-quantity');
+                        if (firstInput) {
+                            firstInput.focus();
                         }
-                    });
+                    }
+                });
 
-                    modal.style.display = 'flex';
-                }, { signal });
-            });
+                modal.style.display = 'flex';
+            }, { signal });
         }
 
         attachEventListeners();
@@ -606,42 +612,42 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
 
         // 为删除按钮添加事件监听器
-        const deleteButtons = document.querySelectorAll('.delete-btn');
-        deleteButtons.forEach(button => {
-          button.addEventListener('click', async (e) => {
-            const id = e.target.dataset.id;
+        stockInTableBody.addEventListener('click', async (e) => {
+            const button = e.target.closest('.delete-btn');
+            if (!button) return;
+
+            const id = button.dataset.id;
             const { data: inventoryItem, error: fetchError } = await supabaseClient
-              .from('inventory')
-              .select('item_code, batch_no')
-              .eq('id', id)
-              .single();
+                .from('inventory')
+                .select('item_code, batch_no')
+                .eq('id', id)
+                .single();
 
             if (fetchError) {
-              console.error('Error fetching item for deletion:', fetchError);
-              return;
+                console.error('Error fetching item for deletion:', fetchError);
+                return;
             }
 
             const { error: transactionError } = await supabaseClient
-              .from('transactions')
-              .delete()
-              .match({ item_code: inventoryItem.item_code, batch_no: inventoryItem.batch_no, warehouse_id: warehouseId });
+                .from('transactions')
+                .delete()
+                .match({ item_code: inventoryItem.item_code, batch_no: inventoryItem.batch_no, warehouse_id: warehouseId });
 
             if (transactionError) {
-              console.error('Error deleting transaction:', transactionError);
+                console.error('Error deleting transaction:', transactionError);
             }
 
             const { error: inventoryError } = await supabaseClient
-              .from('inventory')
-              .delete()
-              .eq('id', id);
+                .from('inventory')
+                .delete()
+                .eq('id', id);
 
             if (inventoryError) {
-              console.error('Error deleting item:', inventoryError);
+                console.error('Error deleting item:', inventoryError);
             } else {
-              loadInventoryData();
+                loadInventoryData();
             }
-          }, { signal });
-        });
+        }, { signal });
 
         // 处理 lineage 仓库的位置输入同步
         if (warehouseId === 'lineage') {
@@ -775,9 +781,14 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             }
           };
 
-          // 添加事件监听器（使用 signal 来管理）
-          closeButton.addEventListener('click', handleModalClose, { signal });
-          modalSubmitButton.addEventListener('click', handleModalSubmit, { signal });
+          // Add a single listener for the modal
+          modal.addEventListener('click', (e) => {
+              if (e.target.id === 'jordon-modal-close-button' || e.target.parentElement.id === 'jordon-modal-close-button') {
+                  handleModalClose();
+              } else if (e.target.id === 'modal-submit-btn') {
+                  handleModalSubmit(e);
+              }
+          });
           modal.addEventListener('keydown', handleModalKeydown, { signal });
         }
 
@@ -912,26 +923,30 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
       const tabLinks = document.querySelectorAll(`.${warehouseId}-container .tab-link`);
       const tabPanes = document.querySelectorAll(`.${warehouseId}-container .tab-pane`);
 
-      tabLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          const tab = link.dataset.tab;
+      const tabContainer = document.querySelector(`.${warehouseId}-container .tab-nav`);
+      if (tabContainer) {
+          tabContainer.addEventListener('click', (e) => {
+              const link = e.target.closest('.tab-link');
+              if (!link) return;
 
-          tabLinks.forEach(l => l.classList.remove('active'));
-          link.classList.add('active');
+              const tab = link.dataset.tab;
 
-          tabPanes.forEach(pane => {
-            if (pane.id === tab) {
-              pane.classList.add('active');
-            } else {
-              pane.classList.remove('active');
-            }
+              document.querySelectorAll(`.${warehouseId}-container .tab-link`).forEach(l => l.classList.remove('active'));
+              link.classList.add('active');
+
+              document.querySelectorAll(`.${warehouseId}-container .tab-pane`).forEach(pane => {
+                  if (pane.id === tab) {
+                      pane.classList.add('active');
+                  } else {
+                      pane.classList.remove('active');
+                  }
+              });
+
+              if (tab === 'report' && warehouseId === 'jordon') {
+                  loadReprintForm();
+              }
           });
-
-          if (tab === 'report' && warehouseId === 'jordon') {
-            loadReprintForm();
-          }
-        });
-      });
+      }
     };
 
     const loadReprintForm = async () => {

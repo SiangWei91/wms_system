@@ -22,12 +22,16 @@ window.loadStockTakeData = async function(content, supabase) {
     if (index === 0) {
       tab.classList.add("active");
     }
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab-button").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      displayData();
-    });
     tabNav.appendChild(tab);
+  });
+
+  tabNav.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab-button');
+    if (!tab) return;
+
+    document.querySelectorAll(".tab-button").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    displayData();
   });
 
   const morningTable = document.getElementById('morning-wrapper');

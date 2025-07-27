@@ -104,31 +104,31 @@ function renderShipmentTable(data, showActions = true, supabase) {
     });
 
     if (showActions) {
-      const viewButton = document.createElement('button');
-      viewButton.innerHTML = '<i class="fas fa-eye"></i>';
-      viewButton.classList.add('btn-icon', 'view-btn');
-      viewButton.addEventListener('click', () => handleViewShipment(rowData[0], supabase));
-
-      const editButton = document.createElement('button');
-      editButton.innerHTML = '<i class="fas fa-edit"></i>';
-      editButton.classList.add('btn-icon', 'edit-btn');
-      editButton.addEventListener('click', (e) => handleEditRow(e.target));
-
-      const saveButton = document.createElement('button');
-      saveButton.innerHTML = '<i class="fas fa-save"></i>';
-      saveButton.classList.add('btn-icon', 'save-btn');
-      saveButton.style.display = 'none';
-      saveButton.addEventListener('click', (e) => handleSaveRow(e.target, supabase));
-
       const actionsTd = document.createElement('td');
-      actionsTd.appendChild(viewButton);
-      actionsTd.appendChild(editButton);
-      actionsTd.appendChild(saveButton);
+      actionsTd.innerHTML = `
+        <button class="btn-icon view-btn" data-shipment-no="${rowData[0]}"><i class="fas fa-eye"></i></button>
+        <button class="btn-icon edit-btn"><i class="fas fa-edit"></i></button>
+        <button class="btn-icon save-btn" style="display: none;"><i class="fas fa-save"></i></button>
+      `;
       row.appendChild(actionsTd);
     }
 
     tbody.appendChild(row);
   }
+
+  tbody.addEventListener('click', (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    if (button.classList.contains('view-btn')) {
+      handleViewShipment(button.dataset.shipmentNo, supabase);
+    } else if (button.classList.contains('edit-btn')) {
+      handleEditRow(button);
+    } else if (button.classList.contains('save-btn')) {
+      handleSaveRow(button, supabase);
+    }
+  });
+
   table.appendChild(tbody);
 
   return table;

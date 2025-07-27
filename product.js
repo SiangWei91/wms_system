@@ -58,6 +58,23 @@ window.loadProducts = async function(contentElement, supabase) {
         productSearchInput.addEventListener('input', (e) => handleProductSearch(e, supabase));
     }
 
+    const productsTableBody = document.getElementById('products-table-body');
+    if (productsTableBody) {
+        productsTableBody.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const id = button.dataset.id;
+            if (button.classList.contains('view-btn')) {
+                viewProduct(id, supabase);
+            } else if (button.classList.contains('edit-btn')) {
+                editProduct(id, supabase);
+            } else if (button.classList.contains('delete-btn')) {
+                deleteProduct(id, supabase);
+            }
+        });
+    }
+
     currentPageNum = 1;
     await fetchProducts({
         searchTerm: currentProductSearchTerm,
@@ -175,15 +192,6 @@ function renderProductsTable(products, supabase) {
         tbody.appendChild(row);
     });
 
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => viewProduct(e.target.closest('button').dataset.id, supabase));
-    });
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => editProduct(e.target.closest('button').dataset.id, supabase));
-    });
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => deleteProduct(e.target.closest('button').dataset.id, supabase));
-    });
 }
 
 function renderPagination(supabase) {

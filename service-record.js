@@ -60,19 +60,24 @@ const loadServiceRecordPage = async (content, supabase) => {
         const th = document.createElement('th');
         th.textContent = headerText;
         th.style.cursor = 'pointer';
-        th.addEventListener('click', () => {
-          if (sortColumn === headerText) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-          } else {
-            sortColumn = headerText;
-            sortDirection = 'asc';
-          }
-          sortData();
-          renderTable();
-        });
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
+
+      thead.addEventListener('click', (e) => {
+        const th = e.target.closest('th');
+        if (!th) return;
+
+        const headerText = th.textContent;
+        if (sortColumn === headerText) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortColumn = headerText;
+          sortDirection = 'asc';
+        }
+        sortData();
+        renderTable();
+      });
 
       // Create table rows
       tableData.forEach(rowData => {
@@ -105,32 +110,35 @@ const loadServiceRecordPage = async (content, supabase) => {
 
 
   const setupTabs = () => {
-    const tabButtons = content.querySelectorAll('.tab-button');
+    const tabContainer = content.querySelector('.tab-nav');
     const tabPanes = content.querySelectorAll('.tab-pane');
     const container = content.querySelector('.service-record-container');
 
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.dataset.tab;
+    if (tabContainer) {
+        tabContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.tab-button');
+            if (!button) return;
 
-        if (tabId === 'add-record-tab') {
-          container.classList.add('add-record-active');
-        } else {
-          container.classList.remove('add-record-active');
-        }
+            const tabId = button.dataset.tab;
 
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
+            if (tabId === 'add-record-tab') {
+                container.classList.add('add-record-active');
+            } else {
+                container.classList.remove('add-record-active');
+            }
 
-        tabPanes.forEach(pane => {
-          if (pane.id === tabId) {
-            pane.classList.add('active');
-          } else {
-            pane.classList.remove('active');
-          }
+            content.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            tabPanes.forEach(pane => {
+                if (pane.id === tabId) {
+                    pane.classList.add('active');
+                } else {
+                    pane.classList.remove('active');
+                }
+            });
         });
-      });
-    });
+    }
   };
 
   const setupForm = (supabase) => {

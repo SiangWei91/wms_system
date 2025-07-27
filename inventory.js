@@ -80,25 +80,6 @@ window.loadInventoryPage = async (supabaseClient) => {
         tr.appendChild(td);
       });
 
-      tr.addEventListener('click', async () => {
-        const itemCode = row.item_code;
-        const { data: transactions, error } = await supabaseClient
-          .from('transactions')
-          .select(`
-            *,
-            warehouses ( name )
-          `)
-          .eq('item_code', itemCode);
-
-        if (error) {
-          console.error('Error fetching transactions:', error);
-          return;
-        }
-
-        renderModalTable(transactions);
-        document.getElementById('transaction-modal').style.display = 'block';
-      });
-
       tbody.appendChild(tr);
     });
 
@@ -106,6 +87,28 @@ window.loadInventoryPage = async (supabaseClient) => {
     table.appendChild(tbody);
     tableContainer.innerHTML = ''; // Clear previous content
     tableContainer.appendChild(table);
+
+    tbody.addEventListener('click', async (e) => {
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+
+        const itemCode = tr.cells[0].textContent;
+        const { data: transactions, error } = await supabaseClient
+            .from('transactions')
+            .select(`
+                *,
+                warehouses ( name )
+            `)
+            .eq('item_code', itemCode);
+
+        if (error) {
+            console.error('Error fetching transactions:', error);
+            return;
+        }
+
+        renderModalTable(transactions);
+        document.getElementById('transaction-modal').style.display = 'block';
+    });
   };
 
   const renderModalTable = (data) => {

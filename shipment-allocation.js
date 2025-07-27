@@ -21,8 +21,16 @@ function loadShipmentAllocationPage(supabase) {
 
     const resultsContainer = document.getElementById('resultsContainer');
     if (resultsContainer) {
-        resultsContainer.addEventListener('change', handleCellEdit);
-        resultsContainer.addEventListener('click', handleRowRemoveClick);
+        resultsContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('editable-cell-input')) {
+                handleCellEdit(e);
+            }
+        });
+        resultsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row-btn')) {
+                handleRowRemoveClick(e);
+            }
+        });
     }
 
     const updateBtn = document.getElementById('updateInventoryBtn');

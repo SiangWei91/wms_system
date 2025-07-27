@@ -59,12 +59,16 @@ const loadCrTemperaturePage = (() => {
       if (index === 0) {
         tab.classList.add("active");
       }
-      tab.addEventListener("click", () => {
+      tabNav.appendChild(tab);
+    });
+
+    tabNav.addEventListener('click', (e) => {
+        const tab = e.target.closest('.tab-button');
+        if (!tab) return;
+
         document.querySelectorAll(".tab-button").forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
         renderContent();
-      });
-      tabNav.appendChild(tab);
     });
   }
 

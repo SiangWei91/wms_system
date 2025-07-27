@@ -39,6 +39,68 @@ const handleAuthError = (error) => {
 };
 
 const loadedScripts = new Set();
+// A mapping of page names to their corresponding script URLs and initialization functions.
+const pageScripts = {
+    'product': {
+        urls: ['product.js'],
+        init: (content) => window.loadProducts(content, supabaseClient)
+    },
+    'stock-take': {
+        urls: ['stock-take.js'],
+        init: (content) => window.loadStockTakeData(content, supabaseClient)
+    },
+    'shipment': {
+        urls: ['shipment.js', 'shipment-allocation.js'],
+        init: (content) => {
+            window.loadShipmentPage(content, supabaseClient);
+            window.loadShipmentAllocationPage(supabaseClient);
+        }
+    },
+    'transactions': {
+        urls: ['transaction.js'],
+        init: (content) => window.loadTransactions(content, supabaseClient)
+    },
+    'cr-temperature': {
+        urls: ['cr-temperature.js'],
+        init: () => window.loadCrTemperaturePage(supabaseClient)
+    },
+    'dashboard': {
+        urls: ['dashboard.js'],
+        init: () => window.loadDashboard(supabaseClient)
+    },
+    'service-record': {
+        urls: ['service-record.js'],
+        init: (content) => window.loadServiceRecordPage(content, supabaseClient)
+    },
+    'inventory': {
+        urls: ['inventory.js'],
+        init: () => window.loadInventoryPage(supabaseClient)
+    },
+    'jordon': {
+        urls: ['warehouse.js', 'public-warehouse.js'],
+        init: () => window.loadJordonPage(supabaseClient)
+    },
+    'lineage': {
+        urls: ['warehouse.js', 'public-warehouse.js'],
+        init: () => window.loadLineagePage(supabaseClient)
+    },
+    'sing-long': {
+        urls: [],
+        init: () => navigateTo('coming-soon')
+    },
+    'transfer': {
+        urls: [],
+        init: () => navigateTo('coming-soon')
+    },
+    'surimi': {
+        urls: [],
+        init: () => navigateTo('coming-soon')
+    },
+    'packaging-material': {
+        urls: [],
+        init: () => navigateTo('coming-soon')
+    }
+};
 
 const loadScript = (url) => {
     return new Promise((resolve, reject) => {
@@ -62,68 +124,32 @@ const loadScript = (url) => {
 
 const loadContent = async (page) => {
     const content = document.getElementById('content');
-    if (content) {
-        try {
-            const response = await fetch(`templates/${page}.html`);
-            if (response.ok) {
-                content.innerHTML = await response.text();
+    if (!content) return;
 
-                const runPageScript = async () => {
-                    try {
-                        if (page === 'product') {
-                            await loadScript('product.js');
-                            window.loadProducts(content, supabaseClient);
-                        } else if (page === 'stock-take') {
-                            await loadScript('stock-take.js');
-                            window.loadStockTakeData(content, supabaseClient);
-                        } else if (page === 'shipment') {
-                            await loadScript('shipment.js');
-                            await loadScript('shipment-allocation.js');
-                            window.loadShipmentPage(content, supabaseClient);
-                            window.loadShipmentAllocationPage(supabaseClient);
-                        } else if (page === 'transactions') {
-                            await loadScript('transaction.js');
-                            window.loadTransactions(content, supabaseClient);
-                        } else if (page === 'cr-temperature') {
-                            await loadScript('cr-temperature.js');
-                            window.loadCrTemperaturePage(supabaseClient);
-                        } else if (page === 'dashboard') {
-                            await loadScript('dashboard.js');
-                            window.loadDashboard(supabaseClient);
-                        } else if (page === 'service-record') {
-                            await loadScript('service-record.js');
-                            window.loadServiceRecordPage(content, supabaseClient);
-                        } else if (page === 'inventory') {
-                            await loadScript('inventory.js');
-                            if (window.loadInventoryPage) {
-                                window.loadInventoryPage(supabaseClient);
-                            }
-                        } else if (page === 'jordon' || page === 'lineage') {
-                            await loadScript('warehouse.js');
-                            await loadScript('public-warehouse.js');
-                            if (page === 'jordon') {
-                                window.loadJordonPage(supabaseClient);
-                            } else {
-                                window.loadLineagePage(supabaseClient);
-                            }
-                        } else if (page === 'sing-long' || page === 'transfer' || page === 'surimi' || page === 'packaging-material') {
-                            navigateTo('coming-soon');
-                            return;
-                        }
-                    } catch (scriptError) {
-                        console.error('Error running page script for', page, ':', scriptError);
-                    }
-                };
-
-                await runPageScript();
-
-            } else {
-                content.innerHTML = '<p>Page not found.</p>';
-            }
-        } catch (error) {
-            console.error('Error loading page:', page, error);
-            content.innerHTML = '<p>Error loading page.</p>';
+    try {
+        const response = await fetch(`templates/${page}.html`);
+        if (!response.ok) {
+            content.innerHTML = '<p>Page not found.</p>';
+            return;
         }
+        content.innerHTML = await response.text();
+
+        const pageScript = pageScripts[page];
+        if (pageScript) {
+            try {
+                for (const url of pageScript.urls) {
+                    await loadScript(url);
+                }
+                if (pageScript.init) {
+                    pageScript.init(content);
+                }
+            } catch (scriptError) {
+                console.error('Error running page script for', page, ':', scriptError);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading page:', page, error);
+        content.innerHTML = '<p>Error loading page.</p>';
     }
 };
 
@@ -287,15 +313,17 @@ if (avatarTrigger) {
     });
 }
 
-let eventListenersAttached = false;
-
 function setupEventListeners() {
-    if (eventListenersAttached) return;
-
-    const navItems = document.querySelectorAll('nav ul li');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            const page = item.getAttribute('data-page');
+    const content = document.getElementById('content');
+    if (content) {
+        content.addEventListener('click', (e) => {
+            // Handle delegated events here
+        });
+    }
+    document.body.addEventListener('click', (e) => {
+        const navItem = e.target.closest('nav ul li');
+        if (navItem) {
+            const page = navItem.getAttribute('data-page');
             if (page === 'public-warehouse') {
                 e.preventDefault();
                 const warehouseOptions = document.querySelectorAll('.warehouse-option');
@@ -307,29 +335,25 @@ function setupEventListeners() {
             } else if (page) {
                 navigateTo(page);
             }
-        });
-    });
+        }
 
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebar = document.querySelector('.sidebar');
-
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => {
-            if (sidebar.classList.contains('sidebar-collapsed')) {
-                sidebar.classList.remove('sidebar-collapsed');
-            } else {
-                sidebar.classList.toggle('show');
+        const sidebarToggle = e.target.closest('#sidebar-toggle');
+        if (sidebarToggle) {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    sidebar.classList.remove('sidebar-collapsed');
+                } else {
+                    sidebar.classList.toggle('show');
+                }
             }
-        });
-    }
+        }
 
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
+        if (navItem && window.innerWidth <= 768) {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
                 sidebar.classList.remove('show');
             }
-        });
+        }
     });
-
-    eventListenersAttached = true;
 }
