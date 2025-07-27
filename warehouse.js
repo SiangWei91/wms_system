@@ -1175,6 +1175,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
           printWindow.document.write(`<html><head><title>${reportTitle}</title>`);
           printWindow.document.write('<link rel="stylesheet" href="style.css">');
           printWindow.document.write('<link rel="stylesheet" href="inventory.css">');
+          printWindow.document.write('<link rel="stylesheet" href="report.css">');
           printWindow.document.write('</head><body>');
           printWindow.document.write(reportContent.innerHTML);
           printWindow.document.write('</body></html>');
