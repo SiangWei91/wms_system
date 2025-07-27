@@ -329,7 +329,13 @@ function handleSidebarToggle(sidebarToggle) {
     const icon = sidebarToggle.querySelector('i');
     if (!sidebar || !appContainer) return;
 
-    if (window.innerWidth > 768) {
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        sidebar.classList.toggle('show');
+        appContainer.classList.toggle('sidebar-show');
+        sidebarToggle.setAttribute('aria-expanded', sidebar.classList.contains('show'));
+    } else {
         sidebar.classList.toggle('sidebar-collapsed');
         const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
         sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
@@ -340,10 +346,6 @@ function handleSidebarToggle(sidebarToggle) {
             icon.classList.remove('fa-bars');
             icon.classList.add('fa-times');
         }
-    } else {
-        sidebar.classList.toggle('show');
-        appContainer.classList.toggle('sidebar-show');
-        sidebarToggle.setAttribute('aria-expanded', sidebar.classList.contains('show'));
     }
 }
 
