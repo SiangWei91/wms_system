@@ -14,7 +14,7 @@
   <body>
     <div class="app-container">
       <!-- 侧边栏导航 -->
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar">
         <div class="logo">
           <i class="fas fa-boxes"></i>
           <span>Inventory Management</span>
@@ -91,8 +91,9 @@
 
       <!-- 主内容区 -->
       <main class="main-content">
+        <div class="overlay" id="overlay"></div>
         <header class="header">
-          <div class="sidebar-toggle" id="sidebar-toggle">
+          <div class="sidebar-toggle" id="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">
             <i class="fas fa-bars"></i>
           </div>
           <div class="company-name">LI CHUAN FOOD PRODUCTS PTE LTD</div>

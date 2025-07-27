@@ -269,6 +269,16 @@ if (window.location.pathname.endsWith('app.html')) {
             loadContent(page).then(() => {
                 updateNavigationState(page);
             });
+
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (sidebar && sidebarToggle && window.innerWidth > 768) {
+                const icon = sidebarToggle.querySelector('i');
+                if (!sidebar.classList.contains('sidebar-collapsed')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            }
         };
 
         if (document.readyState === 'loading') {
@@ -313,6 +323,28 @@ if (avatarTrigger) {
     });
 }
 
+function handleSidebarToggle(sidebarToggle) {
+    const sidebar = document.querySelector('.sidebar');
+    const icon = sidebarToggle.querySelector('i');
+    if (!sidebar) return;
+
+    if (window.innerWidth > 768) {
+        sidebar.classList.toggle('sidebar-collapsed');
+        const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+        sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
+        if (isCollapsed) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        } else {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        }
+    } else {
+        sidebar.classList.toggle('show');
+        sidebarToggle.setAttribute('aria-expanded', sidebar.classList.contains('show'));
+    }
+}
+
 function setupEventListeners() {
     const content = document.getElementById('content');
     if (content) {
@@ -339,13 +371,14 @@ function setupEventListeners() {
 
         const sidebarToggle = e.target.closest('#sidebar-toggle');
         if (sidebarToggle) {
+            handleSidebarToggle(sidebarToggle);
+        }
+
+        const overlay = e.target.closest('#overlay');
+        if (overlay) {
             const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                if (sidebar.classList.contains('sidebar-collapsed')) {
-                    sidebar.classList.remove('sidebar-collapsed');
-                } else {
-                    sidebar.classList.toggle('show');
-                }
+            if (sidebar && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
             }
         }
 
