@@ -6,6 +6,11 @@
   src: url(https://fonts.gstatic.com/s/lxgwwenkaitc/v9/w8gDH20td8wNsI3f40DmtXZb48uK.ttf) format('truetype');
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* 基础样式重置 */
 * {
   margin: 0;
@@ -23,7 +28,7 @@ body {
 
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100%;
 }
 
 /* 侧边栏样式 */
@@ -97,6 +102,7 @@ nav ul li i {
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .sidebar.sidebar-collapsed + .main-content {
