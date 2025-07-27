@@ -326,27 +326,10 @@ if (avatarTrigger) {
 function handleSidebarToggle(sidebarToggle) {
     const sidebar = document.querySelector('.sidebar');
     const appContainer = document.querySelector('.app-container');
-    const icon = sidebarToggle.querySelector('i');
+
     if (!sidebar || !appContainer) return;
 
-    const isMobile = window.innerWidth <= 768;
-
-    if (isMobile) {
-        sidebar.classList.toggle('show');
-        appContainer.classList.toggle('sidebar-show');
-        sidebarToggle.setAttribute('aria-expanded', sidebar.classList.contains('show'));
-    } else {
-        sidebar.classList.toggle('sidebar-collapsed');
-        const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
-        if (isCollapsed) {
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-bars');
-        } else {
-            icon.classList.remove('fa-bars');
-            icon.classList.add('fa-times');
-        }
-    }
+    appContainer.classList.toggle('sidebar-show');
 }
 
 function setupEventListeners() {
@@ -380,22 +363,16 @@ function setupEventListeners() {
 
         const overlay = e.target.closest('#overlay');
         if (overlay) {
-            const sidebar = document.querySelector('.sidebar');
             const appContainer = document.querySelector('.app-container');
-            if (sidebar && sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
+            if (appContainer.classList.contains('sidebar-show')) {
                 appContainer.classList.remove('sidebar-show');
-                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', 'false');
             }
         }
 
-        if (navItem && window.innerWidth <= 768) {
-            const sidebar = document.querySelector('.sidebar');
+        if (navItem && getComputedStyle(document.querySelector('.sidebar')).position === 'fixed') {
             const appContainer = document.querySelector('.app-container');
-            if (sidebar && sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
+            if (appContainer.classList.contains('sidebar-show')) {
                 appContainer.classList.remove('sidebar-show');
-                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', 'false');
             }
         }
     });

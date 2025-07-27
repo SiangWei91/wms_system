@@ -902,12 +902,12 @@ nav ul li i {
     transform: translateX(-100%);
   }
 
-  .app-container.sidebar-show .overlay {
-    display: block;
+  .app-container.sidebar-show .sidebar {
+    transform: translateX(0);
   }
 
-  .sidebar.show {
-    transform: translateX(0);
+  .app-container.sidebar-show .overlay {
+    display: block;
   }
 
   .sidebar nav ul li {
@@ -1070,16 +1070,16 @@ nav ul li i {
   }
 
 @media (min-width: 769px) {
-    .sidebar.sidebar-collapsed {
+    .app-container.sidebar-show .sidebar {
         width: 0;
+    }
+
+    .app-container.sidebar-show .main-content {
+        margin-left: 0;
     }
 }
 
-.sidebar.sidebar-collapsed .logo,
-.sidebar.sidebar-collapsed nav {
+.app-container.sidebar-show .sidebar .logo,
+.app-container.sidebar-show .sidebar nav {
   overflow: hidden;
-}
-
-.sidebar.sidebar-collapsed + .main-content {
-  margin-left: 0;
 }
