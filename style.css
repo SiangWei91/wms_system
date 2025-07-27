@@ -97,7 +97,6 @@ nav ul li i {
   display: flex;
   flex-direction: column;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-left: 250px;
 }
 
 .sidebar.sidebar-collapsed + .main-content {
@@ -1070,6 +1069,10 @@ nav ul li i {
   }
 
 @media (min-width: 769px) {
+    .main-content {
+        margin-left: 250px;
+    }
+
     .app-container.sidebar-show .sidebar {
         width: 0;
     }

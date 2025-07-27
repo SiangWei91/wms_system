@@ -326,10 +326,27 @@ if (avatarTrigger) {
 function handleSidebarToggle(sidebarToggle) {
     const sidebar = document.querySelector('.sidebar');
     const appContainer = document.querySelector('.app-container');
+    const icon = sidebarToggle.querySelector('i');
 
     if (!sidebar || !appContainer) return;
 
     appContainer.classList.toggle('sidebar-show');
+
+    // Handle desktop icon toggle
+    if (getComputedStyle(sidebar).position !== 'fixed') {
+        const isCollapsed = appContainer.classList.contains('sidebar-show');
+        sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
+        if (isCollapsed) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        } else {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        }
+    } else {
+        // Handle mobile ARIA attribute
+        sidebarToggle.setAttribute('aria-expanded', appContainer.classList.contains('sidebar-show'));
+    }
 }
 
 function setupEventListeners() {
