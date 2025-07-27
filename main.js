@@ -325,8 +325,9 @@ if (avatarTrigger) {
 
 function handleSidebarToggle(sidebarToggle) {
     const sidebar = document.querySelector('.sidebar');
+    const appContainer = document.querySelector('.app-container');
     const icon = sidebarToggle.querySelector('i');
-    if (!sidebar) return;
+    if (!sidebar || !appContainer) return;
 
     if (window.innerWidth > 768) {
         sidebar.classList.toggle('sidebar-collapsed');
@@ -341,6 +342,7 @@ function handleSidebarToggle(sidebarToggle) {
         }
     } else {
         sidebar.classList.toggle('show');
+        appContainer.classList.toggle('sidebar-show');
         sidebarToggle.setAttribute('aria-expanded', sidebar.classList.contains('show'));
     }
 }
@@ -377,15 +379,21 @@ function setupEventListeners() {
         const overlay = e.target.closest('#overlay');
         if (overlay) {
             const sidebar = document.querySelector('.sidebar');
+            const appContainer = document.querySelector('.app-container');
             if (sidebar && sidebar.classList.contains('show')) {
                 sidebar.classList.remove('show');
+                appContainer.classList.remove('sidebar-show');
+                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', 'false');
             }
         }
 
         if (navItem && window.innerWidth <= 768) {
             const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
+            const appContainer = document.querySelector('.app-container');
+            if (sidebar && sidebar.classList.contains('show')) {
                 sidebar.classList.remove('show');
+                appContainer.classList.remove('sidebar-show');
+                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', 'false');
             }
         }
     });

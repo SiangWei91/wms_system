@@ -901,7 +901,7 @@ nav ul li i {
     transition: left 0.3s ease;
   }
 
-  .sidebar.show ~ .main-content .overlay {
+  .app-container.sidebar-show .overlay {
     display: block;
   }
 
