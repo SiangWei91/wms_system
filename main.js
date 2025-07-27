@@ -276,7 +276,7 @@ if (window.location.pathname.endsWith('app.html')) {
                 const icon = sidebarToggle.querySelector('i');
                 if (!sidebar.classList.contains('sidebar-collapsed')) {
                     icon.classList.remove('fa-bars');
-                    icon.classList.add('fa-times');
+                    icon.classList.add('fa-arrow-left');
                 }
             }
         };
@@ -337,11 +337,11 @@ function handleSidebarToggle(sidebarToggle) {
         const isCollapsed = appContainer.classList.contains('sidebar-show');
         sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
         if (isCollapsed) {
-            icon.classList.remove('fa-times');
+            icon.classList.remove('fa-arrow-left');
             icon.classList.add('fa-bars');
         } else {
             icon.classList.remove('fa-bars');
-            icon.classList.add('fa-times');
+            icon.classList.add('fa-arrow-left');
         }
     } else {
         // Handle mobile ARIA attribute
