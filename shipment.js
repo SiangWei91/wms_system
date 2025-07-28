@@ -62,7 +62,11 @@ async function fetchAndRenderShipments(supabase, page) {
 
   loadingIndicator.style.display = 'none';
 
-  if (data) {
+  if (data && data.values) {
+    const headers = data.values.shift();
+    data.values.reverse(); // Reverse the data rows here
+    data.values.unshift(headers); // Add headers back
+
     totalShipmentItems = data.total;
     totalShipmentPages = Math.ceil(totalShipmentItems / SHIPMENTS_PER_PAGE);
 
@@ -111,7 +115,7 @@ function renderShipmentTable(data, showActions = true, supabase) {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  const tableData = showActions ? data.values.slice(1).reverse() : data.values.slice(1);
+  const tableData = showActions ? data.values.slice(1) : data.values.slice(1);
   for (let i = 0; i < tableData.length; i++) {
     const rowData = tableData[i];
     const row = document.createElement('tr');
