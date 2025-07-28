@@ -411,18 +411,26 @@ async function deleteTransaction(transactionId, inventoryId, destInventoryId, qu
             const { error: updateError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', inventoryId);
             if (updateError) throw updateError;
         } else if (type === 'internal_transfer') {
+            const { data: transaction, error: fetchTransactionError } = await supabase.from('transactions').select('inventory_details').eq('id', transactionId).single();
+            if(fetchTransactionError) throw fetchTransactionError;
+            const pallet = transaction.inventory_details.pallet;
+
             // Add to source
-            const { data: sourceInventory, error: sourceFetchError } = await supabase.from('inventory').select('quantity').eq('id', inventoryId).single();
+            const { data: sourceInventory, error: sourceFetchError } = await supabase.from('inventory').select('quantity, inventory_details').eq('id', inventoryId).single();
             if(sourceFetchError) throw sourceFetchError;
             const newSourceQuantity = sourceInventory.quantity + quantity;
-            const { error: sourceUpdateError } = await supabase.from('inventory').update({ quantity: newSourceQuantity }).eq('id', inventoryId);
+            const newSourceInventoryDetails = { ...sourceInventory.inventory_details, pallet: sourceInventory.inventory_details.pallet ? `${sourceInventory.inventory_details.pallet},${pallet}` : pallet };
+            const { error: sourceUpdateError } = await supabase.from('inventory').update({ quantity: newSourceQuantity, inventory_details: newSourceInventoryDetails }).eq('id', inventoryId);
             if (sourceUpdateError) throw sourceUpdateError;
 
             // Subtract from destination
-            const { data: destInventory, error: destFetchError } = await supabase.from('inventory').select('quantity').eq('id', destInventoryId).single();
+            const { data: destInventory, error: destFetchError } = await supabase.from('inventory').select('quantity, inventory_details').eq('id', destInventoryId).single();
             if(destFetchError) throw destFetchError;
             const newDestQuantity = destInventory.quantity - quantity;
-            const { error: destUpdateError } = await supabase.from('inventory').update({ quantity: newDestQuantity }).eq('id', destInventoryId);
+            const destPallets = destInventory.inventory_details.pallet.split(',');
+            const newDestPallets = destPallets.filter(p => p !== pallet);
+            const newDestInventoryDetails = { ...destInventory.inventory_details, pallet: newDestPallets.join(',') };
+            const { error: destUpdateError } = await supabase.from('inventory').update({ quantity: newDestQuantity, inventory_details: newDestInventoryDetails }).eq('id', destInventoryId);
             if (destUpdateError) throw destUpdateError;
         }
 
