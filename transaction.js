@@ -107,17 +107,17 @@ async function populateFilterOptions(supabase) {
             warehouseSelect.appendChild(option);
         });
 
-        const { data: operators, error: operatorError } = await supabase.from('transactions').select('operator_id').distinct();
-        if (operatorError) throw operatorError;
+        const { data: transactions, error: transactionError } = await supabase.from('transactions').select('operator_id');
+        if (transactionError) throw transactionError;
 
         const operatorSelect = document.getElementById('operator');
-        operators.forEach(o => {
-            if(o.operator_id) {
-                const option = document.createElement('option');
-                option.value = o.operator_id;
-                option.textContent = o.operator_id;
-                operatorSelect.appendChild(option);
-            }
+        const uniqueOperators = [...new Set(transactions.map(t => t.operator_id).filter(id => id))];
+
+        uniqueOperators.forEach(opId => {
+            const option = document.createElement('option');
+            option.value = opId;
+            option.textContent = opId;
+            operatorSelect.appendChild(option);
         });
 
         const { data: products, error: productError } = await supabase.from('products').select('item_code, product_name');
@@ -281,8 +281,11 @@ function renderTransactionsTable(transactions, warehouseMap) {
                 quantityDisplay = escapeHtml(transaction.quantity);
         }
 
+        const date = new Date(transaction.transaction_date);
+        const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+
         row.innerHTML = `
-            <td>${escapeHtml(new Date(transaction.transaction_date).toLocaleDateString())}</td>
+            <td>${escapeHtml(formattedDate)}</td>
             <td>${escapeHtml(transaction.item_code || '')}</td>
             <td>${escapeHtml(productName)}</td>
             <td>${warehouseDisplay}</td>
