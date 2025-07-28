@@ -171,11 +171,13 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
                 )
             `, { count: 'exact' });
 
-        if (searchParams.start_date) {
+        if (searchParams.start_date && searchParams.end_date) {
             query = query.gte('transaction_date', searchParams.start_date);
-        }
-        if (searchParams.end_date) {
             query = query.lte('transaction_date', searchParams.end_date);
+        } else if (searchParams.start_date) {
+            query = query.eq('transaction_date', searchParams.start_date);
+        } else if (searchParams.end_date) {
+            query = query.eq('transaction_date', searchParams.end_date);
         }
         if (searchParams.warehouse_id) {
             query = query.eq('warehouse_id', searchParams.warehouse_id);
@@ -185,7 +187,7 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
         }
         if (searchParams.product_search) {
             const productCode = searchParams.product_search.split(' - ')[0];
-            query = query.or(`item_code.ilike.%${productCode}%,products.product_name.ilike.%${searchParams.product_search}%`);
+            query = query.eq('item_code', productCode);
         }
 
         const { data: transactions, error, count } = await query
