@@ -477,7 +477,7 @@ async function getWarehouseInfo(viewDisplayName) {
 async function updateInventory(supabase) {
     const modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = `
-        <div class="modal">
+        <div class="modal" style="z-index: 1050;">
             <div class="modal-body">
                 <div class="spinner"></div>
                 <p>Updating inventory...</p>
@@ -577,7 +577,7 @@ async function updateInventory(supabase) {
 function showModal(title, message) {
     const modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = `
-        <div class="modal">
+        <div class="modal" style="z-index: 1050; position: relative;">
             <div class="modal-header">
                 <h2>${escapeHtml(title)}</h2>
                 <button class="modal-close">&times;</button>
