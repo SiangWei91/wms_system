@@ -1,5 +1,11 @@
 let shipmentHeaders = [];
 
+// Pagination state variables
+let currentShipmentPage = 1;
+const SHIPMENTS_PER_PAGE = 10;
+let totalShipmentPages = 1;
+let totalShipmentItems = 0;
+
 window.loadShipmentPage = async function(content, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
@@ -30,35 +36,48 @@ async function openTab(evt, tabName, supabase) {
   evt.currentTarget.classList.add("active");
 
   if (tabName === 'shipment-list') {
-    const shipmentListContainer = document.getElementById('shipment-list');
-    shipmentListContainer.innerHTML = `
-      <h2>Shipment List</h2>
-      <div id="shipment-list-loading">
-        <div class="spinner"></div>
-      </div>
-      <div id="shipment-list-table"></div>
-    `;
-
-    const loadingIndicator = document.getElementById('shipment-list-loading');
-    const tableContainer = document.getElementById('shipment-list-table');
-
-    setTimeout(async () => {
-      const data = await getShipmentList(supabase);
-
-      loadingIndicator.style.display = 'none';
-
-      if (data) {
-        const table = renderShipmentTable(data, true, supabase);
-        tableContainer.classList.add('table-container');
-        tableContainer.appendChild(table);
-      }
-    }, 0);
+    currentShipmentPage = 1;
+    await fetchAndRenderShipments(supabase, currentShipmentPage);
   }
 }
 
-async function getShipmentList(supabase) {
+async function fetchAndRenderShipments(supabase, page) {
+  const shipmentListContainer = document.getElementById('shipment-list');
+  shipmentListContainer.innerHTML = `
+    <h2>Shipment List</h2>
+    <div id="shipment-list-loading">
+      <div class="spinner"></div>
+    </div>
+    <div id="shipment-list-table"></div>
+    <div id="shipment-pagination"></div>
+  `;
+
+  const loadingIndicator = document.getElementById('shipment-list-loading');
+  const tableContainer = document.getElementById('shipment-list-table');
+
+  loadingIndicator.style.display = 'block';
+  tableContainer.innerHTML = '';
+
+  const data = await getShipmentList(supabase, page, SHIPMENTS_PER_PAGE);
+
+  loadingIndicator.style.display = 'none';
+
+  if (data) {
+    totalShipmentItems = data.total;
+    totalShipmentPages = Math.ceil(totalShipmentItems / SHIPMENTS_PER_PAGE);
+
+    const table = renderShipmentTable(data, true, supabase);
+    tableContainer.classList.add('table-container');
+    tableContainer.appendChild(table);
+    renderShipmentPagination(supabase);
+  }
+}
+
+
+async function getShipmentList(supabase, page, limit) {
   const { data, error } = await supabase.functions.invoke('shipment-list', {
     method: 'GET',
+    body: { page, limit }
   });
 
   if (error) {
@@ -132,6 +151,46 @@ function renderShipmentTable(data, showActions = true, supabase) {
   table.appendChild(tbody);
 
   return table;
+}
+
+function renderShipmentPagination(supabase) {
+  const paginationDiv = document.getElementById('shipment-pagination');
+  if (!paginationDiv) return;
+  paginationDiv.innerHTML = '';
+  paginationDiv.classList.add('pagination');
+
+
+  if (totalShipmentItems === 0) return;
+  if (totalShipmentPages <= 1) return;
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'btn-pagination';
+  prevBtn.disabled = currentShipmentPage <= 1;
+  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
+  prevBtn.addEventListener('click', () => {
+    if (currentShipmentPage > 1) {
+      currentShipmentPage--;
+      fetchAndRenderShipments(supabase, currentShipmentPage);
+    }
+  });
+  paginationDiv.appendChild(prevBtn);
+
+  const pageInfo = document.createElement('span');
+  pageInfo.className = 'page-info';
+  pageInfo.textContent = `Page ${currentShipmentPage} of ${totalShipmentPages} (${totalShipmentItems} items)`;
+  paginationDiv.appendChild(pageInfo);
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn-pagination';
+  nextBtn.disabled = currentShipmentPage >= totalShipmentPages;
+  nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+  nextBtn.addEventListener('click', () => {
+    if (currentShipmentPage < totalShipmentPages) {
+      currentShipmentPage++;
+      fetchAndRenderShipments(supabase, currentShipmentPage);
+    }
+  });
+  paginationDiv.appendChild(nextBtn);
 }
 
 async function getShipmentDetails(shipmentNo, supabase) {
