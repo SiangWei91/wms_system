@@ -414,6 +414,7 @@ async function deleteProduct(productId, supabase) {
                 throw error
             }
             alert('Product deleted successfully!');
+            currentPageNum = 1;
             loadProducts(content, supabase);
         } catch (error) {
             console.error('Failed to delete product:', error);
