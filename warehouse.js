@@ -298,10 +298,18 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
         threePLWarehouses = warehouses;
 
-        const { data: inventoryData, error: inventoryError } = await supabaseClient
+        let query = supabaseClient
           .from('inventory')
           .select('*')
           .eq('warehouse_id', warehouseId);
+
+        if (warehouseId === 'jordon') {
+          query = query.order('details->>dateStored', { ascending: true }).order('details->>lotNumber', { ascending: true });
+        } else if (warehouseId === 'lineage') {
+          query = query.order('details->>dateStored', { ascending: true }).order('item_code', { ascending: true });
+        }
+
+        const { data: inventoryData, error: inventoryError } = await query;
 
         if (inventoryError) {
           throw inventoryError;
@@ -856,17 +864,35 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
               return;
             }
 
-            const { error } = await supabaseClient
+            const { error: inventoryError } = await supabaseClient
               .from('inventory')
               .upsert(updates);
 
-            if (error) {
-              console.error('Error updating records:', error);
-              alert('Error submitting records.');
-            } else {
-              alert('Records submitted successfully.');
-              loadInventoryData();
+            if (inventoryError) {
+              console.error('Error updating inventory records:', inventoryError);
+              alert('Error submitting records to inventory.');
+              return;
             }
+
+            const transactionUpdates = updates.map(item => ({
+              inventory_id: item.id,
+              inventory_details: item.details
+            }));
+
+            for (const tu of transactionUpdates) {
+                const { error: transactionError } = await supabaseClient
+                    .from('transactions')
+                    .update({ inventory_details: tu.inventory_details })
+                    .eq('inventory_id', tu.inventory_id);
+
+                if (transactionError) {
+                    console.error('Error updating transaction record:', transactionError);
+                    alert(`Error updating transaction for inventory ID ${tu.inventory_id}.`);
+                }
+            }
+
+            alert('Records submitted successfully.');
+            loadInventoryData();
           }, { signal });
         }
 
@@ -1219,7 +1245,7 @@ const generateAndDisplayReport = async (snapshotDate) => {
 
   const { data: transactions, error: transactionsError } = await supabaseClient
     .from('transactions')
-    .select('transaction_date, transaction_type, item_code, batch_no, quantity, source_warehouse_id, destination_warehouse_id, inventory_details')
+    .select('transaction_date, transaction_type, item_code, batch_no, quantity, warehouse_id, destination_warehouse_id, inventory_details')
     .eq('warehouse_id', 'jordon')
     .gte('transaction_date', startDate.toISOString().split('T')[0])
     .lte('transaction_date', endDate.toISOString().split('T')[0])
@@ -1306,13 +1332,13 @@ const generateAndDisplayReport = async (snapshotDate) => {
     let description = tx.transaction_type;
 
     if (tx.transaction_type === 'internal_transfer') {
-      if (tx.source_warehouse_id === 'jordon') {
+      if (tx.warehouse_id === 'jordon') {
         quantityChange = -tx.quantity;
         palletChange = -(Number(tx.inventory_details?.pallet) || 0);
         description = `Internal Transfer Out (${tx.destination_warehouse_id})`;
       } else if (tx.destination_warehouse_id === 'jordon') {
         quantityChange = tx.quantity;
-        description = `Internal Transfer In (${tx.source_warehouse_id})`;
+        description = `Internal Transfer In (${tx.warehouse_id})`;
       }
     } else if (tx.transaction_type.includes('in')) {
       quantityChange = tx.quantity;
