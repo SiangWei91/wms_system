@@ -75,9 +75,8 @@ async function fetchAndRenderShipments(supabase, page) {
 
 
 async function getShipmentList(supabase, page, limit) {
-  const { data, error } = await supabase.functions.invoke('shipment-list', {
+  const { data, error } = await supabase.functions.invoke(`shipment-list?page=${page}&limit=${limit}`, {
     method: 'GET',
-    body: { page, limit }
   });
 
   if (error) {
