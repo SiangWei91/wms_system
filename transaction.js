@@ -34,6 +34,18 @@ window.loadTransactions = async function(contentElement, supabase) {
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="transaction-type">Transaction Type</label>
+                        <select id="transaction-type" name="transaction-type">
+                            <option value="">All</option>
+                            <option value="inbound">Inbound</option>
+                            <option value="outbound">Outbound</option>
+                            <option value="internal_transfer">Internal Transfer</option>
+                            <option value="to_production">To Production</option>
+                            <option value="from_production">From Production</option>
+                            <option value="adjustment">Adjustment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="product-search">Product</label>
                         <input type="text" id="product-search" name="product-search" placeholder="Code or Name" list="product-list">
                         <datalist id="product-list"></datalist>
@@ -58,6 +70,7 @@ window.loadTransactions = async function(contentElement, supabase) {
                             <th>Warehouse</th>
                             <th>Quantity</th>
                             <th>Operator</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="transactions-table-body">
@@ -83,6 +96,7 @@ window.loadTransactions = async function(contentElement, supabase) {
             warehouse_id: formData.get('warehouse'),
             product_search: formData.get('product-search'),
             operator_id: formData.get('operator'),
+            transaction_type: formData.get('transaction-type'),
         };
         currentPageNum = 1;
         fetchTransactions({ page: currentPageNum, searchParams }, supabase);
@@ -91,6 +105,22 @@ window.loadTransactions = async function(contentElement, supabase) {
     searchForm.addEventListener('reset', () => {
         currentPageNum = 1;
         fetchTransactions({ page: currentPageNum }, supabase);
+    });
+
+    const tableBody = document.getElementById('transactions-table-body');
+    tableBody.addEventListener('click', (e) => {
+        const button = e.target.closest('.delete-btn');
+        if (button) {
+            const transactionId = button.dataset.id;
+            const inventoryId = button.dataset.inventoryId;
+            const destInventoryId = button.dataset.destInventoryId;
+            const quantity = parseInt(button.dataset.quantity, 10);
+            const type = button.dataset.type;
+
+            if (confirm(`Are you sure you want to delete this transaction? This will also update the inventory.`)) {
+                deleteTransaction(transactionId, inventoryId, destInventoryId, quantity, type, supabase);
+            }
+        }
     });
 }
 
@@ -184,6 +214,9 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
         }
         if (searchParams.operator_id) {
             query = query.eq('operator_id', searchParams.operator_id);
+        }
+        if (searchParams.transaction_type) {
+            query = query.eq('transaction_type', searchParams.transaction_type);
         }
         if (searchParams.product_search) {
             const productSearchTerm = searchParams.product_search;
@@ -282,7 +315,7 @@ function renderTransactionsTable(transactions, warehouseMap) {
 
         let warehouseDisplay = '';
         if (transaction.transaction_type === 'internal_transfer') {
-            const sourceName = warehouseMap[transaction.source_warehouse_id] || transaction.source_warehouse_id;
+            const sourceName = warehouseMap[transaction.warehouse_id] || transaction.warehouse_id;
             const destName = warehouseMap[transaction.destination_warehouse_id] || transaction.destination_warehouse_id;
             warehouseDisplay = `${escapeHtml(sourceName)} <i class="fas fa-arrow-right"></i> ${escapeHtml(destName)}`;
         } else {
@@ -311,6 +344,11 @@ function renderTransactionsTable(transactions, warehouseMap) {
             <td>${warehouseDisplay}</td>
             <td>${quantityDisplay}</td>
             <td>${escapeHtml(transaction.operator_id || '')}</td>
+            <td class="actions">
+                <button class="btn-icon delete-btn" data-id="${transaction.id}" data-inventory-id="${transaction.inventory_id}" data-dest-inventory-id="${transaction.destination_inventory_id}" data-quantity="${transaction.quantity}" data-type="${transaction.transaction_type}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         `;
         tbody.appendChild(row);
     });
@@ -350,6 +388,51 @@ function renderPagination(supabase) {
         }
     });
     paginationDiv.appendChild(nextBtn);
+}
+
+async function deleteTransaction(transactionId, inventoryId, destInventoryId, quantity, type, supabase) {
+    try {
+        // Start a transaction
+        const { error: deleteError } = await supabase.from('transactions').delete().match({ id: transactionId });
+        if (deleteError) {
+            throw deleteError;
+        }
+
+        if (type === 'inbound') {
+            const { data: inventory, error: fetchError } = await supabase.from('inventory').select('quantity').eq('id', inventoryId).single();
+            if(fetchError) throw fetchError;
+            const newQuantity = inventory.quantity - quantity;
+            const { error: updateError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', inventoryId);
+            if (updateError) throw updateError;
+        } else if (type === 'outbound') {
+            const { data: inventory, error: fetchError } = await supabase.from('inventory').select('quantity').eq('id', inventoryId).single();
+            if(fetchError) throw fetchError;
+            const newQuantity = inventory.quantity + quantity;
+            const { error: updateError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', inventoryId);
+            if (updateError) throw updateError;
+        } else if (type === 'internal_transfer') {
+            // Add to source
+            const { data: sourceInventory, error: sourceFetchError } = await supabase.from('inventory').select('quantity').eq('id', inventoryId).single();
+            if(sourceFetchError) throw sourceFetchError;
+            const newSourceQuantity = sourceInventory.quantity + quantity;
+            const { error: sourceUpdateError } = await supabase.from('inventory').update({ quantity: newSourceQuantity }).eq('id', inventoryId);
+            if (sourceUpdateError) throw sourceUpdateError;
+
+            // Subtract from destination
+            const { data: destInventory, error: destFetchError } = await supabase.from('inventory').select('quantity').eq('id', destInventoryId).single();
+            if(destFetchError) throw destFetchError;
+            const newDestQuantity = destInventory.quantity - quantity;
+            const { error: destUpdateError } = await supabase.from('inventory').update({ quantity: newDestQuantity }).eq('id', destInventoryId);
+            if (destUpdateError) throw destUpdateError;
+        }
+
+        alert('Transaction deleted and inventory updated successfully!');
+        fetchTransactions({ page: currentPageNum }, supabase);
+
+    } catch (error) {
+        console.error('Failed to delete transaction:', error);
+        alert('Failed to delete transaction: ' + error.message);
+    }
 }
 
 function escapeHtml(unsafe) {
