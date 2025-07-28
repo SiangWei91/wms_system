@@ -581,30 +581,16 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
           `;
         }
 
-        // 处理混合托盘的颜色分组
+        // 应用存储的混合托盘颜色
         const summaryData = inventoryData.filter(item => item.quantity > 0 && item.details.status !== 'Pending');
-        const groups = {};
         inventorySummaryTableBody.querySelectorAll('tr').forEach((row, index) => {
-          const item = summaryData[index];
-          if (item && item.details.mixPallet) {
-            const key = `${item.details.mixPallet}-${item.details.dateStored}`;
-            if (!groups[key]) {
-              groups[key] = [];
+            const item = summaryData[index];
+            if (item && item.details.mixPalletColor) {
+                row.cells[9].style.backgroundColor = item.details.mixPalletColor;
+                row.cells[10].style.backgroundColor = item.details.mixPalletColor;
             }
-            groups[key].push(row);
-          }
-          row.cells[11].style.display = 'none';
+            row.cells[11].style.display = 'none';
         });
-
-        for (const key in groups) {
-          if (groups[key].length > 1) {
-            const color = `hsl(${Math.random() * 360}, 100%, 90%)`;
-            groups[key].forEach(row => {
-              row.cells[9].style.backgroundColor = color;
-              row.cells[10].style.backgroundColor = color;
-            });
-          }
-        }
 
         // 更新库存入库表的页脚
         const stockInFooter = document.querySelector(`#${warehouseId}-stock-in-table tfoot`);
@@ -808,6 +794,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             const stockInRows = stockInTableBody.querySelectorAll('tr');
             const updates = [];
             let validationError = false;
+            const mixPalletColors = {};
 
             for (const row of stockInRows) {
               const id = row.querySelector('.delete-btn').dataset.id;
@@ -815,6 +802,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
               const location = row.querySelector('.location-input, .lot-number-input').value;
               const mixPallet = row.cells[11].querySelector('.short-input').value;
               const pallet = Number(row.cells[10].textContent);
+              const dateStored = row.cells[7].textContent;
 
               if ((warehouseId === 'jordon' && !location) || (warehouseId === 'lineage' && !location)) {
                 validationError = true;
@@ -847,6 +835,14 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                 status: 'Complete',
                 mixPallet,
               };
+
+              if (mixPallet) {
+                const key = `${mixPallet}-${dateStored}`;
+                if (!mixPalletColors[key]) {
+                  mixPalletColors[key] = `hsl(${Math.random() * 360}, 100%, 90%)`;
+                }
+                updatedDetails.mixPalletColor = mixPalletColors[key];
+              }
 
               if (warehouseId === 'jordon') {
                 updatedDetails.lotNumber = row.querySelector('.lot-number-input').value;
