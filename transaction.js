@@ -431,7 +431,7 @@ async function deleteTransaction(transactionId, inventoryId, destInventoryId, qu
             if(destFetchError) throw destFetchError;
             const newDestQuantity = destInventory.quantity - quantity;
             let newDestInventoryDetails = destInventory.details;
-            if (pallet && palletWarehouses.includes(transaction.warehouse_id)) {
+            if (pallet && palletWarehouses.includes(transaction.warehouse_id) && destInventory.details && typeof destInventory.details.pallet === 'string') {
                 const destPallets = destInventory.details.pallet.split(',');
                 const newDestPallets = destPallets.filter(p => p !== pallet);
                 newDestInventoryDetails = { ...destInventory.details, pallet: newDestPallets.join(',') };
