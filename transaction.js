@@ -20,8 +20,12 @@ window.loadTransactions = async function(contentElement, supabase) {
             <div class="search-container" style="margin-bottom: 20px;">
                 <form id="transaction-search-form" class="modern-filters">
                     <div class="form-group">
-                        <label for="transaction-date">Transaction Date</label>
-                        <input type="date" id="transaction-date" name="transaction-date">
+                        <label for="start-date">Start Date</label>
+                        <input type="date" id="start-date" name="start-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="end-date">End Date</label>
+                        <input type="date" id="end-date" name="end-date">
                     </div>
                     <div class="form-group">
                         <label for="warehouse">Warehouse</label>
@@ -31,7 +35,8 @@ window.loadTransactions = async function(contentElement, supabase) {
                     </div>
                     <div class="form-group">
                         <label for="product-search">Product</label>
-                        <input type="text" id="product-search" name="product-search" placeholder="Code or Name">
+                        <input type="text" id="product-search" name="product-search" placeholder="Code or Name" list="product-list">
+                        <datalist id="product-list"></datalist>
                     </div>
                     <div class="form-group">
                         <label for="operator">Operator</label>
@@ -73,7 +78,8 @@ window.loadTransactions = async function(contentElement, supabase) {
         e.preventDefault();
         const formData = new FormData(searchForm);
         const searchParams = {
-            transaction_date: formData.get('transaction-date'),
+            start_date: formData.get('start-date'),
+            end_date: formData.get('end-date'),
             warehouse_id: formData.get('warehouse'),
             product_search: formData.get('product-search'),
             operator_id: formData.get('operator'),
@@ -114,6 +120,28 @@ async function populateFilterOptions(supabase) {
             }
         });
 
+        const { data: products, error: productError } = await supabase.from('products').select('item_code, product_name');
+        if (productError) throw productError;
+
+        const productList = document.getElementById('product-list');
+        const productSearch = document.getElementById('product-search');
+        let allProducts = products;
+
+        productSearch.addEventListener('input', () => {
+            const searchTerm = productSearch.value.toLowerCase();
+            productList.innerHTML = '';
+            const filteredProducts = allProducts.filter(p =>
+                p.item_code.toLowerCase().includes(searchTerm) ||
+                p.product_name.toLowerCase().includes(searchTerm)
+            );
+            filteredProducts.forEach(p => {
+                const option = document.createElement('option');
+                option.value = `${p.item_code} - ${p.product_name}`;
+                productList.appendChild(option);
+            });
+        });
+
+
     } catch (error) {
         console.error('Failed to populate filter options:', error);
     }
@@ -143,8 +171,11 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
                 )
             `, { count: 'exact' });
 
-        if (searchParams.transaction_date) {
-            query = query.eq('transaction_date', searchParams.transaction_date);
+        if (searchParams.start_date) {
+            query = query.gte('transaction_date', searchParams.start_date);
+        }
+        if (searchParams.end_date) {
+            query = query.lte('transaction_date', searchParams.end_date);
         }
         if (searchParams.warehouse_id) {
             query = query.eq('warehouse_id', searchParams.warehouse_id);
