@@ -674,8 +674,9 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
           if (lotNumberInputs.length > 0) {
             lotNumberInputs[0].addEventListener('input', (e) => {
               const firstLotNumber = e.target.value;
+              const numericPart = firstLotNumber.replace(/[^0-9]/g, '');
               for (let i = 1; i < lotNumberInputs.length; i++) {
-                lotNumberInputs[i].value = firstLotNumber;
+                lotNumberInputs[i].value = numericPart;
               }
             }, { signal });
           }
