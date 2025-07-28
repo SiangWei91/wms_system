@@ -6,7 +6,7 @@ const SHIPMENTS_PER_PAGE = 10;
 let totalShipmentPages = 1;
 let totalShipmentItems = 0;
 
-window.loadShipmentPage = async function(content, supabase) {
+window.loadShipmentPage = async function (content, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
@@ -20,7 +20,7 @@ window.loadShipmentPage = async function(content, supabase) {
   if (shipmentListTab) {
     await openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
   }
-}
+};
 
 async function openTab(evt, tabName, supabase) {
   var i, tabcontent, tablinks;
@@ -64,8 +64,7 @@ async function fetchAndRenderShipments(supabase, page) {
 
   if (data && data.values) {
     const headers = data.values.shift();
-    data.values.reverse(); // Reverse the data rows here
-    data.values.unshift(headers); // Add headers back
+    data.values.unshift(headers); // 添加表头回去（不再 reverse）
 
     totalShipmentItems = data.total;
     totalShipmentPages = Math.ceil(totalShipmentItems / SHIPMENTS_PER_PAGE);
@@ -76,7 +75,6 @@ async function fetchAndRenderShipments(supabase, page) {
     renderShipmentPagination(supabase);
   }
 }
-
 
 async function getShipmentList(supabase, page, limit) {
   const { data, error } = await supabase.functions.invoke(`shipment-list?page=${page}&limit=${limit}`, {
@@ -161,7 +159,6 @@ function renderShipmentPagination(supabase) {
   if (!paginationDiv) return;
   paginationDiv.innerHTML = '';
   paginationDiv.classList.add('pagination');
-
 
   if (totalShipmentItems === 0) return;
   if (totalShipmentPages <= 1) return;
@@ -252,7 +249,6 @@ async function handleSaveRow(button, supabase) {
     }
   } catch (error) {
     console.error('Error updating shipment list:', error);
-    // You might want to show an error message to the user here
     return;
   }
 
@@ -267,7 +263,6 @@ async function handleSaveRow(button, supabase) {
   button.removeEventListener('click', (e) => handleSaveRow(e.target, supabase));
   button.addEventListener('click', (e) => handleEditRow(e.target));
 
-  // Refresh the table
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
   openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
 }
@@ -280,7 +275,6 @@ async function openShipmentDetailsTab(shipmentNo, supabase) {
   const tabContainer = document.querySelector('.tab-nav');
   const contentArea = document.querySelector('.shipment-content-area');
 
-  // Create new tab
   const newTab = document.createElement('button');
   newTab.classList.add('tab-button');
   newTab.dataset.tab = `shipment-details-${shipmentNo}`;
@@ -300,14 +294,12 @@ async function openShipmentDetailsTab(shipmentNo, supabase) {
 
   tabContainer.appendChild(newTab);
 
-  // Create new tab content
   const newContent = document.createElement('div');
   newContent.id = `shipment-details-${shipmentNo}`;
   newContent.classList.add('tab-content');
   newContent.innerHTML = `<h2>${shipmentNo}</h2><div class="spinner"></div>`;
   contentArea.appendChild(newContent);
 
-  // Switch to new tab
   openTab({ currentTarget: newTab }, newTab.dataset.tab, supabase);
 
   const data = await getShipmentDetails(shipmentNo, supabase);
@@ -325,14 +317,9 @@ function closeTab(tabName, supabase) {
   const tab = document.querySelector(`[data-tab="${tabName}"]`);
   const content = document.getElementById(tabName);
 
-  if (tab) {
-    tab.remove();
-  }
-  if (content) {
-    content.remove();
-  }
+  if (tab) tab.remove();
+  if (content) content.remove();
 
-  // Switch to the shipment list tab
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
   openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
 }
