@@ -582,12 +582,12 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
 
         // 处理混合托盘的颜色分组
+        const summaryData = inventoryData.filter(item => item.quantity > 0 && item.details.status !== 'Pending');
         const groups = {};
         inventorySummaryTableBody.querySelectorAll('tr').forEach((row, index) => {
-          const mixPallet = inventoryData[index].details.mixPallet;
-          const dateStored = row.cells[7].textContent;
-          if (mixPallet) {
-            const key = `${mixPallet}-${dateStored}`;
+          const item = summaryData[index];
+          if (item && item.details.mixPallet) {
+            const key = `${item.details.mixPallet}-${item.details.dateStored}`;
             if (!groups[key]) {
               groups[key] = [];
             }
