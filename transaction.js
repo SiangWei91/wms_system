@@ -421,7 +421,9 @@ async function deleteTransaction(transactionId, inventoryId, destInventoryId, qu
             const newSourceQuantity = sourceInventory.quantity + quantity;
             let newSourceInventoryDetails = sourceInventory.details;
             if (pallet && palletWarehouses.includes(transaction.warehouse_id)) {
-                newSourceInventoryDetails = { ...sourceInventory.details, pallet: sourceInventory.details.pallet ? `${sourceInventory.details.pallet},${pallet}` : pallet };
+                const currentPalletCount = sourceInventory.details.pallet ? parseInt(sourceInventory.details.pallet, 10) : 0;
+                const palletToAdd = parseInt(pallet, 10);
+                newSourceInventoryDetails = { ...sourceInventory.details, pallet: currentPalletCount + palletToAdd };
             }
             const { error: sourceUpdateError } = await supabase.from('inventory').update({ quantity: newSourceQuantity, details: newSourceInventoryDetails }).eq('id', inventoryId);
             if (sourceUpdateError) throw sourceUpdateError;
