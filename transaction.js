@@ -186,8 +186,25 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
             query = query.eq('operator_id', searchParams.operator_id);
         }
         if (searchParams.product_search) {
-            const productCode = searchParams.product_search.split(' - ')[0];
-            query = query.eq('item_code', productCode);
+            const productSearchTerm = searchParams.product_search;
+            const productCode = productSearchTerm.split(' - ')[0];
+
+            let { data: products, error: productError } = await supabase
+                .from('products')
+                .select('item_code')
+                .or(`item_code.ilike.%${productCode}%,product_name.ilike.%${productSearchTerm}%`);
+
+            if (productError) {
+                throw productError;
+            }
+
+            if (products && products.length > 0) {
+                const itemCodes = products.map(p => p.item_code);
+                query = query.in('item_code', itemCodes);
+            } else {
+                // If no product is found, return an empty result
+                query = query.eq('item_code', '---'); // This will likely return no results
+            }
         }
 
         const { data: transactions, error, count } = await query
