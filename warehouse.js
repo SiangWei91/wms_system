@@ -1190,6 +1190,12 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         reportModal.remove();
       });
 
+      reportModal.addEventListener('click', (e) => {
+        if (e.target.id === 'report-modal') {
+          reportModal.remove();
+        }
+      });
+
       document.getElementById('export-pdf-btn').addEventListener('click', () => {
           const reportContent = document.getElementById('report-content');
           const selectedDate = document.getElementById('snapshot-date-select').value;
