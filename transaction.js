@@ -17,6 +17,32 @@ window.loadTransactions = async function(contentElement, supabase) {
             <div class="page-header">
                 <h1>Transaction List</h1>
             </div>
+            <div class="search-container" style="margin-bottom: 20px;">
+                <form id="transaction-search-form" class="modern-filters">
+                    <div class="form-group">
+                        <label for="transaction-date">Transaction Date</label>
+                        <input type="date" id="transaction-date" name="transaction-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="warehouse">Warehouse</label>
+                        <select id="warehouse" name="warehouse">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-search">Product</label>
+                        <input type="text" id="product-search" name="product-search" placeholder="Code or Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="operator">Operator</label>
+                        <select id="operator" name="operator">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <button type="reset" class="btn btn-secondary">Reset</button>
+                </form>
+            </div>
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -40,9 +66,60 @@ window.loadTransactions = async function(contentElement, supabase) {
 
     currentPageNum = 1;
     await fetchTransactions({ page: currentPageNum }, supabase);
+    await populateFilterOptions(supabase);
+
+    const searchForm = document.getElementById('transaction-search-form');
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(searchForm);
+        const searchParams = {
+            transaction_date: formData.get('transaction-date'),
+            warehouse_id: formData.get('warehouse'),
+            product_search: formData.get('product-search'),
+            operator_id: formData.get('operator'),
+        };
+        currentPageNum = 1;
+        fetchTransactions({ page: currentPageNum, searchParams }, supabase);
+    });
+
+    searchForm.addEventListener('reset', () => {
+        currentPageNum = 1;
+        fetchTransactions({ page: currentPageNum }, supabase);
+    });
 }
 
-async function fetchTransactions({ page = 1 }, supabase) {
+async function populateFilterOptions(supabase) {
+    try {
+        const { data: warehouses, error: warehouseError } = await supabase.from('warehouses').select('warehouse_id, name');
+        if (warehouseError) throw warehouseError;
+
+        const warehouseSelect = document.getElementById('warehouse');
+        warehouses.forEach(w => {
+            const option = document.createElement('option');
+            option.value = w.warehouse_id;
+            option.textContent = w.name;
+            warehouseSelect.appendChild(option);
+        });
+
+        const { data: operators, error: operatorError } = await supabase.from('transactions').select('operator_id').distinct();
+        if (operatorError) throw operatorError;
+
+        const operatorSelect = document.getElementById('operator');
+        operators.forEach(o => {
+            if(o.operator_id) {
+                const option = document.createElement('option');
+                option.value = o.operator_id;
+                option.textContent = o.operator_id;
+                operatorSelect.appendChild(option);
+            }
+        });
+
+    } catch (error) {
+        console.error('Failed to populate filter options:', error);
+    }
+}
+
+async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
     const tbody = document.getElementById('transactions-table-body');
     if (!tbody) {
         console.error("Transactions table body not found. Cannot fetch transactions.");
@@ -57,14 +134,29 @@ async function fetchTransactions({ page = 1 }, supabase) {
     const signal = transactionFetchController.signal;
 
     try {
-        const { data: transactions, error, count } = await supabase
+        let query = supabase
             .from('transactions')
             .select(`
                 *,
                 products (
                     product_name
                 )
-            `, { count: 'exact' })
+            `, { count: 'exact' });
+
+        if (searchParams.transaction_date) {
+            query = query.eq('transaction_date', searchParams.transaction_date);
+        }
+        if (searchParams.warehouse_id) {
+            query = query.eq('warehouse_id', searchParams.warehouse_id);
+        }
+        if (searchParams.operator_id) {
+            query = query.eq('operator_id', searchParams.operator_id);
+        }
+        if (searchParams.product_search) {
+            query = query.or(`item_code.ilike.%${searchParams.product_search}%,products.product_name.ilike.%${searchParams.product_search}%`);
+        }
+
+        const { data: transactions, error, count } = await query
             .order('created_at', { ascending: false })
             .range((page - 1) * TRANSACTIONS_PER_PAGE, page * TRANSACTIONS_PER_PAGE - 1);
 

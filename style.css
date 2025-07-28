@@ -777,6 +777,14 @@ nav ul li i {
     color: #dc3545;
 }
 
+.text-success {
+    color: #28a745;
+}
+
+.fw-bold {
+    font-weight: bold;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
