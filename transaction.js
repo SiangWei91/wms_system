@@ -184,7 +184,8 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
             query = query.eq('operator_id', searchParams.operator_id);
         }
         if (searchParams.product_search) {
-            query = query.or(`item_code.ilike.%${searchParams.product_search}%,products.product_name.ilike.%${searchParams.product_search}%`);
+            const productCode = searchParams.product_search.split(' - ')[0];
+            query = query.or(`item_code.ilike.%${productCode}%,products.product_name.ilike.%${searchParams.product_search}%`);
         }
 
         const { data: transactions, error, count } = await query
