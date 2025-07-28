@@ -1,10 +1,10 @@
 // State variables for pagination
 let transactionFetchController = null;
 const TRANSACTIONS_PER_PAGE = 15;
-let currentPageNum = 1;
-let totalNumPages = 1;
-let totalNumItems = 0;
-let globalHasNextPage = false;
+let transactionCurrentPageNum = 1;
+let transactionTotalNumPages = 1;
+let transactionTotalNumItems = 0;
+let transactionGlobalHasNextPage = false;
 
 window.loadTransactions = async function(contentElement, supabase) {
     if (!contentElement) {
@@ -82,8 +82,8 @@ window.loadTransactions = async function(contentElement, supabase) {
         </div>
     `;
 
-    currentPageNum = 1;
-    await fetchTransactions({ page: currentPageNum }, supabase);
+    transactionCurrentPageNum = 1;
+    await fetchTransactions({ page: transactionCurrentPageNum }, supabase);
     await populateFilterOptions(supabase);
 
     const searchForm = document.getElementById('transaction-search-form');
@@ -98,13 +98,13 @@ window.loadTransactions = async function(contentElement, supabase) {
             operator_id: formData.get('operator'),
             transaction_type: formData.get('transaction-type'),
         };
-        currentPageNum = 1;
-        fetchTransactions({ page: currentPageNum, searchParams }, supabase);
+        transactionCurrentPageNum = 1;
+        fetchTransactions({ page: transactionCurrentPageNum, searchParams }, supabase);
     });
 
     searchForm.addEventListener('reset', () => {
-        currentPageNum = 1;
-        fetchTransactions({ page: currentPageNum }, supabase);
+        transactionCurrentPageNum = 1;
+        fetchTransactions({ page: transactionCurrentPageNum }, supabase);
     });
 
     const tableBody = document.getElementById('transactions-table-body');
@@ -270,10 +270,10 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
 
         renderTransactionsTable(transactions, warehouseMap);
 
-        totalNumItems = count;
-        totalNumPages = Math.ceil(totalNumItems / TRANSACTIONS_PER_PAGE);
-        currentPageNum = page;
-        globalHasNextPage = page < totalNumPages;
+        transactionTotalNumItems = count;
+        transactionTotalNumPages = Math.ceil(transactionTotalNumItems / TRANSACTIONS_PER_PAGE);
+        transactionCurrentPageNum = page;
+        transactionGlobalHasNextPage = page < transactionTotalNumPages;
 
         renderPagination(supabase);
 
@@ -359,32 +359,32 @@ function renderPagination(supabase) {
     if (!paginationDiv) return;
     paginationDiv.innerHTML = '';
 
-    if (totalNumItems === 0) return;
-    if (totalNumPages <= 1) return;
+    if (transactionTotalNumItems === 0) return;
+    if (transactionTotalNumPages <= 1) return;
 
     const prevBtn = document.createElement('button');
     prevBtn.className = 'btn-pagination';
-    prevBtn.disabled = currentPageNum <= 1;
+    prevBtn.disabled = transactionCurrentPageNum <= 1;
     prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
     prevBtn.addEventListener('click', () => {
-        if (currentPageNum > 1) {
-            fetchTransactions({ page: currentPageNum - 1 }, supabase);
+        if (transactionCurrentPageNum > 1) {
+            fetchTransactions({ page: transactionCurrentPageNum - 1 }, supabase);
         }
     });
     paginationDiv.appendChild(prevBtn);
 
     const pageInfo = document.createElement('span');
     pageInfo.className = 'page-info';
-    pageInfo.textContent = `Page ${currentPageNum} of ${totalNumPages} (${totalNumItems} items)`;
+    pageInfo.textContent = `Page ${transactionCurrentPageNum} of ${transactionTotalNumPages} (${transactionTotalNumItems} items)`;
     paginationDiv.appendChild(pageInfo);
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'btn-pagination';
-    nextBtn.disabled = !globalHasNextPage;
+    nextBtn.disabled = !transactionGlobalHasNextPage;
     nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
     nextBtn.addEventListener('click', () => {
-        if (globalHasNextPage) {
-            fetchTransactions({ page: currentPageNum + 1 }, supabase);
+        if (transactionGlobalHasNextPage) {
+            fetchTransactions({ page: transactionCurrentPageNum + 1 }, supabase);
         }
     });
     paginationDiv.appendChild(nextBtn);
@@ -427,7 +427,7 @@ async function deleteTransaction(transactionId, inventoryId, destInventoryId, qu
         }
 
         alert('Transaction deleted and inventory updated successfully!');
-        fetchTransactions({ page: currentPageNum }, supabase);
+        fetchTransactions({ page: transactionCurrentPageNum }, supabase);
 
     } catch (error) {
         console.error('Failed to delete transaction:', error);
