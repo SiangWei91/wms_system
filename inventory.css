@@ -52,6 +52,10 @@
   text-align: center;
 }
 
+#modal-container .modal {
+    display: block;
+}
+
 .table th {
   background-color: #fafafa;
   position: -webkit-sticky; /* for Safari */
@@ -106,10 +110,6 @@
   background-color: rgba(0, 0, 0, 0.4);
   align-items: center;
   justify-content: center;
-}
-
-.jordon-withdrawal-modal.active {
-  display: flex;
 }
 
 .modal-content {
