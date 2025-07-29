@@ -943,18 +943,18 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
     };
 
     const initTabs = () => {
-      const tabLinks = document.querySelectorAll(`.${warehouseId}-container .tab-link`);
+      const tabLinks = document.querySelectorAll(`.${warehouseId}-container .tab-button`);
       const tabPanes = document.querySelectorAll(`.${warehouseId}-container .tab-pane`);
 
       const tabContainer = document.querySelector(`.${warehouseId}-container .tab-nav`);
       if (tabContainer) {
           tabContainer.addEventListener('click', (e) => {
-              const link = e.target.closest('.tab-link');
+              const link = e.target.closest('.tab-button');
               if (!link) return;
 
               const tab = link.dataset.tab;
 
-              document.querySelectorAll(`.${warehouseId}-container .tab-link`).forEach(l => l.classList.remove('active'));
+              document.querySelectorAll(`.${warehouseId}-container .tab-button`).forEach(l => l.classList.remove('active'));
               link.classList.add('active');
 
               document.querySelectorAll(`.${warehouseId}-container .tab-pane`).forEach(pane => {
