@@ -42,6 +42,8 @@ async function openTab(evt, tabName) {
     await fetchAndRenderShipments(currentShipmentPage);
   } else if (tabName === 'shipment-upload') {
     initializeShipmentUpload();
+  } else if (tabName === 'shipment-allocation') {
+    loadShipmentAllocationPage(supabase);
   }
 }
 

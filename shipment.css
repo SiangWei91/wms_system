@@ -149,9 +149,14 @@
   color: #333;
 }
 
-#shipmentTabNav .tab-link.active-tab {
+#shipmentTabNav .tab-link.active-tab, .tab-button.active {
   color: #3498db;
   font-weight: 600;
+}
+
+.tab-button:hover {
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .tab-action-bar {
