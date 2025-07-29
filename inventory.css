@@ -61,6 +61,18 @@
   font-weight: 600;
 }
 
+.jordon-container, .lineage-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover {
+  background-color: #f0f0f0;
+  color: #3498db;
+}
+
 .table tr:hover {
   background-color: #f0f0f0;
 }
