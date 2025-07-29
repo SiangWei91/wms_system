@@ -51,15 +51,11 @@ function initializeShipmentUpload(supabase) {
 }
 
 async function handleUpload(supabase) {
-  const shipmentNo = document.getElementById('shipmentNo').value.trim();
-  const poNo = document.getElementById('poNo').value.trim();
-  const containerNumber = document.getElementById('containerNumber').value.trim();
-  const eta = document.getElementById('eta').value;
   const fileInput = document.getElementById('excelFile');
   const file = fileInput.files[0];
 
-  if (!shipmentNo || !poNo || !containerNumber || !eta || !file) {
-    showUploadStatus('Please fill in all fields and select a file.', 'error');
+  if (!file) {
+    showUploadStatus('Please select a file.', 'error');
     return;
   }
 
@@ -68,14 +64,7 @@ async function handleUpload(supabase) {
   showUploadStatus('');
 
   try {
-    const listData = await processExcelFile(file);
-    const dataToSend = {
-      shipmentNo,
-      poNo,
-      containerNumber,
-      eta,
-      listData,
-    };
+    const dataToSend = await processExcelFile(file);
 
     const response = await fetch('https://script.google.com/macros/s/AKfycbwrHXJsLtVcom-fQtKazcLBgXPSaOKMOUy8KC9aMA7Qldq1CIECgmZi25V2M05jOotm/exec', {
       method: 'POST',
@@ -113,19 +102,33 @@ function processExcelFile(file) {
             const sheet = workbook.Sheets[sheetName];
             const dataArray = XLSX.utils.sheet_to_json(sheet, {header: 1});
 
-            const listData = getListDataUntilTotal(dataArray.slice(5)); // From A6
-            resolve(listData);
+            const extractedData = {
+                shipmentNo: getValueFromArray(dataArray, 1, 0),  // A2
+                poNo: getValueFromArray(dataArray, 4, 0),        // A5
+                containerNumber: getValueFromArray(dataArray, 1, 5),  // F2
+                eta: getValueFromArray(dataArray, 3, 5),         // F4
+                listData: getListDataUntilTotal(dataArray.slice(5))  // From A6
+            };
+
+            resolve(extractedData);
 
         } catch (error) {
             console.error('Error processing file:', error);
             reject(new Error('Error processing Excel file: ' + error.message));
         }
     };
-    reader.onerror = (error) => {
+     reader.onerror = (error) => {
       reject(new Error('File could not be read: ' + error));
     };
     reader.readAsArrayBuffer(file);
   });
+}
+
+function getValueFromArray(dataArray, row, col) {
+    if (dataArray[row] && dataArray[row][col] !== undefined) {
+        return dataArray[row][col].toString();
+    }
+    return "";
 }
 
 function getListDataUntilTotal(data) {
