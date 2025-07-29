@@ -62,10 +62,17 @@
 }
 
 .jordon-container, .lineage-container {
-  background-color: white;
   padding: 20px;
+  background-color: #fff; /* Light background for the content area */
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.jordon-container h1, .lineage-container h1 {
+  color: #333;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
 }
 
 .tab-button:hover {
