@@ -18,7 +18,6 @@ window.loadProducts = async function(contentElement, supabase) {
     content.innerHTML = `
         <div class="products">
             <div class="page-header">
-                <h1>Product List</h1>
                 <div class="actions">
                     <div class="search-box">
                         <input type="text" id="product-search" placeholder="Search Product..." value="${escapeHtml(currentProductSearchTerm)}">
