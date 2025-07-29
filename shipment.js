@@ -48,7 +48,6 @@ async function openTab(evt, tabName) {
 async function fetchAndRenderShipments(page) {
   const shipmentListContainer = document.getElementById('shipment-list');
   shipmentListContainer.innerHTML = `
-    <h2>Shipment List</h2>
     <div id="shipment-list-loading">
       <div class="spinner"></div>
     </div>

@@ -337,3 +337,126 @@ div#shipmentDetailsContainer p:last-child {
 .editable {
   background-color: #f0f8ff;
 }
+
+/* New styles for the modern upload UI */
+.upload-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.upload-header {
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.upload-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.upload-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.upload-body {
+  padding: 20px;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-group {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 40px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.file-label:hover {
+  border-color: #3498db;
+}
+
+.file-label i {
+  margin-right: 10px;
+  font-size: 2em;
+  color: #3498db;
+}
+
+.file-label span {
+  font-size: 1.2em;
+  color: #555;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: #fff;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-primary i {
+  margin-right: 8px;
+}
+
+.upload-status {
+  margin-top: 20px;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.loading-indicator .spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-indicator p {
+  margin-top: 10px;
+  color: #666;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

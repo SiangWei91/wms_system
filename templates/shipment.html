@@ -18,25 +18,35 @@
   </div>
 
   <div id="shipment-upload" class="tab-content" style="display: none;">
-    <h2>Shipment Upload</h2>
-    <div class="upload-container">
-      <div class="upload-form">
-        <div class="form-group">
-          <label for="excelFile">Excel File:</label>
-          <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls">
-        </div>
-        <button id="uploadButton" class="btn">Upload and Save</button>
+    <div class="upload-card">
+      <div class="upload-header">
+        <h3>Upload Shipment File</h3>
+        <p>Select an Excel file to upload and save to the system.</p>
       </div>
-      <div id="upload-status"></div>
-      <div id="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
-        <p>Uploading...</p>
+      <div class="upload-body">
+        <div class="upload-form">
+          <div class="form-group">
+            <label for="excelFile" class="file-label">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>Choose a file...</span>
+            </label>
+            <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" class="file-input">
+          </div>
+          <button id="uploadButton" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Upload and Save
+          </button>
+        </div>
+        <div id="upload-status" class="upload-status"></div>
+        <div id="loading-indicator" class="loading-indicator" style="display: none;">
+          <div class="spinner"></div>
+          <p>Uploading, please wait...</p>
+        </div>
       </div>
     </div>
   </div>
 
     <div id="shipment-allocation" class="tab-content" style="display: none;">
-    <h2>Shipment Allocation</h2>
       <input type="file" id="excelFileInput" accept=".xlsx, .xlsm" />
       <div id="pageMessages" class="page-messages-container">
           <!-- Custom messages will be dynamically inserted here -->
