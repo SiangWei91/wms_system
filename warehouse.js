@@ -778,7 +778,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
           // Add a single listener for the modal
           modal.addEventListener('click', (e) => {
-              if (e.target.id === 'jordon-modal-close-button' || e.target.parentElement.id === 'jordon-modal-close-button') {
+              if (e.target.id === 'jordon-modal-close-button' || e.target.closest('.close-button')) {
                   handleModalClose();
               } else if (e.target.id === 'modal-submit-btn') {
                   handleModalSubmit(e);
