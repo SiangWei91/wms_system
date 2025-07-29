@@ -349,6 +349,11 @@ async function handleUpload(supabase) {
   try {
     const dataToSend = await processExcelFile(file);
 
+    // 添加调试信息
+    console.log('Data to send:', dataToSend);
+    console.log('ETA value being sent:', dataToSend.eta);
+    console.log('ETA type:', typeof dataToSend.eta);
+
     const response = await fetch('https://script.google.com/macros/s/AKfycbwrHXJsLtVcom-fQtKazcLBgXPSaOKMOUy8KC9aMA7Qldq1CIECgmZi25V2M05jOotm/exec', {
       method: 'POST',
       headers: {
@@ -385,11 +390,26 @@ function processExcelFile(file) {
             const sheet = workbook.Sheets[sheetName];
             const dataArray = XLSX.utils.sheet_to_json(sheet, {header: 1});
 
+            // 获取原始ETA值
+            const rawEta = getValueFromArray(dataArray, 3, 5); // F4
+
+            // 确保ETA被转换为DD/MM/YYYY格式
+            let formattedEta = rawEta;
+            if (typeof rawEta === 'number' && !isNaN(rawEta)) {
+                // 如果是数字（Excel序列号），转换为日期格式
+                formattedEta = excelDateToJSDate(rawEta);
+            } else if (typeof rawEta === 'string' && rawEta.trim() !== '') {
+                // 如果已经是字符串，检查是否需要格式化
+                formattedEta = rawEta.toString();
+            }
+
+            console.log('Raw ETA:', rawEta, 'Formatted ETA:', formattedEta);
+
             const extractedData = {
                 shipmentNo: getValueFromArray(dataArray, 1, 0),  // A2
                 poNo: getValueFromArray(dataArray, 4, 0),        // A5
                 containerNumber: getValueFromArray(dataArray, 1, 5),  // F2
-                eta: excelDateToJSDate(getValueFromArray(dataArray, 3, 5)), // F4
+                eta: formattedEta, // 使用格式化后的日期
                 listData: getListDataUntilTotal(dataArray.slice(5))  // From A6
             };
 
@@ -408,23 +428,44 @@ function processExcelFile(file) {
 }
 
 function excelDateToJSDate(serial) {
+  console.log('Converting Excel date:', serial, 'Type:', typeof serial);
+
+  // 如果不是数字或者是NaN，返回原值
   if (typeof serial !== 'number' || isNaN(serial)) {
-    return serial; // Return original value if not a number
+    console.log('Not a valid Excel serial number, returning original value');
+    return serial;
   }
-  const utc_days  = Math.floor(serial - 25569);
-  const utc_value = utc_days * 86400;
-  const date_info = new Date(utc_value * 1000);
 
-  const day = String(date_info.getDate()).padStart(2, '0');
-  const month = String(date_info.getMonth() + 1).padStart(2, '0');
-  const year = date_info.getFullYear();
+  // 检查是否是合理的Excel日期序列号范围 (1900-2100年大约)
+  if (serial < 1 || serial > 73415) {
+    console.log('Serial number out of reasonable date range');
+    return serial;
+  }
 
-  return `${day}/${month}/${year}`;
+  try {
+    // Excel的日期系统：1900年1月1日是序列号1
+    // 但Excel错误地认为1900年是闰年，所以需要调整
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+
+    const day = String(date_info.getDate()).padStart(2, '0');
+    const month = String(date_info.getMonth() + 1).padStart(2, '0');
+    const year = date_info.getFullYear();
+
+    const formattedDate = `${day}/${month}/${year}`;
+    console.log('Converted Excel serial', serial, 'to date:', formattedDate);
+
+    return formattedDate;
+  } catch (error) {
+    console.error('Error converting Excel date:', error);
+    return serial; // 转换失败时返回原值
+  }
 }
 
 function getValueFromArray(dataArray, row, col) {
     if (dataArray[row] && dataArray[row][col] !== undefined) {
-        return dataArray[row][col].toString();
+        return dataArray[row][col];
     }
     return "";
 }
