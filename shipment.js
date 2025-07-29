@@ -354,7 +354,7 @@ async function handleUpload(supabase) {
     console.log('ETA value being sent:', dataToSend.eta);
     console.log('ETA type:', typeof dataToSend.eta);
 
-    const response = await fetch('https://script.google.com/macros/s/AKfycbwrHXJsLtVcom-fQtKazcLBgXPSaOKMOUy8KC9aMA7Qldq1CIECgmZi25V2M05jOotm/exec', {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbw0milIRKWsyZuBouL-pCEPSPf_6xAjovCI9XgOZWXEXMjsyE2gYZZAVpbN_OHilSjs/exec', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
