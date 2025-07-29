@@ -563,7 +563,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     }
                 });
 
-                modal.style.display = 'flex';
+                modal.classList.add('active');
             }, { signal });
         }
 
@@ -676,7 +676,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 
           // 关闭模态框
           const handleModalClose = () => {
-            modal.style.display = 'none';
+            modal.classList.remove('active');
           };
 
           // 键盘事件处理 - 添加仓库验证
@@ -772,7 +772,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             }
 
             if (!errorShown) {
-              modal.style.display = 'none';
+              modal.classList.remove('active');
             }
           };
 

@@ -105,6 +105,10 @@
   background-color: rgba(0, 0, 0, 0.4);
 }
 
+.jordon-withdrawal-modal.active {
+  display: flex;
+}
+
 .modal-content {
   background-color: #fefefe;
   margin: 10% auto;
