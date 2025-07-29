@@ -1,4 +1,5 @@
 let shipmentHeaders = [];
+let supabase;
 
 // Pagination state variables
 let currentShipmentPage = 1;
@@ -6,23 +7,24 @@ const SHIPMENTS_PER_PAGE = 10;
 let totalShipmentPages = 1;
 let totalShipmentItems = 0;
 
-window.loadShipmentPage = async function (content, supabase) {
+window.loadShipmentPage = async function (content, sb) {
+  supabase = sb;
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
     if (tab) {
-      await openTab(event, tab.dataset.tab, supabase);
+      await openTab(event, tab.dataset.tab);
     }
   });
 
   // Load the shipment list by default
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
   if (shipmentListTab) {
-    await openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
+    await openTab({ currentTarget: shipmentListTab }, 'shipment-list');
   }
 };
 
-async function openTab(evt, tabName, supabase) {
+async function openTab(evt, tabName) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
@@ -37,13 +39,13 @@ async function openTab(evt, tabName, supabase) {
 
   if (tabName === 'shipment-list') {
     currentShipmentPage = 1;
-    await fetchAndRenderShipments(supabase, currentShipmentPage);
+    await fetchAndRenderShipments(currentShipmentPage);
   } else if (tabName === 'shipment-upload') {
-    initializeShipmentUpload(supabase);
+    initializeShipmentUpload();
   }
 }
 
-async function fetchAndRenderShipments(supabase, page) {
+async function fetchAndRenderShipments(page) {
   const shipmentListContainer = document.getElementById('shipment-list');
   shipmentListContainer.innerHTML = `
     <h2>Shipment List</h2>
@@ -60,7 +62,7 @@ async function fetchAndRenderShipments(supabase, page) {
   loadingIndicator.style.display = 'block';
   tableContainer.innerHTML = '';
 
-  const data = await getShipmentList(supabase, page, SHIPMENTS_PER_PAGE);
+  const data = await getShipmentList(page, SHIPMENTS_PER_PAGE);
 
   loadingIndicator.style.display = 'none';
 
@@ -71,14 +73,14 @@ async function fetchAndRenderShipments(supabase, page) {
     totalShipmentItems = data.total;
     totalShipmentPages = Math.ceil(totalShipmentItems / SHIPMENTS_PER_PAGE);
 
-    const table = renderShipmentTable(data, true, supabase);
+    const table = renderShipmentTable(data, true);
     tableContainer.classList.add('table-container');
     tableContainer.appendChild(table);
-    renderShipmentPagination(supabase);
+    renderShipmentPagination();
   }
 }
 
-async function getShipmentList(supabase, page, limit) {
+async function getShipmentList(page, limit) {
   const { data, error } = await supabase.functions.invoke(`shipment-list?page=${page}&limit=${limit}`, {
     method: 'GET',
   });
@@ -91,7 +93,7 @@ async function getShipmentList(supabase, page, limit) {
   return data;
 }
 
-function renderShipmentTable(data, showActions = true, supabase) {
+function renderShipmentTable(data, showActions = true) {
   shipmentHeaders = data.values[0];
   const table = document.createElement('table');
   table.classList.add('data-table');
@@ -143,11 +145,11 @@ function renderShipmentTable(data, showActions = true, supabase) {
     if (!button) return;
 
     if (button.classList.contains('view-btn')) {
-      handleViewShipment(button.dataset.shipmentNo, supabase);
+      handleViewShipment(button.dataset.shipmentNo);
     } else if (button.classList.contains('edit-btn')) {
       handleEditRow(button);
     } else if (button.classList.contains('save-btn')) {
-      handleSaveRow(button, supabase);
+      handleSaveRow(button);
     }
   });
 
@@ -156,7 +158,7 @@ function renderShipmentTable(data, showActions = true, supabase) {
   return table;
 }
 
-function renderShipmentPagination(supabase) {
+function renderShipmentPagination() {
   const paginationDiv = document.getElementById('shipment-pagination');
   if (!paginationDiv) return;
   paginationDiv.innerHTML = '';
@@ -172,7 +174,7 @@ function renderShipmentPagination(supabase) {
   prevBtn.addEventListener('click', () => {
     if (currentShipmentPage > 1) {
       currentShipmentPage--;
-      fetchAndRenderShipments(supabase, currentShipmentPage);
+      fetchAndRenderShipments(currentShipmentPage);
     }
   });
   paginationDiv.appendChild(prevBtn);
@@ -189,13 +191,13 @@ function renderShipmentPagination(supabase) {
   nextBtn.addEventListener('click', () => {
     if (currentShipmentPage < totalShipmentPages) {
       currentShipmentPage++;
-      fetchAndRenderShipments(supabase, currentShipmentPage);
+      fetchAndRenderShipments(currentShipmentPage);
     }
   });
   paginationDiv.appendChild(nextBtn);
 }
 
-async function getShipmentDetails(shipmentNo, supabase) {
+async function getShipmentDetails(shipmentNo) {
   const { data, error } = await supabase.functions.invoke(`shipment-details?shipment=${shipmentNo}`, {
     method: 'GET',
   });
@@ -223,7 +225,7 @@ function handleEditRow(button) {
   saveButton.style.display = 'inline-block';
 }
 
-async function handleSaveRow(button, supabase) {
+async function handleSaveRow(button) {
   const row = button.closest('tr');
   const cells = row.querySelectorAll('td');
   const shipmentNo = cells[0].textContent;
@@ -262,18 +264,18 @@ async function handleSaveRow(button, supabase) {
   button.textContent = 'Edit';
   button.classList.remove('save-btn');
   button.classList.add('edit-btn');
-  button.removeEventListener('click', (e) => handleSaveRow(e.target, supabase));
+  button.removeEventListener('click', (e) => handleSaveRow(e.target));
   button.addEventListener('click', (e) => handleEditRow(e.target));
 
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
+  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
 }
 
-function handleViewShipment(shipmentNo, supabase) {
-  openShipmentDetailsTab(shipmentNo, supabase);
+function handleViewShipment(shipmentNo) {
+  openShipmentDetailsTab(shipmentNo);
 }
 
-async function openShipmentDetailsTab(shipmentNo, supabase) {
+async function openShipmentDetailsTab(shipmentNo) {
   const tabContainer = document.querySelector('.tab-nav');
   const contentArea = document.querySelector('.shipment-content-area');
 
@@ -302,12 +304,12 @@ async function openShipmentDetailsTab(shipmentNo, supabase) {
   newContent.innerHTML = `<h2>${shipmentNo}</h2><div class="spinner"></div>`;
   contentArea.appendChild(newContent);
 
-  openTab({ currentTarget: newTab }, newTab.dataset.tab, supabase);
+  openTab({ currentTarget: newTab }, newTab.dataset.tab);
 
-  const data = await getShipmentDetails(shipmentNo, supabase);
+  const data = await getShipmentDetails(shipmentNo);
 
   if (data) {
-    const table = renderShipmentTable(data, false, supabase);
+    const table = renderShipmentTable(data, false);
     newContent.innerHTML = `<h2>${shipmentNo}</h2>`;
     newContent.appendChild(table);
   } else {
@@ -315,7 +317,7 @@ async function openShipmentDetailsTab(shipmentNo, supabase) {
   }
 }
 
-function closeTab(tabName, supabase) {
+function closeTab(tabName) {
   const tab = document.querySelector(`[data-tab="${tabName}"]`);
   const content = document.getElementById(tabName);
 
@@ -323,17 +325,17 @@ function closeTab(tabName, supabase) {
   if (content) content.remove();
 
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
+  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
 }
 
-function initializeShipmentUpload(supabase) {
+function initializeShipmentUpload() {
   const uploadButton = document.getElementById('uploadButton');
   if (uploadButton) {
-    uploadButton.addEventListener('click', () => handleUpload(supabase));
+    uploadButton.addEventListener('click', () => handleUpload());
   }
 }
 
-async function handleUpload(supabase) {
+async function handleUpload() {
   const fileInput = document.getElementById('excelFile');
   const file = fileInput.files[0];
 
@@ -368,7 +370,7 @@ async function handleUpload(supabase) {
       showUploadStatus('Data saved successfully!', 'success');
       // Optionally, switch to the shipment list view
       const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-      openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
+      openTab({ currentTarget: shipmentListTab }, 'shipment-list');
     } else {
       showUploadStatus(`Error: ${result.message || 'An unknown error occurred.'}`, 'error');
     }
