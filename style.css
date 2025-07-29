@@ -581,7 +581,7 @@ nav ul li i {
   z-index: 1001;
 }
 
-.jordon-withdrawal-modal .modal {
+#modal-container .modal {
   background-color: #ffffff;
   padding: 30px;
   border-radius: 15px;
