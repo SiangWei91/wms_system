@@ -52,10 +52,6 @@
   text-align: center;
 }
 
-#modal-container .modal {
-    display: block;
-}
-
 .table th {
   background-color: #fafafa;
   position: -webkit-sticky; /* for Safari */
