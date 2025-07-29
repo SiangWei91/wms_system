@@ -383,13 +383,13 @@ function processExcelFile(file) {
             const workbook = XLSX.read(data, {type: 'array'});
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
-            const dataArray = XLSX.utils.sheet_to_json(sheet, {header: 1, raw: false});
+            const dataArray = XLSX.utils.sheet_to_json(sheet, {header: 1});
 
             const extractedData = {
                 shipmentNo: getValueFromArray(dataArray, 1, 0),  // A2
                 poNo: getValueFromArray(dataArray, 4, 0),        // A5
                 containerNumber: getValueFromArray(dataArray, 1, 5),  // F2
-                eta: getValueFromArray(dataArray, 3, 5),         // F4
+                eta: excelDateToJSDate(getValueFromArray(dataArray, 3, 5)), // F4
                 listData: getListDataUntilTotal(dataArray.slice(5))  // From A6
             };
 
@@ -405,6 +405,21 @@ function processExcelFile(file) {
     };
     reader.readAsArrayBuffer(file);
   });
+}
+
+function excelDateToJSDate(serial) {
+  if (typeof serial !== 'number' || isNaN(serial)) {
+    return serial; // Return original value if not a number
+  }
+  const utc_days  = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+
+  const day = String(date_info.getDate()).padStart(2, '0');
+  const month = String(date_info.getMonth() + 1).padStart(2, '0');
+  const year = date_info.getFullYear();
+
+  return `${day}/${month}/${year}`;
 }
 
 function getValueFromArray(dataArray, row, col) {
