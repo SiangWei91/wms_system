@@ -38,7 +38,142 @@ async function openTab(evt, tabName, supabase) {
   if (tabName === 'shipment-list') {
     currentShipmentPage = 1;
     await fetchAndRenderShipments(supabase, currentShipmentPage);
+  } else if (tabName === 'shipment-upload') {
+    initializeShipmentUpload(supabase);
   }
+}
+
+function initializeShipmentUpload(supabase) {
+  const uploadButton = document.getElementById('uploadButton');
+  if (uploadButton) {
+    uploadButton.addEventListener('click', () => handleUpload(supabase));
+  }
+}
+
+async function handleUpload(supabase) {
+  const shipmentNo = document.getElementById('shipmentNo').value.trim();
+  const poNo = document.getElementById('poNo').value.trim();
+  const containerNumber = document.getElementById('containerNumber').value.trim();
+  const eta = document.getElementById('eta').value;
+  const fileInput = document.getElementById('excelFile');
+  const file = fileInput.files[0];
+
+  if (!shipmentNo || !poNo || !containerNumber || !eta || !file) {
+    showUploadStatus('Please fill in all fields and select a file.', 'error');
+    return;
+  }
+
+  const loadingIndicator = document.getElementById('loading-indicator');
+  loadingIndicator.style.display = 'block';
+  showUploadStatus('');
+
+  try {
+    const listData = await processExcelFile(file);
+    const dataToSend = {
+      shipmentNo,
+      poNo,
+      containerNumber,
+      eta,
+      listData,
+    };
+
+    const response = await fetch('https://script.google.com/macros/s/AKfycbwrHXJsLtVcom-fQtKazcLBgXPSaOKMOUy8KC9aMA7Qldq1CIECgmZi25V2M05jOotm/exec', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify(dataToSend),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showUploadStatus('Data saved successfully!', 'success');
+      // Optionally, switch to the shipment list view
+      const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
+      openTab({ currentTarget: shipmentListTab }, 'shipment-list', supabase);
+    } else {
+      showUploadStatus(`Error: ${result.message}`, 'error');
+    }
+  } catch (error) {
+    showUploadStatus(`An error occurred: ${error.message}`, 'error');
+  } finally {
+    loadingIndicator.style.display = 'none';
+  }
+}
+
+function processExcelFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const dataArray = XLSX.utils.sheet_to_json(sheet, {header: 1});
+
+            const listData = getListDataUntilTotal(dataArray.slice(5)); // From A6
+            resolve(listData);
+
+        } catch (error) {
+            console.error('Error processing file:', error);
+            reject(new Error('Error processing Excel file: ' + error.message));
+        }
+    };
+    reader.onerror = (error) => {
+      reject(new Error('File could not be read: ' + error));
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function getListDataUntilTotal(data) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+        // Only extract first 6 columns (A-F)
+        let row = data[i] ? data[i].slice(0, 6) : [];
+        row = ensureRowLength(row, 6);
+        row = formatColumnE(row);
+
+        if (isTotalInColumnC(row)) {
+            console.log(`Stopped at row ${i + 6} ('total' detected in column C)`);
+            break;
+        }
+        result.push(row);
+    }
+    console.log(`Retrieved ${result.length} rows of data`);
+    return result;
+}
+
+function ensureRowLength(row, minLength) {
+    while (row.length < minLength) {
+        row.push("");
+    }
+    return row;
+}
+
+function formatColumnE(row) {
+    // Format column E (index 4) as text with leading zeros
+    if (row.length > 4 && row[4] !== "") {
+        const value = String(row[4]).replace(/^'/, '').padStart(8, '0');
+        row[4] = "'" + value;
+    }
+    return row;
+}
+
+function isTotalInColumnC(row) {
+    const cellValue = row[2];
+    if (cellValue === undefined || cellValue === null || cellValue === "") {
+        return false;
+    }
+    return String(cellValue).toLowerCase().includes('total');
+}
+
+function showUploadStatus(message, type = 'info') {
+  const statusDiv = document.getElementById('upload-status');
+  statusDiv.textContent = message;
+  statusDiv.className = `upload-status ${type}`;
 }
 
 async function fetchAndRenderShipments(supabase, page) {
