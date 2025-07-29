@@ -47,25 +47,41 @@
   </div>
 
     <div id="shipment-allocation" class="tab-content" style="display: none;">
-      <input type="file" id="excelFileInput" accept=".xlsx, .xlsm" />
-      <div id="pageMessages" class="page-messages-container">
-          <!-- Custom messages will be dynamically inserted here -->
-      </div>
-      <div class="tab-action-bar" id="shipmentTabActionBar"> <!-- New wrapper -->
-          <div id="shipmentTabNav" style="display: none; flex-grow: 1;">
-              <!-- Tabs will be dynamically inserted here by JavaScript -->
+      <div class="upload-card">
+        <div class="upload-header">
+          <h3>Allocate Shipment</h3>
+          <p>Select an Excel file to allocate a shipment.</p>
+        </div>
+        <div class="upload-body">
+          <div class="upload-form">
+            <div class="form-group">
+              <label for="excelFileInput" class="file-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Choose a file...</span>
+              </label>
+              <input type="file" id="excelFileInput" accept=".xlsx, .xlsm" class="file-input" />
+            </div>
           </div>
-          <button id="updateInventoryBtn" style="display: none;">Update to Inventory</button>
+          <div id="pageMessages" class="page-messages-container">
+              <!-- Custom messages will be dynamically inserted here -->
+          </div>
+          <div class="tab-action-bar" id="shipmentTabActionBar"> <!-- New wrapper -->
+              <div id="shipmentTabNav" style="display: none; flex-grow: 1;">
+                  <!-- Tabs will be dynamically inserted here by JavaScript -->
+              </div>
+              <button id="updateInventoryBtn" style="display: none;">Update to Inventory</button>
+          </div>
+          <div id="shipmentDetailsContainer">
+              <!-- Container Number and Stored Date will be displayed here -->
+          </div>
+          <div id="resultsContainer">
+              <!-- Results will be displayed here by js/shipment.js for the active tab -->
+          </div>
+          <div id="loadingIndicator" style="display: none;">
+            <div class="spinner"></div>
+          </div>
+          <div id="modal-container"></div>
+        </div>
       </div>
-      <div id="shipmentDetailsContainer">
-          <!-- Container Number and Stored Date will be displayed here -->
-      </div>
-      <div id="resultsContainer">
-          <!-- Results will be displayed here by js/shipment.js for the active tab -->
-      </div>
-      <div id="loadingIndicator" style="display: none;">
-        <div class="spinner"></div>
-      </div>
-      <div id="modal-container"></div>
   </div>
 </div>

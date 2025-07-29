@@ -345,6 +345,9 @@ div#shipmentDetailsContainer p:last-child {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   margin-top: 20px;
   overflow: hidden;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .upload-header {
