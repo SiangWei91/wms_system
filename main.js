@@ -53,7 +53,6 @@ const pageScripts = {
         urls: ['shipment.js', 'shipment-allocation.js'],
         init: (content) => {
             window.loadShipmentPage(content, supabaseClient);
-            window.loadShipmentAllocationPage(supabaseClient);
         }
     },
     'transactions': {

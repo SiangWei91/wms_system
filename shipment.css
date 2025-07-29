@@ -149,7 +149,7 @@
   color: #333;
 }
 
-#shipmentTabNav .tab-link.active-tab, .tab-nav .tab-button.active {
+#shipmentTabNav .tab-link.active-tab, .tab-nav > .tab-button.active {
   color: #3498db;
   font-weight: 600;
   border-bottom: 3px solid #3498db;

@@ -13,6 +13,39 @@ const shipmentModuleState = {
     updateInventoryBtn: null
   };
 
+function loadShipmentAllocationPage(supabase) {
+    const fileInput = document.getElementById('excelFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e, supabase);
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Choose a file...';
+            const label = document.querySelector('#shipment-allocation .file-label span');
+            if (label) {
+                label.textContent = fileName;
+            }
+        }, false);
+    }
+
+    const updateBtn = document.getElementById('updateInventoryBtn');
+    if (updateBtn) {
+        updateBtn.addEventListener('click', () => updateInventory(supabase));
+    }
+
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer) {
+        resultsContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('editable-cell-input')) {
+                handleCellEdit(e);
+            }
+        });
+        resultsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row-btn')) {
+                handleRowRemoveClick(e);
+            }
+        });
+    }
+}
+
 
 function handleFile(e, supabase) {
     const file = e.target.files[0];
