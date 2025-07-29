@@ -212,6 +212,7 @@ window.onhashchange = () => {
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
     eraseCookie('userName');
+    supabaseClient.auth.signOut();
 
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
