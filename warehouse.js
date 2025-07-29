@@ -504,7 +504,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                 const row = e.target.closest('tr');
                 if (!row) return;
 
-                const modal = document.querySelector('.jordon-withdrawal-modal');
+                const modal = document.getElementById('modal-container');
                 const modalBody = document.getElementById('jordon-modal-body');
                 if (!modal || !modalBody) return;
 
@@ -563,7 +563,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
                     }
                 });
 
-                modal.classList.add('active');
+                modal.style.display = 'flex';
             }, { signal });
         }
 
@@ -669,14 +669,14 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         }
 
         // 处理模态框事件 - 只为当前仓库绑定一次
-        const modal = document.querySelector('.jordon-withdrawal-modal');
+        const modal = document.getElementById('modal-container');
         if (modal) {
           const closeButton = document.getElementById('jordon-modal-close-button');
           const modalSubmitButton = document.getElementById('modal-submit-btn');
 
           // 关闭模态框
           const handleModalClose = () => {
-            modal.classList.remove('active');
+            modal.style.display = 'none';
           };
 
           // 键盘事件处理 - 添加仓库验证
@@ -772,7 +772,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
             }
 
             if (!errorShown) {
-              modal.classList.remove('active');
+              modal.style.display = 'none';
             }
           };
 
