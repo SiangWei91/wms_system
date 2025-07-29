@@ -332,6 +332,17 @@ function initializeShipmentUpload() {
   if (uploadButton) {
     uploadButton.addEventListener('click', () => handleUpload());
   }
+
+  const fileInput = document.getElementById('excelFile');
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const fileName = e.target.files[0] ? e.target.files[0].name : 'Choose a file...';
+      const label = document.querySelector('.file-label span');
+      if (label) {
+        label.textContent = fileName;
+      }
+    });
+  }
 }
 
 async function handleUpload() {
