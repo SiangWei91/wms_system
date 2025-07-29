@@ -152,6 +152,7 @@
 #shipmentTabNav .tab-link.active-tab, .tab-button.active {
   color: #3498db;
   font-weight: 600;
+  border-bottom: 3px solid #3498db;
 }
 
 .tab-button:hover {
