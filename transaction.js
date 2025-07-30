@@ -15,7 +15,6 @@ window.loadTransactions = async function(contentElement, supabase) {
     contentElement.innerHTML = `
         <div class="transactions">
             <div class="page-header">
-                <h1>Transaction List</h1>
             </div>
             <div class="search-container" style="margin-bottom: 20px;">
                 <form id="transaction-search-form" class="modern-filters">

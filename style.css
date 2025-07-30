@@ -174,11 +174,7 @@ nav ul li i {
   margin-top: 20px;
 }
 
-.tab-nav {
-  display: flex;
-  border-bottom: 2px solid #ccc;
-  margin-bottom: 10px;
-}
+
 
 @media (max-width: 768px) {
   .tab-nav {
@@ -226,6 +222,9 @@ nav ul li i {
 .tab-nav {
   display: flex;
   border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 10px;
 }
 
 .tab-button {
@@ -242,7 +241,8 @@ nav ul li i {
 
 .tab-button.active {
   color: #3498db;
-  border-bottom: 2px solid #3498db;
+  font-weight: 600;
+  border-bottom: 3px solid #3498db;
 }
 
 .tab-content .tab-pane {
@@ -273,9 +273,15 @@ nav ul li i {
   cursor: pointer;
 }
 
+#service-record-table td {
+  font-size: 0.85rem;   /* 字体较小 */
+
+}
+
 #service-record-table tbody tr:hover {
   background-color: #f0f8ff;
 }
+
 
 #add-record-form .form-group {
   margin-bottom: 1rem;
@@ -419,6 +425,7 @@ nav ul li i {
 
 .cr-temperature-container {
   padding: 20px;
+  margin-bottom: 15px;
 }
 
 .temperature-cards-container {
@@ -457,11 +464,7 @@ nav ul li i {
   height: 300px;
 }
 
-.tab-nav {
-  display: flex;
-  border-bottom: 2px solid #ccc;
-  margin-bottom: 10px;
-}
+
 
 @media (max-width: 768px) {
   .tab-nav {
@@ -492,10 +495,11 @@ nav ul li i {
 
 .stock-take .filters {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1rem;
-  align-items: center;
   margin-top: 1rem;
+  margin-bottom: 1rem;
+  align-items: flex-start; /* 可根据需要调整对齐 */
 }
 
 .stock-take-table td:nth-child(1) {
@@ -787,7 +791,7 @@ nav ul li i {
 
 .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -893,21 +897,56 @@ nav ul li i {
 }
 
 .form-group {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .form-group input {
-    width: 100%;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
+.form-group-st {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 欄位之間的間距 */
+  margin-bottom: 15px;
+  width: 10%;
+}
+
+.form-group-st label {
+  margin-bottom: 0; /* 移除原本的下邊距 */
+}
+
+.form-group-st input {
+  width: auto; /* 讓 input 自動調整寬度，或使用固定寬度如 150px */
+  flex: 1;     /* 讓 input 彈性填滿可用空間 */
+  margin-bottom: 0; /* 移除 margin-bottom，避免拉高整列 */
+}
+
+.form-group-st {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 欄位之間的間距 */
+  margin-bottom: 15px;
+  width: 10%;
+}
+
+.form-group-st label {
+  margin-bottom: 0; /* 移除原本的下邊距 */
+}
+
+.form-group-st input {
+  width: auto; /* 讓 input 自動調整寬度，或使用固定寬度如 150px */
+  flex: 1;     /* 讓 input 彈性填滿可用空間 */
+  margin-bottom: 0; /* 移除 margin-bottom，避免拉高整列 */
+}
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -1116,3 +1155,60 @@ nav ul li i {
 .app-container.sidebar-show .sidebar nav {
   overflow: hidden;
 }
+
+.actions-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  gap: 0.75rem;
+}
+
+.actions-container .search-box {
+  display: flex;
+  align-items: center;
+  background-color: #f1f3f5;
+  border-radius: 16px;
+  padding: 4px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  width: 220px;
+}
+
+.actions-container .search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.875rem; /* ~14px */
+}
+
+.actions-container .search-box i {
+  color: #adb5bd;
+  font-size: 0.9rem;
+}
+
+.actions-container .btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #5dade2;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 123, 255, 0.25);
+}
+
+.actions-container .btn-primary:hover {
+  background-color: #0056b3;
+  box-shadow: 0 3px 6px rgba(0, 123, 255, 0.35);
+  transform: translateY(-1px);
+}
+

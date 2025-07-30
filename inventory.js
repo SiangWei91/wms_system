@@ -211,13 +211,14 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
-    toggleButton.innerHTML = columnsHidden ? '&#x2795;' : '&#x2796;'; // Plus and Minus
+    toggleButton.innerHTML = columnsHidden ? 'Expand' : 'Collapse';
     toggleButton.addEventListener('click', () => {
       columnsHidden = !columnsHidden;
-      toggleButton.innerHTML = columnsHidden ? '&#x2795;' : '&#x2796;';
+      toggleButton.innerHTML = columnsHidden ? 'Expand' : 'Collapse';
       renderTable(data);
     });
   }
+  
 
   const modal = document.getElementById('transaction-modal');
   const closeButton = document.querySelector('.close-button');

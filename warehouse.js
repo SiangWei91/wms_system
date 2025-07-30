@@ -326,13 +326,33 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
         const productsMap = new Map(productsData.map(p => [p.item_code, p]));
 
         const inventorySummaryTable = document.querySelector(`#${warehouseId}-inventory-summary-table`);
-        if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-container`)) {
-            const searchContainer = document.createElement('div');
-            searchContainer.id = `${warehouseId}-search-container`;
-            searchContainer.style.marginBottom = '20px';
-            searchContainer.innerHTML = `<input type="text" id="${warehouseId}-search-input" placeholder="Search..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">`;
-            inventorySummaryTable.parentNode.insertBefore(searchContainer, inventorySummaryTable);
-        }
+if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-container`)) {
+  const searchContainer = document.createElement('div');
+  searchContainer.id = `${warehouseId}-search-container`;
+  searchContainer.style.marginBottom = '20px';
+  searchContainer.style.display = 'flex';
+  searchContainer.style.alignItems = 'center';
+  searchContainer.style.backgroundColor = '#f5f5f5'; // 浅灰色背景
+  searchContainer.style.borderRadius = '16px';
+  searchContainer.style.padding = '4px 12px';
+  searchContainer.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.08)';
+  searchContainer.style.width = '25%';
+  searchContainer.style.height = '40px';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.id = `${warehouseId}-search-input`;
+  searchInput.placeholder = 'Search...';
+  searchInput.style.border = 'none';
+  searchInput.style.outline = 'none';
+  searchInput.style.background = 'transparent';
+  searchInput.style.width = '100%';
+  searchInput.style.fontSize = '0.875rem';
+
+  searchContainer.appendChild(searchInput);
+  inventorySummaryTable.parentNode.insertBefore(searchContainer, inventorySummaryTable);
+}
+
 
         const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
         const stockInTableBody = document.querySelector(`#${warehouseId}-stock-in-table tbody`);
