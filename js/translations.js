@@ -37,6 +37,7 @@ const translations = {
     "N/A": "N/A",
 
     // Product Page
+    "Product List": "Product List",
     "Search Product...": "Search Product...",
     "Add Product": "Add Product",
     "Action": "Action",
@@ -303,6 +304,7 @@ const translations = {
     "N/A": "Không áp dụng",
 
     // Product Page
+    "Product List": "Danh sách sản phẩm",
     "Search Product...": "Tìm sản phẩm...",
     "Add Product": "Thêm sản phẩm",
     "Action": "Hành động",
@@ -533,6 +535,7 @@ const translations = {
   },
   zh: {
   "Login": "登录",
+  "Product List": "产品列表",
   "User ID:": "用户编号：",
   "Password:": "密码：",
   "Logout": "登出",

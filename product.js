@@ -10,24 +10,28 @@ let totalNumItems = 0;
 let globalHasNextPage = false;
 
 window.loadProducts = async function(contentElement, supabase) {
+    updateText();
     const content = contentElement || document.getElementById('content');
     if (!content) {
         console.error("Content element not found. Cannot load products page.");
         return;
     }
     content.innerHTML = `
-        <div class="products">
-            <div class="page-header">
-                <div class="actions-container">
-                    <div class="search-box">
-                        <input type="text" id="product-search" placeholder="${translate('Search Product...')}" value="${escapeHtml(currentProductSearchTerm)}">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <button id="add-product-btn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> ${translate('Add Product')}
-                    </button>
-                </div>
-            </div>
+    <div class="products">
+    <div class="page-header">
+    <div class="actions-container">
+    <h2 data-translate="Product List">${translate('Product List')}</h2>
+    <div class="right-section">
+      <div class="search-box">
+        <input type="text" id="product-search" placeholder="${translate('Search Product...')}" value="${escapeHtml(currentProductSearchTerm)}">
+        <i class="fas fa-search"></i>
+      </div>
+      <button id="add-product-btn" class="btn btn-primary">
+        <i class="fas fa-plus"></i> ${translate('Add Product')}
+      </button>
+    </div>
+  </div>
+</div>
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -475,3 +479,4 @@ function escapeHtml(unsafe) {
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
 }
+
