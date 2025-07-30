@@ -14,18 +14,18 @@ window.loadShipmentPage = async function (content, sb) {
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
     if (tab) {
-      await openTab(event, tab.dataset.tab);
+      await openTab(tab, tab.dataset.tab);
     }
   });
 
   // Load the shipment list by default
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
   if (shipmentListTab) {
-    await openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+    await openTab(shipmentListTab, 'shipment-list');
   }
 };
 
-async function openTab(evt, tabName) {
+async function openTab(tabElement, tabName) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
@@ -36,7 +36,9 @@ async function openTab(evt, tabName) {
     tablinks[i].classList.remove("active");
   }
   document.getElementById(tabName).style.display = "block";
-  evt.currentTarget.classList.add("active");
+  if (tabElement) {
+    tabElement.classList.add("active");
+  }
 
   if (tabName === 'shipment-list') {
     currentShipmentPage = 1;
@@ -270,7 +272,7 @@ async function handleSaveRow(button) {
   button.addEventListener('click', (e) => handleEditRow(e.target));
 
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+  openTab(shipmentListTab, 'shipment-list');
 }
 
 function handleViewShipment(shipmentNo) {
@@ -306,7 +308,7 @@ async function openShipmentDetailsTab(shipmentNo) {
   newContent.innerHTML = `<h2>${shipmentNo}</h2><div class="spinner"></div>`;
   contentArea.appendChild(newContent);
 
-  openTab({ currentTarget: newTab }, newTab.dataset.tab);
+  openTab(newTab, newTab.dataset.tab);
 
   const data = await getShipmentDetails(shipmentNo);
 
@@ -327,7 +329,7 @@ function closeTab(tabName) {
   if (content) content.remove();
 
   const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-  openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+  openTab(shipmentListTab, 'shipment-list');
 }
 
 function initializeShipmentUpload() {
@@ -383,7 +385,7 @@ async function handleUpload() {
       showUploadStatus(translate('Data saved successfully!'), 'success');
       // Optionally, switch to the shipment list view
       const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
-      openTab({ currentTarget: shipmentListTab }, 'shipment-list');
+      openTab(shipmentListTab, 'shipment-list');
     } else {
       showUploadStatus(`${translate('Error: ')}${result.message || translate('An unknown error occurred.')}`, 'error');
     }
