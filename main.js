@@ -50,7 +50,7 @@ const pageScripts = {
         init: (content) => window.loadStockTakeData(content, supabaseClient)
     },
     'shipment': {
-        urls: ['shipment.js', 'shipment-allocation.js'],
+        urls: ['shipment.js'],
         init: (content) => {
             window.loadShipmentPage(content, supabaseClient);
         }
