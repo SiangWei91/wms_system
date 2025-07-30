@@ -9,6 +9,7 @@ let totalShipmentItems = 0;
 
 window.loadShipmentPage = async function (content, sb) {
   supabase = sb;
+  updateText();
   const tabContainer = document.querySelector('.tab-nav');
   tabContainer.addEventListener('click', async (event) => {
     const tab = event.target.closest('.tab-button');
