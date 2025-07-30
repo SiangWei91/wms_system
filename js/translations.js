@@ -364,6 +364,7 @@ const translations = {
     // Dashboard
     "Total Product": "Tổng số sản phẩm",
     "Total Stock": "Tổng tồn kho",
+    "Coldroom Temperature": "Nhiệt độ phòng lạnh",
 
     // Inventory Page
     "Total": "Tổng",
@@ -601,6 +602,7 @@ const translations = {
   "Product updated successfully!": "产品更新成功！",
   "Failed to update product: ": "更新产品失败：",
   "Inventory Management": "库存管理",
+  "Coldroom Temperature": "冷房最新温度",
   "Dashboard": "仪表板",
   "Product": "产品",
   "Inventory": "库存",
@@ -612,7 +614,7 @@ const translations = {
   "Packaging Material": "包装材料",
   "Order": "订单",
   "CR Temperature": "冷库温度",
-  "Service Record": "服务记录",
+  "Service Record": "维修记录",
   "Public Warehouse": "公共仓库",
   "Jordon": "Jordon",
   "Lineage": "Lineage",
@@ -663,8 +665,8 @@ const translations = {
   "Type": "类型",
   "Equipment": "设备",
   "Down Time": "停机时间",
-  "Service Company": "服务公司",
-  "Service No": "服务编号",
+  "Service Company": "维修公司",
+  "Service No": "维修编号",
   "--Please choose an option--": "--请选择--",
   "Forklift": "叉车",
   "Truck": "卡车",

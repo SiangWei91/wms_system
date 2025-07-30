@@ -111,6 +111,7 @@ window.loadDashboard = async function(supabase) {
   if (!container) {
     return;
   }
+  updateText();
   const latestTemps = await getLatestTemperatures(supabase);
   container.innerHTML = "";
   latestTemps.forEach(createTemperatureCard);

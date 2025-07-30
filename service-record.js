@@ -1,6 +1,7 @@
 const loadServiceRecordPage = async (content, supabase) => {
   let tableData = [];
   let sortColumn = null;
+  updateText();
   let sortDirection = 'asc';
 
   const equipmentOptions = {

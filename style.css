@@ -917,7 +917,7 @@ nav ul li i {
   align-items: center;
   gap: 10px; /* 欄位之間的間距 */
   margin-bottom: 15px;
-  width: 10%;
+  width: 25%;
 }
 
 .form-group-st label {
@@ -938,15 +938,6 @@ nav ul li i {
   width: 10%;
 }
 
-.form-group-st label {
-  margin-bottom: 0; /* 移除原本的下邊距 */
-}
-
-.form-group-st input {
-  width: auto; /* 讓 input 自動調整寬度，或使用固定寬度如 150px */
-  flex: 1;     /* 讓 input 彈性填滿可用空間 */
-  margin-bottom: 0; /* 移除 margin-bottom，避免拉高整列 */
-}
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -1215,25 +1206,28 @@ nav ul li i {
 /* Language Selector Styles */
 .language-selector {
   margin-left: auto;
-  margin-right: 15px;
+  margin-right: 12px;
 }
 
 .language-selector select {
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  background-color: #f5f7fa;
-  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  font-size: 0.85rem;
+  color: #374151;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .language-selector select:hover {
-  border-color: #3498db;
+  border-color: #60a5fa;
 }
 
 .language-selector select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
+

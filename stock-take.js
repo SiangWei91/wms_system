@@ -11,6 +11,7 @@ window.loadStockTakeData = async function(content, supabase) {
   const datePicker = document.getElementById('date-picker');
   datePicker.value = new Date().toISOString().split("T")[0];
   datePicker.addEventListener('change', displayData);
+  updateText();
 
   const tabNav = document.getElementById('stock-take-tab-nav');
 

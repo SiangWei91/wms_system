@@ -122,10 +122,10 @@
 /* Tab Navigation Container */
 #shipmentTabNav {
   display: flex;
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid #e0e0e0;
   /* margin-bottom: 0; /* Already set in previous rule if combined */
   overflow-x: auto;
-  background-color: #f8f9fa;
+  background-color: transparent;
   border-radius: 4px 4px 0 0;
   flex-grow: 1; /* Allows tab navigation to take up available space */
   margin-top: 20px;
@@ -138,7 +138,7 @@
   cursor: pointer;
   border: none;
   background-color: transparent;
-  color: #555;
+  color: black;
   font-size: 1em;
   transition: all 0.3s ease;
   margin: 0 5px;
@@ -171,17 +171,19 @@
 
 /* "Update to Inventory" Button Styling */
 #updateInventoryBtn {
-  padding: 8px 15px;
-  background-color: #28a745;
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #5dade2;
   border: none;
-  border-radius: 4px;
+  border-radius: 16px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s ease-in-out;
-  margin-left: 15px;
-  height: fit-content;
-  align-self: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 123, 255, 0.25);
 }
 
 #updateInventoryBtn:hover {
