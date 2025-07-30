@@ -34,12 +34,12 @@ const loadServiceRecordPage = async (content, supabase) => {
         renderTable();
       } else {
         const table = content.querySelector('#service-record-table tbody');
-        table.innerHTML = '<tr><td colspan="100%">No data found.</td></tr>';
+        table.innerHTML = `<tr><td colspan="100%">${translate("No data found.")}</td></tr>`;
       }
     } catch (error) {
       console.error('Error fetching service record:', error);
       const table = content.querySelector('#service-record-table tbody');
-      table.innerHTML = `<tr><td colspan="100%">Error loading data: ${error.message}</td></tr>`;
+      table.innerHTML = `<tr><td colspan="100%">${translate("Error loading data: ")}${error.message}</td></tr>`;
     }
   };
 
@@ -195,7 +195,7 @@ const loadServiceRecordPage = async (content, supabase) => {
         console.error('Error submitting form:', error);
         loader.style.display = 'none';
         submitButton.disabled = false;
-        alert('Error adding record. Please try again.');
+        alert(translate('Error adding record. Please try again.'));
       }
     });
 

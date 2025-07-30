@@ -19,57 +19,57 @@ window.loadTransactions = async function(contentElement, supabase) {
             <div class="search-container" style="margin-bottom: 20px;">
                 <form id="transaction-search-form" class="modern-filters">
                     <div class="form-group">
-                        <label for="start-date">Start Date</label>
+                        <label for="start-date">${translate('Start Date')}</label>
                         <input type="date" id="start-date" name="start-date">
                     </div>
                     <div class="form-group">
-                        <label for="end-date">End Date</label>
+                        <label for="end-date">${translate('End Date')}</label>
                         <input type="date" id="end-date" name="end-date">
                     </div>
                     <div class="form-group">
-                        <label for="warehouse">Warehouse</label>
+                        <label for="warehouse">${translate('Warehouse')}</label>
                         <select id="warehouse" name="warehouse">
-                            <option value="">All</option>
+                            <option value="">${translate('All')}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="transaction-type">Transaction Type</label>
+                        <label for="transaction-type">${translate('Transaction Type')}</label>
                         <select id="transaction-type" name="transaction-type">
-                            <option value="">All</option>
-                            <option value="inbound">Inbound</option>
-                            <option value="outbound">Outbound</option>
-                            <option value="internal_transfer">Internal Transfer</option>
-                            <option value="to_production">To Production</option>
-                            <option value="from_production">From Production</option>
-                            <option value="adjustment">Adjustment</option>
+                            <option value="">${translate('All')}</option>
+                            <option value="inbound">${translate('Inbound')}</option>
+                            <option value="outbound">${translate('Outbound')}</option>
+                            <option value="internal_transfer">${translate('Internal Transfer')}</option>
+                            <option value="to_production">${translate('To Production')}</option>
+                            <option value="from_production">${translate('From Production')}</option>
+                            <option value="adjustment">${translate('Adjustment')}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="product-search">Product</label>
-                        <input type="text" id="product-search" name="product-search" placeholder="Code or Name" list="product-list">
+                        <label for="product-search">${translate('Product')}</label>
+                        <input type="text" id="product-search" name="product-search" placeholder="${translate('Code or Name')}" list="product-list">
                         <datalist id="product-list"></datalist>
                     </div>
                     <div class="form-group">
-                        <label for="operator">Operator</label>
+                        <label for="operator">${translate('Operator')}</label>
                         <select id="operator" name="operator">
-                            <option value="">All</option>
+                            <option value="">${translate('All')}</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Search</button>
-                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="btn btn-primary">${translate('Search')}</button>
+                    <button type="reset" class="btn btn-secondary">${translate('Reset')}</button>
                 </form>
             </div>
             <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Transaction Date</th>
-                            <th>Item Code</th>
-                            <th>Product Description</th>
-                            <th>Warehouse</th>
-                            <th>Quantity</th>
-                            <th>Operator</th>
-                            <th>Action</th>
+                            <th>${translate('Transaction Date')}</th>
+                            <th>${translate('Item Code')}</th>
+                            <th>${translate('Product Description')}</th>
+                            <th>${translate('Warehouse')}</th>
+                            <th>${translate('Quantity')}</th>
+                            <th>${translate('Operator')}</th>
+                            <th>${translate('Action')}</th>
                         </tr>
                     </thead>
                     <tbody id="transactions-table-body">
@@ -116,7 +116,7 @@ window.loadTransactions = async function(contentElement, supabase) {
             const quantity = parseInt(button.dataset.quantity, 10);
             const type = button.dataset.type;
 
-            if (confirm(`Are you sure you want to delete this transaction? This will also update the inventory.`)) {
+            if (confirm(translate('Are you sure you want to delete this transaction? This will also update the inventory.'))) {
                 deleteTransaction(transactionId, inventoryId, destInventoryId, quantity, type, supabase);
             }
         }
@@ -182,7 +182,7 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
         console.error("Transactions table body not found. Cannot fetch transactions.");
         return;
     }
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center">Loading transactions...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center">${translate('Loading transactions...')}</td></tr>`;
 
     if (transactionFetchController) {
         transactionFetchController.abort();
@@ -281,10 +281,10 @@ async function fetchTransactions({ page = 1, searchParams = {} }, supabase) {
             console.log('Fetch aborted by user.');
         } else {
             console.error('Failed to fetch transaction list:', error);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading transactions: ${escapeHtml(error.message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${translate('Error loading transactions: ')}${escapeHtml(error.message)}</td></tr>`;
             const paginationDiv = document.getElementById('pagination');
             if (paginationDiv) {
-                paginationDiv.innerHTML = '<p class="text-danger text-center">Pagination unavailable.</p>';
+                paginationDiv.innerHTML = `<p class="text-danger text-center">${translate('Pagination unavailable.')}</p>`;
             }
         }
     } finally {
@@ -301,7 +301,7 @@ function renderTransactionsTable(transactions, warehouseMap) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="no-data text-center">
-                    No transactions found.
+                    ${translate('No transactions found.')}
                 </td>
             </tr>
         `;
@@ -364,7 +364,7 @@ function renderPagination(supabase) {
     const prevBtn = document.createElement('button');
     prevBtn.className = 'btn-pagination';
     prevBtn.disabled = transactionCurrentPageNum <= 1;
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
+    prevBtn.innerHTML = `<i class="fas fa-chevron-left"></i> ${translate('Previous')}`;
     prevBtn.addEventListener('click', () => {
         if (transactionCurrentPageNum > 1) {
             fetchTransactions({ page: transactionCurrentPageNum - 1 }, supabase);
@@ -374,13 +374,13 @@ function renderPagination(supabase) {
 
     const pageInfo = document.createElement('span');
     pageInfo.className = 'page-info';
-    pageInfo.textContent = `Page ${transactionCurrentPageNum} of ${transactionTotalNumPages} (${transactionTotalNumItems} items)`;
+    pageInfo.textContent = translateWithParams("Page {currentPage} of {totalPages} ({totalItems} items)", { currentPage: transactionCurrentPageNum, totalPages: transactionTotalNumPages, totalItems: transactionTotalNumItems });
     paginationDiv.appendChild(pageInfo);
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'btn-pagination';
     nextBtn.disabled = !transactionGlobalHasNextPage;
-    nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+    nextBtn.innerHTML = `${translate('Next')} <i class="fas fa-chevron-right"></i>`;
     nextBtn.addEventListener('click', () => {
         if (transactionGlobalHasNextPage) {
             fetchTransactions({ page: transactionCurrentPageNum + 1 }, supabase);

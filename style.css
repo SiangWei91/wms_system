@@ -1212,3 +1212,28 @@ nav ul li i {
   transform: translateY(-1px);
 }
 
+/* Language Selector Styles */
+.language-selector {
+  margin-left: auto;
+  margin-right: 15px;
+}
+
+.language-selector select {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #f5f7fa;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.language-selector select:hover {
+  border-color: #3498db;
+}
+
+.language-selector select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}

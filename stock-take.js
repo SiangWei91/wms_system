@@ -62,7 +62,7 @@ window.loadStockTakeData = async function(content, supabase) {
   } catch (error) {
     console.error('Failed to load stock take data:', error);
     const morningTbody = document.getElementById('morning-table-body');
-    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error loading data: ${error.message}</td></tr>`;
+    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${translate("Error loading data: ")}${error.message}</td></tr>`;
     const morningTable = document.getElementById('morning-wrapper');
     morningTable.style.display = 'block';
   }
@@ -78,7 +78,7 @@ function displayData() {
   const selectedDate = datePicker.value;
 
   if (!selectedDate) {
-    alert('Please select a date.');
+    alert(translate('Please select a date.'));
     return;
   }
 
@@ -89,7 +89,7 @@ function displayData() {
   if (!tableData) {
     const morningTbody = document.getElementById('morning-table-body');
     const afternoonTbody = document.getElementById('afternoon-table-body');
-    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">No data found for the selected coldroom.</td></tr>`;
+    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translate('No data found for the selected coldroom.')}</td></tr>`;
     afternoonTbody.innerHTML = '';
     const morningTable = document.getElementById('morning-wrapper');
     const afternoonTable = document.getElementById('afternoon-wrapper');
@@ -151,7 +151,7 @@ function displayData() {
     document.querySelector('#afternoon-wrapper .comparison-header').style.display = '';
 
     if (previousDayData.length === 0) {
-        morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">No data found for ${formattedPreviousDate}</td></tr>`;
+        morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translateWithParams('No data found for {formattedPreviousDate}', { formattedPreviousDate: formattedPreviousDate })}</td></tr>`;
     } else {
         previousDayData.forEach(row => {
             const tr = document.createElement('tr');
@@ -166,7 +166,7 @@ function displayData() {
     }
 
     if (selectedDayData.length === 0) {
-        afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">No data found for ${formattedDate}</td></tr>`;
+        afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">${translateWithParams('No data found for {formattedDate}', { formattedDate: formattedDate })}</td></tr>`;
     } else {
         const previousDayItems = {};
         previousDayData.forEach(row => {
@@ -229,7 +229,7 @@ function displayData() {
   afternoonTbody.innerHTML = '';
 
   if (morningData.length === 0) {
-    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">No data found for the morning.</td></tr>`;
+    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translate('No data found for the morning.')}</td></tr>`;
   } else {
     morningData.forEach(row => {
       const tr = document.createElement('tr');
@@ -244,7 +244,7 @@ function displayData() {
   }
 
   if (afternoonData.length === 0) {
-    afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">No data found for the afternoon.</td></tr>`;
+    afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">${translate('No data found for the afternoon.')}</td></tr>`;
   } else {
     const morningItems = {};
     morningData.forEach(row => {

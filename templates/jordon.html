@@ -1,27 +1,27 @@
 <link rel="stylesheet" href="inventory.css">
 <div class="jordon-container">
   <div class="tab-nav">
-    <button class="tab-button active" data-tab="inventory-summary">Inventory Summary</button>
-    <button class="tab-button" data-tab="stock-out">Stock Out</button>
-    <button class="tab-button" data-tab="stock-in">Stock In</button>
-    <button class="tab-button" data-tab="report">Report</button>
+    <button class="tab-button active" data-tab="inventory-summary" data-translate="Inventory Summary">Inventory Summary</button>
+    <button class="tab-button" data-tab="stock-out" data-translate="Stock Out">Stock Out</button>
+    <button class="tab-button" data-tab="stock-in" data-translate="Stock In">Stock In</button>
+    <button class="tab-button" data-tab="report" data-translate="Report">Report</button>
   </div>
   <div class="tab-content">
     <div id="inventory-summary" class="tab-pane active">
       <table id="jordon-inventory-summary-table" class="data-table">
         <thead>
           <tr>
-            <th>Item Code</th>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Pallet Type</th>
-            <th>Location</th>
-            <th>Batch No</th>
-            <th>Lot Number</th>
-            <th>Date Stored</th>
-            <th>Container</th>
-            <th>Quantity</th>
-            <th>Pallet</th>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Pallet Type">Pallet Type</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container">Container</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
           </tr>
         </thead>
         <tbody>
@@ -33,11 +33,11 @@
     <div id="stock-out" class="tab-pane">
       <div class="modern-filters">
         <div class="form-group">
-          <label for="jordon-draw-out-date">Draw Out Date:</label>
+          <label for="jordon-draw-out-date" data-translate="Draw Out Date:">Draw Out Date:</label>
           <input type="date" id="jordon-draw-out-date">
         </div>
         <div class="form-group">
-          <label for="jordon-draw-out-time">Draw Out Time:</label>
+          <label for="jordon-draw-out-time" data-translate="Draw Out Time:">Draw Out Time:</label>
           <select id="jordon-draw-out-time">
             <option value="09:00">9.00 am</option>
             <option value="10:00">10.00 am</option>
@@ -58,38 +58,38 @@
       <table id="jordon-stock-out-table" class="data-table">
         <thead>
           <tr>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Batch No</th>
-            <th>Location</th>
-            <th>Lot Number</th>
-            <th>Withdraw Quantity</th>
-            <th>Withdraw Pallet</th>
-            <th>Transfer to</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate="Withdraw Quantity">Withdraw Quantity</th>
+            <th data-translate="Withdraw Pallet">Withdraw Pallet</th>
+            <th data-translate="Transfer to">Transfer to</th>
           </tr>
         </thead>
         <tbody>
           <!-- Data will be loaded here -->
         </tbody>
       </table>
-      <button id="jordon-confirm-date-out-btn" class="btn-primary">Confirm Date Out</button>
+      <button id="jordon-confirm-date-out-btn" class="btn-primary" data-translate="Confirm Date Out">Confirm Date Out</button>
     </div>
     <div id="stock-in" class="tab-pane">
       <table id="jordon-stock-in-table" class="data-table">
         <thead>
           <tr>
-            <th>Item Code</th>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Pallet Type</th>
-            <th>Location</th>
-            <th>Batch No</th>
-            <th>Lot Number</th>
-            <th>Date Stored</th>
-            <th>Container</th>
-            <th>Quantity</th>
-            <th>Pallet</th>
-            <th>Mix Pallet</th>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Pallet Type">Pallet Type</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container">Container</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
+            <th data-translate="Mix Pallet">Mix Pallet</th>
           </tr>
         </thead>
         <tbody>
@@ -97,19 +97,19 @@
         </tbody>
         <tfoot></tfoot>
       </table>
-      <button id="jordon-submit-btn" class="btn-primary">Submit</button>
+      <button id="jordon-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
     </div>
     <div id="report" class="tab-pane">
       <div class="report-container">
-        <button id="jordon-show-reprint-form-btn" class="btn-secondary">Jordon Drawing Form Reprint</button>
+        <button id="jordon-show-reprint-form-btn" class="btn-secondary" data-translate="Jordon Drawing Form Reprint">Jordon Drawing Form Reprint</button>
         <div id="jordon-reprint-form-container" style="display: none; margin-top: 10px;">
           <div class="form-group">
-            <label for="jordon-reprint-order-number">Order Number:</label>
+            <label for="jordon-reprint-order-number" data-translate="Order Number:">Order Number:</label>
             <select id="jordon-reprint-order-number"></select>
           </div>
-          <button id="jordon-reprint-btn" class="btn-primary">Reprint</button>
+          <button id="jordon-reprint-btn" class="btn-primary" data-translate="Reprint">Reprint</button>
         </div>
-        <button id="jordon-inventory-transaction-report-btn" class="btn-secondary" style="margin-top: 10px;">Jordon Inventory Transaction Report</button>
+        <button id="jordon-inventory-transaction-report-btn" class="btn-secondary" style="margin-top: 10px;" data-translate="Jordon Inventory Transaction Report">Jordon Inventory Transaction Report</button>
       </div>
     </div>
   </div>

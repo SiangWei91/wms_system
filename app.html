@@ -17,73 +17,73 @@
       <aside class="sidebar" id="sidebar">
         <div class="logo">
           <i class="fas fa-boxes"></i>
-          <span>Inventory Management</span>
+          <span data-translate="Inventory Management">Inventory Management</span>
         </div>
         <nav>
           <ul>
             <li class="active" data-page="dashboard">
               <i class="fas fa-tachometer-alt"></i>
-              <span>Dashboard</span>
+              <span data-translate="Dashboard">Dashboard</span>
             </li>
             <li data-page="product">
               <i class="fas fa-box-open"></i>
-              <span>Product</span>
+              <span data-translate="Product">Product</span>
             </li>
             <li data-page="inventory">
               <i class="fas fa-warehouse"></i>
-              <span>Inventory</span>
+              <span data-translate="Inventory">Inventory</span>
             </li>
             <li data-page="transactions">
               <i class="fas fa-exchange-alt"></i>
-              <span>Transaction</span>
+              <span data-translate="Transaction">Transaction</span>
             </li>
             <li data-page="shipment">
               <i class="fas fa-shipping-fast"></i>
-              <span>Shipment</span>
+              <span data-translate="Shipment">Shipment</span>
             </li>
             <li data-page="stock-take">
               <i class="fas fa-boxes-stacked"></i>
-              <span>Stock Take</span>
+              <span data-translate="Stock Take">Stock Take</span>
             </li>
             <li data-page="transfer">
                 <i class="fas fa-random"></i>
-                <span>Transfer</span>
+                <span data-translate="Transfer">Transfer</span>
             </li>
             <li data-page="surimi">
                 <i class="fas fa-fish"></i>
-                <span>Surimi</span>
+                <span data-translate="Surimi">Surimi</span>
             </li>
             <li data-page="packaging-material">
                 <i class="fas fa-box"></i>
-                <span>Packaging Material</span>
+                <span data-translate="Packaging Material">Packaging Material</span>
             </li>
             <li data-page="order">
               <i class="fas fa-cart-shopping"></i>
-              <span>Order</span>
+              <span data-translate="Order">Order</span>
             </li>
             <li data-page="cr-temperature">
               <i class="fas fa-thermometer-half"></i>
-              <span>CR Temperature</span>
+              <span data-translate="CR Temperature">CR Temperature</span>
             </li>
             <li data-page="service-record">
               <i class="fas fa-tools"></i>
-              <span>Service Record</span>
+              <span data-translate="Service Record">Service Record</span>
             </li>
             <li data-page="public-warehouse">
               <i class="fas fa-warehouse"></i>
-              <span>Public Warehouse</span>
+              <span data-translate="Public Warehouse">Public Warehouse</span>
             </li>
             <li data-page="jordon" class="warehouse-option" style="display: none;">
               <i class="fas fa-building"></i>
-              <span>Jordon</span>
+              <span data-translate="Jordon">Jordon</span>
             </li>
             <li data-page="lineage" class="warehouse-option" style="display: none;">
               <i class="fas fa-building"></i>
-              <span>Lineage</span>
+              <span data-translate="Lineage">Lineage</span>
             </li>
             <li data-page="sing-long" class="warehouse-option" style="display: none;">
               <i class="fas fa-building"></i>
-              <span>Sing Long</span>
+              <span data-translate="Sing Long">Sing Long</span>
             </li>
           </ul>
         </nav>
@@ -96,7 +96,14 @@
           <div class="sidebar-toggle" id="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">
             <i class="fas fa-bars"></i>
           </div>
-          <div class="company-name">LI CHUAN FOOD PRODUCTS PTE LTD</div>
+          <div class="company-name" data-translate="LI CHUAN FOOD PRODUCTS PTE LTD">LI CHUAN FOOD PRODUCTS PTE LTD</div>
+          <div class="language-selector">
+            <select id="language-switcher">
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="zh">中文</option>
+            </select>
+          </div>
           <div class="user-info">
             <span id="user-info"></span>
             <div id="avatar-menu-trigger" class="avatar-menu-trigger">
@@ -104,7 +111,7 @@
                 <i class="fas fa-user-circle"></i>
               </div>
               <div id="avatar-dropdown" class="avatar-dropdown">
-                <a href="#" id="logout-button">Logout</a>
+                <a href="#" id="logout-button" data-translate="Logout">Logout</a>
               </div>
             </div>
           </div>
@@ -117,18 +124,19 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/translations.js"></script>
     <script src="main.js"></script>
     <div id="modal-container" class="modal-container jordon-withdrawal-modal" style="display: none;">
       <div class="modal">
         <div class="modal-header">
-          <h2>Withdraw Item</h2>
+          <h2 data-translate="Withdraw Item">Withdraw Item</h2>
           <button class="modal-close" id="jordon-modal-close-button">&times;</button>
         </div>
         <div class="modal-body" id="jordon-modal-body">
           <!-- Dynamic content will be injected here -->
         </div>
         <div class="modal-footer">
-          <button id="modal-submit-btn" class="btn-primary">Submit</button>
+          <button id="modal-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
         </div>
       </div>
     </div>

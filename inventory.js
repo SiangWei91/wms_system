@@ -45,7 +45,7 @@ window.loadInventoryPage = async (supabaseClient) => {
     const headerRow = document.createElement('tr');
     headers.forEach((headerText, index) => {
       const th = document.createElement('th');
-      th.textContent = headerText;
+      th.textContent = translate(headerText);
       if (columnsHidden && index >= 4 && index <= 11) {
         th.classList.add('hidden');
       }
@@ -141,7 +141,7 @@ window.loadInventoryPage = async (supabaseClient) => {
       const headerRow = document.createElement('tr');
       headers.forEach(headerText => {
         const th = document.createElement('th');
-        th.textContent = headerText;
+        th.textContent = translate(headerText);
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
@@ -169,7 +169,7 @@ window.loadInventoryPage = async (supabaseClient) => {
       const footerRow = document.createElement('tr');
       const totalLabelCell = document.createElement('td');
       totalLabelCell.colSpan = 3;
-      totalLabelCell.textContent = 'Total Quantity';
+      totalLabelCell.textContent = translate('Total Quantity');
       totalLabelCell.style.textAlign = 'right';
       const totalValueCell = document.createElement('td');
       totalValueCell.textContent = totalQuantity;
@@ -211,10 +211,10 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   const toggleButton = document.getElementById('toggle-columns-btn');
   if (toggleButton) {
-    toggleButton.innerHTML = columnsHidden ? 'Expand' : 'Collapse';
+    toggleButton.innerHTML = columnsHidden ? translate('Expand') : translate('Collapse');
     toggleButton.addEventListener('click', () => {
       columnsHidden = !columnsHidden;
-      toggleButton.innerHTML = columnsHidden ? 'Expand' : 'Collapse';
+      toggleButton.innerHTML = columnsHidden ? translate('Expand') : translate('Collapse');
       renderTable(data);
     });
   }

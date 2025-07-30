@@ -247,6 +247,20 @@ if (loginForm) {
     });
 }
 
+// Language switcher logic
+document.addEventListener('DOMContentLoaded', () => {
+    const languageSwitcher = document.getElementById('language-switcher');
+    if (languageSwitcher) {
+        // Set the initial value of the dropdown from localStorage
+        const currentLanguage = getLanguage();
+        languageSwitcher.value = currentLanguage;
+
+        languageSwitcher.addEventListener('change', (event) => {
+            setLanguage(event.target.value);
+        });
+    }
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     // DOMContentLoaded 事件处理已经在下面的代码中处理了
 });

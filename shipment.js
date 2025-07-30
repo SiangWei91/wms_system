@@ -110,7 +110,7 @@ function renderShipmentTable(data, showActions = true) {
 
   if (showActions) {
     const th = document.createElement('th');
-    th.textContent = 'Actions';
+    th.textContent = translate('Actions');
     headerRow.appendChild(th);
   }
 
@@ -171,7 +171,7 @@ function renderShipmentPagination() {
   const prevBtn = document.createElement('button');
   prevBtn.className = 'btn-pagination';
   prevBtn.disabled = currentShipmentPage <= 1;
-  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
+  prevBtn.innerHTML = `<i class="fas fa-chevron-left"></i> ${translate('Previous')}`;
   prevBtn.addEventListener('click', () => {
     if (currentShipmentPage > 1) {
       currentShipmentPage--;
@@ -182,13 +182,13 @@ function renderShipmentPagination() {
 
   const pageInfo = document.createElement('span');
   pageInfo.className = 'page-info';
-  pageInfo.textContent = `Page ${currentShipmentPage} of ${totalShipmentPages} (${totalShipmentItems} items)`;
+  pageInfo.textContent = translateWithParams("Page {currentPage} of {totalPages} ({totalItems} items)", { currentPage: currentShipmentPage, totalPages: totalShipmentPages, totalItems: totalShipmentItems });
   paginationDiv.appendChild(pageInfo);
 
   const nextBtn = document.createElement('button');
   nextBtn.className = 'btn-pagination';
   nextBtn.disabled = currentShipmentPage >= totalShipmentPages;
-  nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+  nextBtn.innerHTML = `${translate('Next')} <i class="fas fa-chevron-right"></i>`;
   nextBtn.addEventListener('click', () => {
     if (currentShipmentPage < totalShipmentPages) {
       currentShipmentPage++;
@@ -314,7 +314,7 @@ async function openShipmentDetailsTab(shipmentNo) {
     newContent.innerHTML = `<h2>${shipmentNo}</h2>`;
     newContent.appendChild(table);
   } else {
-    newContent.innerHTML = `<h2>${shipmentNo}</h2><p>Could not load shipment details.</p>`;
+    newContent.innerHTML = `<h2>${shipmentNo}</h2><p>${translate('Could not load shipment details.')}</p>`;
   }
 }
 
@@ -352,7 +352,7 @@ async function handleUpload() {
   const file = fileInput.files[0];
 
   if (!file) {
-    showUploadStatus('Please select a file.', 'error');
+    showUploadStatus(translate('Please select a file.'), 'error');
     return;
   }
 
@@ -379,15 +379,15 @@ async function handleUpload() {
     const result = await response.json();
 
     if (result.success) {
-      showUploadStatus('Data saved successfully!', 'success');
+      showUploadStatus(translate('Data saved successfully!'), 'success');
       // Optionally, switch to the shipment list view
       const shipmentListTab = document.querySelector('[data-tab="shipment-list"]');
       openTab({ currentTarget: shipmentListTab }, 'shipment-list');
     } else {
-      showUploadStatus(`Error: ${result.message || 'An unknown error occurred.'}`, 'error');
+      showUploadStatus(`${translate('Error: ')}${result.message || translate('An unknown error occurred.')}`, 'error');
     }
   } catch (error) {
-    showUploadStatus(`An error occurred: ${error.message}`, 'error');
+    showUploadStatus(`${translate('An error occurred: ')}${error.message}`, 'error');
   } finally {
     loadingIndicator.style.display = 'none';
   }
@@ -431,11 +431,11 @@ function processExcelFile(file) {
 
         } catch (error) {
             console.error('Error processing file:', error);
-            reject(new Error('Error processing Excel file: ' + error.message));
+            reject(new Error(translate('Error processing Excel file: ') + error.message));
         }
     };
      reader.onerror = (error) => {
-      reject(new Error('File could not be read: ' + error));
+      reject(new Error(translate('File could not be read: ') + error));
     };
     reader.readAsArrayBuffer(file);
   });

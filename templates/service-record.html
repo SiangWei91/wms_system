@@ -1,8 +1,8 @@
 <div class="service-record-container">
   <div class="tab-container">
     <div class="tab-nav">
-      <button class="tab-button active" data-tab="service-record-tab">Service Record</button>
-      <button class="tab-button" data-tab="add-record-tab">Add Record</button>
+      <button class="tab-button active" data-tab="service-record-tab" data-translate="Service Record">Service Record</button>
+      <button class="tab-button" data-tab="add-record-tab" data-translate="Add Record">Add Record</button>
     </div>
     <div class="tab-content">
       <div id="service-record-tab" class="tab-pane active">
@@ -18,44 +18,44 @@
       <div id="add-record-tab" class="tab-pane">
         <form id="add-record-form">
           <div class="form-group">
-            <label for="date">Date</label>
+            <label for="date" data-translate="Date">Date</label>
             <input type="date" id="date" name="date" required>
           </div>
           <div class="form-group">
-            <label for="type">Type</label>
+            <label for="type" data-translate="Type">Type</label>
             <select id="type" name="type" required>
-              <option value="">--Please choose an option--</option>
-              <option value="Forklift">Forklift</option>
-              <option value="Truck">Truck</option>
-              <option value="Coldroom">Coldroom</option>
-              <option value="Another">Another</option>
+              <option value="" data-translate="--Please choose an option--">--Please choose an option--</option>
+              <option value="Forklift" data-translate="Forklift">Forklift</option>
+              <option value="Truck" data-translate="Truck">Truck</option>
+              <option value="Coldroom" data-translate="Coldroom">Coldroom</option>
+              <option value="Another" data-translate="Another">Another</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="equipment">Equipment</label>
+            <label for="equipment" data-translate="Equipment">Equipment</label>
             <div id="equipment-container">
               <select id="equipment" name="equipment" required>
-                <option value="">--Please choose a type first--</option>
+                <option value="" data-translate="--Please choose a type first--">--Please choose a type first--</option>
               </select>
             </div>
           </div>
           <div class="form-group">
-            <label for="down-time">Down Time</label>
+            <label for="down-time" data-translate="Down Time">Down Time</label>
             <input type="text" id="down-time" name="down_time">
           </div>
           <div class="form-group">
-            <label for="service-company">Service Company</label>
+            <label for="service-company" data-translate="Service Company">Service Company</label>
             <input type="text" id="service-company" name="service_company">
           </div>
           <div class="form-group">
-            <label for="service-no">Service No</label>
+            <label for="service-no" data-translate="Service No">Service No</label>
             <input type="text" id="service-no" name="service_no">
           </div>
           <div class="form-group">
-            <label for="remark">Remark</label>
+            <label for="remark" data-translate="Remark">Remark</label>
             <textarea id="remark" name="remark" rows="4"></textarea>
           </div>
-          <button type="submit" form="add-record-form" class="btn-primary">Submit</button>
+          <button type="submit" form="add-record-form" class="btn-primary" data-translate="Submit">Submit</button>
         </form>
       </div>
     </div>
@@ -64,11 +64,11 @@
 <div id="modal-servicerecord-container" class="modal-container">
   <div class="modal">
     <div class="modal-header">
-      <h2>Success!</h2>
+      <h2 data-translate="Success!">Success!</h2>
       <button class="modal-close" id="modal-close-button">&times;</button>
     </div>
     <div class="modal-body">
-      <p>Record added successfully!</p>
+      <p data-translate="Record added successfully!">Record added successfully!</p>
     </div>
   </div>
 </div>

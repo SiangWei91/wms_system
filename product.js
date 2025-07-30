@@ -20,11 +20,11 @@ window.loadProducts = async function(contentElement, supabase) {
             <div class="page-header">
                 <div class="actions-container">
                     <div class="search-box">
-                        <input type="text" id="product-search" placeholder="Search Product..." value="${escapeHtml(currentProductSearchTerm)}">
+                        <input type="text" id="product-search" placeholder="${translate('Search Product...')}" value="${escapeHtml(currentProductSearchTerm)}">
                         <i class="fas fa-search"></i>
                     </div>
                     <button id="add-product-btn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Product
+                        <i class="fas fa-plus"></i> ${translate('Add Product')}
                     </button>
                 </div>
             </div>
@@ -32,10 +32,10 @@ window.loadProducts = async function(contentElement, supabase) {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Item Code</th>
-                            <th>Product Description</th>
-                            <th>Packing Size</th>
-                            <th>Action</th>
+                            <th>${translate('Item Code')}</th>
+                            <th>${translate('Product Description')}</th>
+                            <th>${translate('Packing Size')}</th>
+                            <th>${translate('Action')}</th>
                         </tr>
                     </thead>
                     <tbody id="products-table-body">
@@ -88,7 +88,7 @@ async function fetchProducts({ searchTerm = '', limit = PRODUCTS_PER_PAGE, page 
         console.error("Products table body not found. Cannot fetch products.");
         return;
     }
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center">Loading products...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center">${translate('Loading products...')}</td></tr>`;
 
     if (productFetchController) {
         productFetchController.abort();
@@ -127,10 +127,10 @@ async function fetchProducts({ searchTerm = '', limit = PRODUCTS_PER_PAGE, page 
             console.log('Fetch aborted by user.');
         } else {
             console.error('Failed to fetch product list:', error);
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading products: ${escapeHtml(error.message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${translate('Error loading products: ')}${escapeHtml(error.message)}</td></tr>`;
             const paginationDiv = document.getElementById('pagination');
             if (paginationDiv) {
-                paginationDiv.innerHTML = '<p class="text-danger text-center">Pagination unavailable.</p>';
+                paginationDiv.innerHTML = `<p class="text-danger text-center">${translate('Pagination unavailable.')}</p>`;
             }
         }
     } finally {
@@ -149,7 +149,7 @@ function renderProductsTable(products, supabase) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="5" class="no-data text-center">
-                    No products found${searchTerm ? ` for "${escapeHtml(searchTerm)}"` : ''}.
+                    ${translate('No products found')}${searchTerm ? translateWithParams(' for "{searchTerm}"', { searchTerm: escapeHtml(searchTerm) }) : ''}.
                 </td>
             </tr>
         `;
@@ -204,7 +204,7 @@ function renderPagination(supabase) {
     const prevBtn = document.createElement('button');
     prevBtn.className = 'btn-pagination';
     prevBtn.disabled = currentPageNum <= 1;
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Previous';
+    prevBtn.innerHTML = `<i class="fas fa-chevron-left"></i> ${translate('Previous')}`;
     prevBtn.addEventListener('click', () => {
         if (currentPageNum > 1) {
             fetchProducts({ searchTerm: currentProductSearchTerm, limit: PRODUCTS_PER_PAGE, page: currentPageNum - 1 }, supabase);
@@ -214,13 +214,13 @@ function renderPagination(supabase) {
 
     const pageInfo = document.createElement('span');
     pageInfo.className = 'page-info';
-    pageInfo.textContent = `Page ${currentPageNum} of ${totalNumPages} (${totalNumItems} items)`;
+    pageInfo.textContent = translateWithParams("Page {currentPage} of {totalPages} ({totalItems} items)", { currentPage: currentPageNum, totalPages: totalNumPages, totalItems: totalNumItems });
     paginationDiv.appendChild(pageInfo);
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'btn-pagination';
     nextBtn.disabled = !globalHasNextPage;
-    nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+    nextBtn.innerHTML = `${translate('Next')} <i class="fas fa-chevron-right"></i>`;
     nextBtn.addEventListener('click', () => {
         if (globalHasNextPage) {
             fetchProducts({ searchTerm: currentProductSearchTerm, limit: PRODUCTS_PER_PAGE, page: currentPageNum + 1 }, supabase);
@@ -243,27 +243,27 @@ function loadAddProductForm(contentElement, supabase) {
     }
     content.innerHTML = `
         <div class="form-container">
-            <h1>Add Product</h1>
+            <h1>${translate('Add Product')}</h1>
             <form id="product-form">
                 <div class="form-group">
-                    <label for="product_code">Item Code*</label>
+                    <label for="product_code">${translate('Item Code*')}</label>
                     <input type="text" id="product_code" name="product_code" required>
                 </div>
                 <div class="form-group">
-                    <label for="name">Product Description*</label>
+                    <label for="name">${translate('Product Description*')}</label>
                     <input type="text" id="name" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="product_chinese_name">Chinese Name</label>
+                    <label for="product_chinese_name">${translate('Chinese Name')}</label>
                     <input type="text" id="product_chinese_name" name="product_chinese_name">
                 </div>
                 <div class="form-group">
-                    <label for="packaging">Packing Size*</label>
-                    <input type="text" id="packaging" name="packaging" required placeholder="Example: 250g x 40p">
+                    <label for="packaging">${translate('Packing Size*')}</label>
+                    <input type="text" id="packaging" name="packaging" required placeholder="${translate('Example: 250g x 40p')}">
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">${translate('Cancel')}</button>
+                    <button type="submit" class="btn btn-primary">${translate('Save')}</button>
                 </div>
             </form>
         </div>
@@ -295,13 +295,13 @@ async function handleAddProduct(e, contentElement, supabase) {
         if (error) {
             throw error
         }
-        alert('产品添加成功!');
+        alert(translate('Product added successfully!'));
         currentProductSearchTerm = '';
         currentPageNum = 1;
         loadProducts(contentElement, supabase);
     } catch (error) {
         console.error('添加产品失败:', error);
-        alert('添加产品失败: ' + error.message);
+        alert(translate('Failed to add product: ') + error.message);
     }
 }
 
@@ -320,14 +320,14 @@ async function viewProduct(productId, supabase) {
             modalContainer.innerHTML = `
                 <div class="modal">
                     <div class="modal-header">
-                        <h2>Product Details</h2>
+                        <h2>${translate('Product Details')}</h2>
                         <button class="modal-close">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Item Code:</strong> ${escapeHtml(product.item_code)}</p>
-                        <p><strong>Product Name:</strong> ${escapeHtml(product.product_name)}</p>
-                        <p><strong>Chinese Name:</strong> ${escapeHtml(product.product_chinese_name || '')}</p>
-                        <p><strong>Packing Size:</strong> ${escapeHtml(product.packing_size)}</p>
+                        <p><strong>${translate('Item Code:')}</strong> ${escapeHtml(product.item_code)}</p>
+                        <p><strong>${translate('Product Name:')}</strong> ${escapeHtml(product.product_name)}</p>
+                        <p><strong>${translate('Chinese Name:')}</strong> ${escapeHtml(product.product_chinese_name || '')}</p>
+                        <p><strong>${translate('Packing Size:')}</strong> ${escapeHtml(product.packing_size)}</p>
                     </div>
                 </div>
             `;
@@ -336,11 +336,11 @@ async function viewProduct(productId, supabase) {
                 modalContainer.style.display = 'none';
             });
         } else {
-            alert('Product not found.');
+            alert(translate('Product not found.'));
         }
     } catch (error) {
         console.error('Failed to view product:', error);
-        alert('Failed to view product: ' + error.message);
+        alert(translate('Failed to view product: ') + error.message);
     }
 }
 
@@ -359,27 +359,27 @@ async function editProduct(productId, supabase) {
             if (!content) return;
             content.innerHTML = `
                 <div class="form-container">
-                    <h1>Edit Product</h1>
+                    <h1>${translate('Edit Product')}</h1>
                     <form id="edit-product-form" data-product-id="${escapeHtml(product.item_code || '')}">
                         <div class="form-group">
-                            <label for="edit-item_code">Item Code*</label>
+                            <label for="edit-item_code">${translate('Item Code*')}</label>
                             <input type="text" id="edit-item_code" name="item_code" value="${escapeHtml(product.item_code || '')}" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit-name">Product Description*</label>
+                            <label for="edit-name">${translate('Product Description*')}</label>
                             <input type="text" id="edit-name" name="name" value="${escapeHtml(product.product_name || '')}" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit-chineseName">Chinese Name</label>
+                            <label for="edit-chineseName">${translate('Chinese Name')}</label>
                             <input type="text" id="edit-chineseName" name="chineseName" value="${escapeHtml(product.product_chinese_name || '')}">
                         </div>
                         <div class="form-group">
-                            <label for="edit-packaging">Packing Size*</label>
-                            <input type="text" id="edit-packaging" name="packaging" value="${escapeHtml(product.packing_size || '')}" required placeholder="Example: 250g x 40p">
+                            <label for="edit-packaging">${translate('Packing Size*')}</label>
+                            <input type="text" id="edit-packaging" name="packaging" value="${escapeHtml(product.packing_size || '')}" required placeholder="${translate('Example: 250g x 40p')}">
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" id="cancel-edit-product-btn">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" id="cancel-edit-product-btn">${translate('Cancel')}</button>
+                            <button type="submit" class="btn btn-primary">${translate('Save Changes')}</button>
                         </div>
                     </form>
                 </div>
@@ -391,19 +391,19 @@ async function editProduct(productId, supabase) {
             if(editForm) editForm.addEventListener('submit', (e) => handleUpdateProduct(e, content, supabase));
 
         } else {
-            alert('Product not found for editing.');
+            alert(translate('Product not found for editing.'));
             currentPageNum = 1;
             loadProducts(content, supabase);
         }
     } catch (error) {
         console.error('Failed to fetch product for editing:', error);
-        alert('Failed to fetch product for editing: ' + error.message);
+        alert(translate('Failed to fetch product for editing: ') + error.message);
     }
 }
 
 async function deleteProduct(productId, supabase) {
     const content = document.getElementById('content');
-    if (confirm(`Are you sure you want to delete this product (ID: ${escapeHtml(productId)})?`)) {
+    if (confirm(translateWithParams('Are you sure you want to delete this product (ID: {productId})?', { productId: escapeHtml(productId) }))) {
         try {
             const { error } = await supabase
                 .from('products')
@@ -412,12 +412,12 @@ async function deleteProduct(productId, supabase) {
             if (error) {
                 throw error
             }
-            alert('Product deleted successfully!');
+            alert(translate('Product deleted successfully!'));
             currentPageNum = 1;
             loadProducts(content, supabase);
         } catch (error) {
             console.error('Failed to delete product:', error);
-            alert('Failed to delete product: ' + error.message);
+            alert(translate('Failed to delete product: ') + error.message);
         }
     }
 }
@@ -435,7 +435,7 @@ async function handleUpdateProduct(e, contentElement, supabase) {
     };
 
     if (!updatedProductData.item_code || !updatedProductData.product_name || !updatedProductData.packing_size) {
-        const msg = 'Product Code, Product Description, and Packing Size are required.';
+        const msg = translate('Product Code, Product Description, and Packing Size are required.');
         alert(msg);
         return;
     }
@@ -444,7 +444,7 @@ async function handleUpdateProduct(e, contentElement, supabase) {
     try {
         if (saveButton) {
             saveButton.disabled = true;
-            saveButton.textContent = 'Saving...';
+            saveButton.textContent = translate('Saving...');
         }
         const { error } = await supabase
             .from('products')
@@ -453,15 +453,15 @@ async function handleUpdateProduct(e, contentElement, supabase) {
         if (error) {
             throw error
         }
-        alert('Product updated successfully!');
+        alert(translate('Product updated successfully!'));
         loadProducts(contentElement, supabase);
     } catch (error) {
         console.error('Failed to update product:', error);
-        alert('Failed to update product: ' + error.message);
+        alert(translate('Failed to update product: ') + error.message);
     } finally {
         if (saveButton) {
             saveButton.disabled = false;
-            saveButton.textContent = 'Save Changes';
+            saveButton.textContent = translate('Save Changes');
         }
     }
 }

@@ -69,13 +69,13 @@ function createTemperatureCard(tempData) {
         hour: "2-digit",
         minute: "2-digit",
       }).format(tempData.latestEntries[0].DateTime)
-    : "N/A";
+    : translate("N/A");
 
   let content = `
     <i class="fas fa-thermometer-half"></i>
     <div>
       <h3 class="coldroom-name">${tempData.tabName}</h3>
-      <p class="last-update">Last Update: ${lastUpdate}</p>
+      <p class="last-update">${translate("Last Update: ")}${lastUpdate}</p>
   `;
 
   tempData.latestEntries.forEach((entry) => {

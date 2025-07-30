@@ -8,23 +8,31 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Login</h2>
+        <div class="language-selector-login">
+            <select id="language-switcher">
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="zh">中文</option>
+            </select>
+        </div>
+        <h2 data-translate="Login">Login</h2>
         <form id="login-form">
             <div class="form-group">
-                <label for="user-id">User ID:</label>
+                <label for="user-id" data-translate="User ID:">User ID:</label>
                 <input type="text" id="user-id" required>
             </div>
             <div class="form-group">
-                <label for="password">Password:</label>
+                <label for="password" data-translate="Password:">Password:</label>
                 <input type="password" id="password" required>
             </div>
             <button type="submit" class="btn-login">
-                <span class="btn-text">Login</span>
+                <span class="btn-text" data-translate="Login">Login</span>
                 <span class="loader"></span>
             </button>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/translations.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

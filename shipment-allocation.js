@@ -325,7 +325,7 @@ function displayExtractedData(data) {
 
     let html = '';
     if (!data || data.length === 0) {
-        html += '<p>No data to display for this view.</p>';
+        html += `<p>${translate('No data to display for this view.')}</p>`;
     } else {
         const activeViewName = getActiveViewName();
         let headers = ['Item Code', 'Product Description', 'Packing Size', 'Batch No', 'Quantity'];
@@ -343,7 +343,7 @@ function displayExtractedData(data) {
         headers.push('Remove');
         html += '<table border="1"><thead><tr>';
         headers.forEach(h => {
-            html += `<th>${escapeHtml(h)}</th>`;
+            html += `<th>${escapeHtml(translate(h))}</th>`;
         });
         html += '</tr></thead><tbody>';
         data.forEach((item, rowIndex) => {
@@ -377,7 +377,7 @@ function displayExtractedData(data) {
         if (activeViewName === 'Jordon' || activeViewName === 'Lineage') {
             const batchNoColIdx = currentDataKeys.indexOf('batchNo');
             if (batchNoColIdx > 0) {
-                footerCells[batchNoColIdx] = `<td><strong>Total :</strong></td>`;
+                footerCells[batchNoColIdx] = `<td><strong>${translate('Total :')}</strong></td>`;
             }
             const palletColIdx = currentDataKeys.indexOf('pallet');
             footerCells[palletColIdx] = `<td><strong>${totalPallets.toLocaleString()}</strong></td>`;
@@ -387,9 +387,9 @@ function displayExtractedData(data) {
             if (quantityColIdx !== -1) {
                 const batchNoColIdx = currentDataKeys.indexOf('batchNo');
                 if (batchNoColIdx !== -1 && batchNoColIdx < quantityColIdx) {
-                    footerCells[batchNoColIdx] = `<td><strong>Total Quantity:</strong></td>`;
+                    footerCells[batchNoColIdx] = `<td><strong>${translate('Total Quantity')}</strong></td>`;
                 } else if (quantityColIdx > 0) {
-                     footerCells[quantityColIdx - 1] = `<td><strong>Total Quantity:</strong></td>`;
+                     footerCells[quantityColIdx - 1] = `<td><strong>${translate('Total Quantity')}</strong></td>`;
                 }
                 footerCells[quantityColIdx] = `<td><strong>${totalQuantity.toLocaleString()}</strong></td>`;
             }
@@ -488,7 +488,7 @@ async function updateInventory(supabase) {
         <div class="modal" style="z-index: 1050;">
             <div class="modal-body">
                 <div class="spinner"></div>
-                <p>Updating inventory...</p>
+                <p>${translate('Updating inventory...')}</p>
             </div>
         </div>
     `;
@@ -502,7 +502,7 @@ async function updateInventory(supabase) {
             for (let i = 0; i < viewData.length; i++) {
                 const item = viewData[i];
                 if (!item.itemCode) {
-                    showModal('Error', `Row ${i + 1} in the ${viewName} table is missing an item code.`);
+                    showModal(translate('Error'), translateWithParams('Row {i + 1} in the {viewName} table is missing an item code.', { i: i, viewName: viewName }));
                     return;
                 }
                 allItems.push({ ...item, warehouse_id: warehouseId });
@@ -512,7 +512,7 @@ async function updateInventory(supabase) {
         for (const item of allItems) {
             const { productId } = await lookupOrCreateProduct(item.itemCode, item.productDescription, item.packingSize, supabase);
             if (!productId) {
-                showModal('Error', `Could not find or create product with item code ${item.itemCode}.`);
+                showModal(translate('Error'), translateWithParams('Could not find or create product with item code {item.itemCode}.', { itemCode: item.itemCode }));
                 return;
             }
 
@@ -574,10 +574,10 @@ async function updateInventory(supabase) {
 
         shipmentModuleState.allExtractedData = {};
         displayExtractedData([]);
-        showModal('Success', 'Inventory updated successfully!');
+        showModal(translate('Success'), translate('Inventory updated successfully!'));
     } catch (error) {
         console.error('Error updating inventory:', error);
-        showModal('Error', `An unexpected error occurred: ${error.message}`);
+        showModal(translate('Error'), `${translate('An unexpected error occurred: ')}${error.message}`);
     } finally {
         hideModal();
     }

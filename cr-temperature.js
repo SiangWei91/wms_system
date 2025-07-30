@@ -37,7 +37,7 @@ const loadCrTemperaturePage = (() => {
     } catch (error) {
       console.error("Error fetching data:", error);
       if (tabContent) {
-        tabContent.innerHTML = `<p>Error loading data.</p>`;
+        tabContent.innerHTML = `<p>${translate("Error loading data.")}</p>`;
       }
     }
   }
@@ -116,10 +116,10 @@ const loadCrTemperaturePage = (() => {
     table.innerHTML = `
       <thead>
         <tr>
-          <th>Time</th>
-          <th>Temperature</th>
-          <th>Check By</th>
-          <th>Remark</th>
+          <th>${translate("Time")}</th>
+          <th>${translate("Temperature")}</th>
+          <th>${translate("Check By")}</th>
+          <th>${translate("Remark")}</th>
         </tr>
       </thead>
       <tbody>
@@ -145,7 +145,7 @@ const loadCrTemperaturePage = (() => {
     const container = document.createElement("div");
     container.className = "cr-temperature-chart-container modern-table-container";
     const title = document.createElement("h3");
-    title.textContent = `${coldroomName} - Chart`;
+    title.textContent = `${coldroomName}${translate(" - Chart")}`;
     container.appendChild(title);
 
     const canvas = document.createElement("canvas");
@@ -164,7 +164,7 @@ const loadCrTemperaturePage = (() => {
         labels: labels,
         datasets: [
           {
-            label: "Temperature",
+            label: translate("Temperature"),
             data: temperatures,
             borderColor: "rgba(75, 192, 192, 1)",
             backgroundColor: "rgba(75, 192, 192, 0.2)",

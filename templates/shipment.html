@@ -1,13 +1,13 @@
 <link rel="stylesheet" href="shipment.css" />
 <div class="shipment-content-area">
   <div class="tab-nav">
-    <button class="tab-button active" data-tab="shipment-list">
+    <button class="tab-button active" data-tab="shipment-list" data-translate="Shipment List">
       Shipment List
     </button>
-    <button class="tab-button" data-tab="shipment-upload">
+    <button class="tab-button" data-tab="shipment-upload" data-translate="Shipment Upload">
       Shipment Upload
     </button>
-    <button class="tab-button" data-tab="shipment-allocation">
+    <button class="tab-button" data-tab="shipment-allocation" data-translate="Shipment Allocation">
       Shipment Allocation
     </button>
   </div>
@@ -20,27 +20,27 @@
   <div id="shipment-upload" class="tab-content" style="display: none;">
     <div class="upload-card">
       <div class="upload-header">
-        <h3>Upload Shipment File</h3>
-        <p>Select an Excel file to upload and save to the system.</p>
+        <h3 data-translate="Upload Shipment File">Upload Shipment File</h3>
+        <p data-translate="Select an Excel file to upload and save to the system.">Select an Excel file to upload and save to the system.</p>
       </div>
       <div class="upload-body">
         <div class="upload-form">
           <div class="form-group">
             <label for="excelFile" class="file-label">
               <i class="fas fa-cloud-upload-alt"></i>
-              <span>Choose a file...</span>
+              <span data-translate="Choose a file...">Choose a file...</span>
             </label>
             <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" class="file-input">
           </div>
           <button id="uploadButton" class="btn btn-primary">
             <i class="fas fa-save"></i>
-            Upload and Save
+            <span data-translate="Upload and Save">Upload and Save</span>
           </button>
         </div>
         <div id="upload-status" class="upload-status"></div>
         <div id="loading-indicator" class="loading-indicator" style="display: none;">
           <div class="spinner"></div>
-          <p>Uploading, please wait...</p>
+          <p data-translate="Uploading, please wait...">Uploading, please wait...</p>
         </div>
       </div>
     </div>
@@ -49,15 +49,15 @@
     <div id="shipment-allocation" class="tab-content" style="display: none;">
       <div class="upload-card">
         <div class="upload-header">
-          <h3>Allocate Shipment</h3>
-          <p>Select an Excel file to allocate a shipment.</p>
+          <h3 data-translate="Allocate Shipment">Allocate Shipment</h3>
+          <p data-translate="Select an Excel file to allocate a shipment.">Select an Excel file to allocate a shipment.</p>
         </div>
         <div class="upload-body">
           <div class="upload-form">
             <div class="form-group">
               <label for="excelFileInput" class="file-label">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <span>Choose a file...</span>
+                <span data-translate="Choose a file...">Choose a file...</span>
               </label>
               <input type="file" id="excelFileInput" accept=".xlsx, .xlsm" class="file-input" style="display: none;" />
             </div>
@@ -72,7 +72,7 @@
               <div id="shipmentTabNav" style="display: none; flex-grow: 1;">
                   <!-- Tabs will be dynamically inserted here by JavaScript -->
               </div>
-              <button id="updateInventoryBtn" style="display: none;">Update to Inventory</button>
+              <button id="updateInventoryBtn" style="display: none;" data-translate="Update to Inventory">Update to Inventory</button>
           </div>
           <div id="resultsContainer">
               <!-- Results will be displayed here by js/shipment.js for the active tab -->

@@ -1,27 +1,27 @@
 <link rel="stylesheet" href="inventory.css">
 <div class="lineage-container">
   <div class="tab-nav">
-    <button class="tab-button active" data-tab="inventory-summary">Inventory Summary</button>
-    <button class="tab-button" data-tab="stock-out">Stock Out</button>
-    <button class="tab-button" data-tab="stock-in">Stock In</button>
-    <button class="tab-button" data-tab="report">Report</button>
+    <button class="tab-button active" data-tab="inventory-summary" data-translate="Inventory Summary">Inventory Summary</button>
+    <button class="tab-button" data-tab="stock-out" data-translate="Stock Out">Stock Out</button>
+    <button class="tab-button" data-tab="stock-in" data-translate="Stock In">Stock In</button>
+    <button class="tab-button" data-tab="report" data-translate="Report">Report</button>
   </div>
   <div class="tab-content">
     <div id="inventory-summary" class="tab-pane active">
       <table id="lineage-inventory-summary-table" class="data-table">
         <thead>
           <tr>
-            <th>Item Code</th>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Pallet Type</th>
-            <th>Location</th>
-            <th>Batch No</th>
-            <th>LLM Code</th>
-            <th>Date Stored</th>
-            <th>Container</th>
-            <th>Quantity</th>
-            <th>Pallet</th>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Pallet Type">Pallet Type</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="LLM Code">LLM Code</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container">Container</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
           </tr>
         </thead>
         <tbody>
@@ -33,11 +33,11 @@
     <div id="stock-out" class="tab-pane">
       <div class="modern-filters">
         <div class="form-group">
-          <label for="lineage-draw-out-date">Draw Out Date:</label>
+          <label for="lineage-draw-out-date" data-translate="Draw Out Date:">Draw Out Date:</label>
           <input type="date" id="lineage-draw-out-date">
         </div>
         <div class="form-group">
-          <label for="lineage-draw-out-time">Draw Out Time:</label>
+          <label for="lineage-draw-out-time" data-translate="Draw Out Time:">Draw Out Time:</label>
           <select id="lineage-draw-out-time">
             <option value="09:00">9.00 am</option>
             <option value="10:00">10.00 am</option>
@@ -58,38 +58,38 @@
       <table id="lineage-stock-out-table" class="data-table">
         <thead>
           <tr>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Batch No</th>
-            <th>Location</th>
-            <th>LLM Code</th>
-            <th>Withdraw Quantity</th>
-            <th>Withdraw Pallet</th>
-            <th>Transfer to</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="LLM Code">LLM Code</th>
+            <th data-translate="Withdraw Quantity">Withdraw Quantity</th>
+            <th data-translate="Withdraw Pallet">Withdraw Pallet</th>
+            <th data-translate="Transfer to">Transfer to</th>
           </tr>
         </thead>
         <tbody>
           <!-- Data will be loaded here -->
         </tbody>
       </table>
-      <button id="lineage-confirm-date-out-btn" class="btn-primary">Confirm Date Out</button>
+      <button id="lineage-confirm-date-out-btn" class="btn-primary" data-translate="Confirm Date Out">Confirm Date Out</button>
     </div>
     <div id="stock-in" class="tab-pane">
       <table id="lineage-stock-in-table" class="data-table">
         <thead>
           <tr>
-            <th>Item Code</th>
-            <th>Product Name</th>
-            <th>Packing Size</th>
-            <th>Pallet Type</th>
-            <th>Location</th>
-            <th>Batch No</th>
-            <th>LLM Code</th>
-            <th>Date Stored</th>
-            <th>Container</th>
-            <th>Quantity</th>
-            <th>Pallet</th>
-            <th>Mix Pallet</th>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Pallet Type">Pallet Type</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="LLM Code">LLM Code</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container">Container</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
+            <th data-translate="Mix Pallet">Mix Pallet</th>
           </tr>
         </thead>
         <tbody>
@@ -97,18 +97,18 @@
         </tbody>
         <tfoot></tfoot>
       </table>
-      <button id="lineage-submit-btn" class="btn-primary">Submit</button>
+      <button id="lineage-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
     </div>
     <div id="report" class="tab-pane">
       <div class="report-container">
-        <button id="lineage-show-records-btn" class="btn-secondary">Lineage Drawing Form Records</button>
+        <button id="lineage-show-records-btn" class="btn-secondary" data-translate="Lineage Drawing Form Records">Lineage Drawing Form Records</button>
       </div>
     </div>
   </div>
     <div id="lineage-records-modal" class="lineage-modal" style="display: none;">
       <div class="modal-content">
         <span class="close-button">&times;</span>
-        <h2>Lineage Drawing Form Records</h2>
+        <h2 data-translate="Lineage Drawing Form Records">Lineage Drawing Form Records</h2>
         <div id="lineage-records-table-container"></div>
       </div>
     </div>
