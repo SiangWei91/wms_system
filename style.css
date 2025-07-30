@@ -1268,4 +1268,10 @@ nav ul li i {
   .actions-container > * {
     flex-shrink: 0;
   }
+  .transactions .modern-filters {
+    overflow-x: auto;
+  }
+  .transactions .modern-filters .form-group {
+    flex-shrink: 0;
+  }
 }
