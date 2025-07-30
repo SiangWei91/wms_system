@@ -95,6 +95,7 @@ const translations = {
 
     // Header
     "LI CHUAN FOOD PRODUCTS PTE LTD": "LI CHUAN FOOD PRODUCTS PTE LTD",
+    "Li Chuan": "Li Chuan",
 
     // Dashboard
     "Total Product": "Total Product",
