@@ -265,6 +265,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // DOMContentLoaded 事件处理已经在下面的代码中处理了
 });
 
+window.addEventListener('resize', () => {
+    updateText();
+});
+
 if (window.location.pathname.endsWith('app.html')) {
     const userName = getCookie('userName');
     if (userName) {
