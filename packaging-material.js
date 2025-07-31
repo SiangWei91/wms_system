@@ -6,7 +6,8 @@ window.loadPackagingMaterialPage = async (supabase) => {
     const fetchInventory = async () => {
         const { data, error } = await supabase
             .from('p_material')
-            .select('item_code, name, packing_size, quantity, uom');
+            .select('item_code, name, packing_size, quantity, uom')
+            .order('index', { ascending: true });
 
         if (error) {
             console.error('Error fetching inventory:', error);
