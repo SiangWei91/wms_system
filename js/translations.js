@@ -523,8 +523,7 @@ const translations = {
     "Loc": "Vị trí",
     "Lot No": "Số lot",
     "Plts": "Pallets",
-    "Qty": "Số lượng",
-    "Regards,": "Trân trọng,",
+    "Qty": "Số lượng",    "Regards,": "Trân trọng,",
     "Issue By:": "Phát hành bởi:",
     "Collected By:": "Người nhận:",
     "Verified By:": "Xác nhận bởi:",
@@ -553,11 +552,7 @@ const translations = {
     "Error fetching transactions.": "Lỗi khi lấy giao dịch.",
     "Report for {month} {year}": "Báo cáo cho {month} {year}",
     "Opening Stock": "Tồn đầu kỳ",
-    "Closing Stock": "Tồn cuối kỳ",
-    "Total Quantity Balance: ": "Tổng số lượng còn lại: ",
-    "Total Pallet Balance: ": "Tổng số pallet còn lại: ",
-//packaging material
-  "Transaction Record": "Ghi nhận giao dịch",
+"Transaction Record": "Ghi nhận giao dịch",
   "Search by Item Code or Name...": "Tìm theo mã hoặc tên sản phẩm...",
   "Name": "Tên",
   "UOM": "Đơn vị",
@@ -576,9 +571,10 @@ const translations = {
   "Name:": "Tên:",
   "Category:": "Danh mục:",
   "Packing Size:": "Kích thước đóng gói:",
-  "Location:": "Vị trí:"
-
-
+  "Location:": "Vị trí:",
+    "Closing Stock": "Tồn cuối kỳ",
+    "Total Quantity Balance: ": "Tổng số lượng còn lại: ",
+    "Total Pallet Balance: ": "Tổng số pallet còn lại: "
   },
   zh: {
   "Login": "登录",
@@ -811,15 +807,7 @@ const translations = {
   "Close": "关闭",
   "Export to PDF": "导出 PDF",
   "Export to Excel": "导出 Excel",
-  "Generating report...": "生成报告中…",
-  "Error fetching opening stock.": "获取期初库存失败。",
-  "Error fetching transactions.": "获取交易记录失败。",
-  "Report for {month} {year}": "{month} {year} 的报告",
-  "Opening Stock": "期初库存",
-  "Closing Stock": "期末库存",
-  "Total Quantity Balance: ": "总数量结余：",
-  "Total Pallet Balance: ": "总托盘结余：", //packaging material
-  "Transaction Record": "交易记录",
+"Transaction Record": "交易记录",
   "Search by Item Code or Name...": "通过物料编码或名称搜索...",
   "Name": "名称",
   "UOM": "单位",
@@ -838,7 +826,17 @@ const translations = {
   "Name:": "名称：",
   "Category:": "类别：",
   "Packing Size:": "包装规格：",
-  "Location:": "存放位置："
+  "Location:": "存放位置：",
+  "Generating report...": "生成报告中…",
+  "Error fetching opening stock.": "获取期初库存失败。",
+  "Error fetching transactions.": "获取交易记录失败。",
+  "Report for {month} {year}": "{month} {year} 的报告",
+  "Opening Stock": "期初库存",
+  "Closing Stock": "期末库存",
+  "Total Quantity Balance: ": "总数量结余：",
+  "Total Pallet Balance: ": "总托盘结余："
+}
+
 };
 
 // Auto-fill blank translations with English values for simplicity
