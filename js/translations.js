@@ -839,8 +839,6 @@ const translations = {
   "Category:": "类别：",
   "Packing Size:": "包装规格：",
   "Location:": "存放位置："
-}
-
 };
 
 // Auto-fill blank translations with English values for simplicity
