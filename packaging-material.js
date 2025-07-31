@@ -80,6 +80,31 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return `${day}/${month}/${year}`;
     };
 
+    const adjustmentTableBody = document.getElementById('adjustment-table-body');
+
+    const renderAdjustmentTable = (inventory) => {
+        adjustmentTableBody.innerHTML = '';
+        if (inventory.length === 0) {
+            adjustmentTableBody.innerHTML = '<tr><td colspan="6">No data available</td></tr>';
+            return;
+        }
+
+        inventory.forEach(item => {
+            const row = document.createElement('tr');
+            row.dataset.name = item.name;
+            row.dataset.quantity = item.quantity;
+            row.innerHTML = `
+                <td>${item.item_code || ''}</td>
+                <td>${item.name || ''}</td>
+                <td>${item.packing_size || ''}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${item.uom || ''}</td>
+                <td><input type="number" class="actual-value-input" style="width: 100px;"></td>
+            `;
+            adjustmentTableBody.appendChild(row);
+        });
+    };
+
     const renderTransactionTable = (transactions, count) => {
         transactionTableBody.innerHTML = '';
         totalTransactions = count;
@@ -144,6 +169,9 @@ window.loadPackagingMaterialPage = async (supabase) => {
             currentPage = 0;
             const { data, count } = await fetchTransactions(currentPage);
             renderTransactionTable(data, count);
+        } else if (tabId === 'adjustment') {
+            const inventory = await fetchInventory();
+            renderAdjustmentTable(inventory);
         }
     };
 
@@ -288,6 +316,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
         if (quantityUpdated) {
             const transactionDeleted = await deleteTransaction(id);
             if (transactionDeleted) {
+                currentPage = 0; // Reset to first page
                 await refreshInventory();
             }
         }
@@ -476,4 +505,52 @@ window.loadPackagingMaterialPage = async (supabase) => {
     let inventory = await fetchInventory();
     renderInventoryTable(inventory);
     switchTab('inventory-summary'); // Ensure the first tab is active
+
+    const adjustBtn = document.getElementById('adjust-btn');
+    adjustBtn.addEventListener('click', async () => {
+        const updates = [];
+        const transactions = [];
+        const rows = adjustmentTableBody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const input = row.querySelector('.actual-value-input');
+            const actualValue = input.value;
+
+            if (actualValue !== '') {
+                const name = row.dataset.name;
+                const oldQuantity = parseInt(row.dataset.quantity, 10);
+                const newQuantity = parseInt(actualValue, 10);
+
+                if (oldQuantity !== newQuantity) {
+                    updates.push({ name: name, quantity: newQuantity });
+                    transactions.push({
+                        name: name,
+                        transaction_type: 'Adjustment',
+                        quantity: newQuantity - oldQuantity,
+                        transaction_date: new Date().toISOString().split('T')[0]
+                    });
+                }
+            }
+        });
+
+        if (updates.length > 0) {
+            const { error: updateError } = await supabase.from('p_material').upsert(updates, { onConflict: 'name' });
+            if (updateError) {
+                console.error('Error updating quantities:', updateError);
+                alert('Failed to update quantities.');
+                return;
+            }
+
+            const { error: transactionError } = await supabase.from('p_transaction').insert(transactions);
+            if (transactionError) {
+                console.error('Error creating adjustment transactions:', transactionError);
+                alert('Failed to create adjustment transactions.');
+                return;
+            }
+
+            await refreshInventory();
+            // After refresh, switch back to the adjustment tab to see the changes
+            await switchTab('adjustment');
+        }
+    });
 };
