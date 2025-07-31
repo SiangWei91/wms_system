@@ -6,7 +6,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
     const fetchInventory = async () => {
         const { data, error } = await supabase
             .from('p_material')
-            .select('name, packing_size, quantity, uom');
+            .select('item_code, name, packing_size, quantity, uom');
 
         if (error) {
             console.error('Error fetching inventory:', error);
@@ -18,13 +18,14 @@ window.loadPackagingMaterialPage = async (supabase) => {
     const renderInventoryTable = (inventory) => {
         tableBody.innerHTML = '';
         if (inventory.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4">No data available</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
             return;
         }
 
         inventory.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td>${item.item_code}</td>
                 <td>${item.name}</td>
                 <td>${item.packing_size || ''}</td>
                 <td>${item.quantity}</td>
@@ -67,12 +68,29 @@ window.loadPackagingMaterialPage = async (supabase) => {
 
         transactions.forEach(tx => {
             const row = document.createElement('tr');
+            let quantityCell;
+            let typeCellClass = '';
+
+            switch (tx.transaction_type) {
+                case 'Stock In':
+                    typeCellClass = 'text-green';
+                    quantityCell = `<td class="${typeCellClass}">+${tx.quantity}</td>`;
+                    break;
+                case 'Stock Out':
+                    typeCellClass = 'text-red';
+                    quantityCell = `<td class="${typeCellClass}">-${tx.quantity}</td>`;
+                    break;
+                default:
+                    quantityCell = `<td>${tx.quantity}</td>`;
+                    break;
+            }
+
             row.innerHTML = `
                 <td>${tx.transaction_date}</td>
                 <td>${tx.name}</td>
                 <td>${tx.p_material.packing_size || ''}</td>
-                <td>${tx.transaction_type}</td>
-                <td>${tx.quantity}</td>
+                <td class="${typeCellClass}">${tx.transaction_type}</td>
+                ${quantityCell}
                 <td>${tx.p_material.uom}</td>
             `;
             transactionTableBody.appendChild(row);
@@ -102,46 +120,106 @@ window.loadPackagingMaterialPage = async (supabase) => {
         });
     });
 
-    // Modal logic
-    const modal = document.getElementById('transaction-modal');
-    const closeButton = document.querySelector('.close-button');
+    // Modal logic for both transaction and add product modals
+    const transactionModal = document.getElementById('transaction-modal');
+    const addProductModal = document.getElementById('add-product-modal');
+    const closeButtons = document.querySelectorAll('.close-button');
+
+    const openModal = (modal) => {
+        modal.style.display = 'block';
+    };
+
+    const closeModal = (modal) => {
+        modal.style.display = 'none';
+    };
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const modal = event.target.closest('.modal');
+            closeModal(modal);
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) {
+            closeModal(event.target);
+        }
+    });
+
+    // Transaction Modal specific logic
     const transactionForm = document.getElementById('transaction-form');
     const stockInBtn = document.getElementById('stock-in-btn');
     const stockOutBtn = document.getElementById('stock-out-btn');
     const transactionTypeInput = document.getElementById('transaction-type-input');
 
-    const openModal = (item) => {
+    const openTransactionModal = (item) => {
         document.getElementById('item-name').value = item.name;
         document.getElementById('packing-size').value = item.packing_size || '';
         document.getElementById('current-quantity').value = item.quantity;
         document.getElementById('uom').value = item.uom;
-        modal.style.display = 'block';
+        openModal(transactionModal);
     };
-
-    const closeModal = () => {
-        modal.style.display = 'none';
-        transactionForm.reset();
-        stockInBtn.classList.remove('active');
-        stockOutBtn.classList.remove('active');
-    };
-
-    closeButton.addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target == modal) {
-            closeModal();
-        }
-    });
 
     tableBody.addEventListener('click', (event) => {
         const row = event.target.closest('tr');
         if (!row) return;
 
-        const name = row.cells[0].textContent;
-        const packing_size = row.cells[1].textContent;
-        const quantity = row.cells[2].textContent;
-        const uom = row.cells[3].textContent;
+        const item_code = row.cells[0].textContent;
+        const name = row.cells[1].textContent;
+        const packing_size = row.cells[2].textContent;
+        const quantity = row.cells[3].textContent;
+        const uom = row.cells[4].textContent;
 
-        openModal({ name, packing_size, quantity, uom });
+        openTransactionModal({ item_code, name, packing_size, quantity, uom });
+    });
+
+    // Add Product Modal specific logic
+    const addProductBtn = document.getElementById('add-product-btn');
+    const addProductForm = document.getElementById('add-product-form');
+
+    addProductBtn.addEventListener('click', () => {
+        openModal(addProductModal);
+    });
+
+    const createProduct = async (product) => {
+        const { error } = await supabase
+            .from('p_material')
+            .insert([product]);
+
+        if (error) {
+            console.error('Error creating product:', error);
+            alert('Failed to create product.');
+            return false;
+        }
+        return true;
+    };
+
+    addProductForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const newProduct = {
+            item_code: document.getElementById('new-item-code').value,
+            name: document.getElementById('new-name').value,
+            category: document.getElementById('new-category').value,
+            packing_size: document.getElementById('new-packing-size').value,
+            quantity: parseInt(document.getElementById('new-quantity').value, 10),
+            uom: document.getElementById('new-uom').value,
+            location: document.getElementById('new-location').value
+        };
+
+        if (isNaN(newProduct.quantity)) {
+            alert('Please enter a valid quantity.');
+            return;
+        }
+
+        const productCreated = await createProduct(newProduct);
+        if (productCreated) {
+            alert('Product added successfully!');
+            addProductForm.reset();
+            closeModal(addProductModal);
+            // Refresh inventory table
+            inventory = await fetchInventory();
+            renderInventoryTable(inventory);
+        }
     });
 
     stockInBtn.addEventListener('click', () => {
@@ -222,7 +300,10 @@ window.loadPackagingMaterialPage = async (supabase) => {
             const transactionCreated = await createTransaction(name, transactionType, quantity);
             if (transactionCreated) {
                 alert('Transaction successful!');
-                closeModal();
+                transactionForm.reset();
+                stockInBtn.classList.remove('active');
+                stockOutBtn.classList.remove('active');
+                closeModal(transactionModal);
                 // Refresh inventory table
                 inventory = await fetchInventory();
                 renderInventoryTable(inventory);
@@ -230,6 +311,19 @@ window.loadPackagingMaterialPage = async (supabase) => {
         }
     });
 
+
+    // Search functionality
+    const searchBar = document.getElementById('search-bar');
+    searchBar.addEventListener('keyup', () => {
+        const searchTerm = searchBar.value.toLowerCase();
+        const filteredInventory = inventory.filter(item => {
+            return (
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.item_code.toLowerCase().includes(searchTerm)
+            );
+        });
+        renderInventoryTable(filteredInventory);
+    });
 
     // Initial load
     let inventory = await fetchInventory();

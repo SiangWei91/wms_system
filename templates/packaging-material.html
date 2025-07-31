@@ -7,11 +7,15 @@
         <button class="tab-nav-button" data-tab="report">Report</button>
     </div>
     <div id="inventory-summary" class="tab-content active">
-        <h2>Inventory Summary</h2>
+        <div class="inventory-controls">
+            <input type="text" id="search-bar" class="search-bar" placeholder="Search by Item Code or Name...">
+            <button id="add-product-btn" class="btn btn-primary">Add Product</button>
+        </div>
         <div class="table-container">
             <table id="inventory-table">
                 <thead>
                     <tr>
+                        <th>Item Code</th>
                         <th>Name</th>
                         <th>Packing Size</th>
                         <th>Quantity</th>
@@ -25,7 +29,6 @@
         </div>
     </div>
     <div id="transaction-record" class="tab-content">
-        <h2>Transaction Record</h2>
         <div class="table-container">
             <table id="transaction-table">
                 <thead>
@@ -45,11 +48,9 @@
         </div>
     </div>
     <div id="adjustment" class="tab-content">
-        <h2>Adjustment</h2>
         <p>This feature is coming soon.</p>
     </div>
     <div id="report" class="tab-content">
-        <h2>Report</h2>
         <p>This feature is coming soon.</p>
     </div>
 </div>
@@ -85,7 +86,46 @@
                 <label for="quantity">Quantity:</label>
                 <input type="number" id="quantity" name="quantity" required>
             </div>
-            <button type="submit" class="btn">Submit</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div id="add-product-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="add-product-form">
+            <div class="form-group">
+                <label for="new-item-code">Item Code:</label>
+                <input type="text" id="new-item-code" name="new-item-code" required>
+            </div>
+            <div class="form-group">
+                <label for="new-name">Name:</label>
+                <input type="text" id="new-name" name="new-name" required>
+            </div>
+            <div class="form-group">
+                <label for="new-category">Category:</label>
+                <input type="text" id="new-category" name="new-category">
+            </div>
+            <div class="form-group">
+                <label for="new-packing-size">Packing Size:</label>
+                <input type="text" id="new-packing-size" name="new-packing-size">
+            </div>
+            <div class="form-group">
+                <label for="new-quantity">Quantity:</label>
+                <input type="number" id="new-quantity" name="new-quantity" required>
+            </div>
+            <div class="form-group">
+                <label for="new-uom">UOM:</label>
+                <input type="text" id="new-uom" name="new-uom" required>
+            </div>
+            <div class="form-group">
+                <label for="new-location">Location:</label>
+                <input type="text" id="new-location" name="new-location">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Product</button>
         </form>
     </div>
 </div>
