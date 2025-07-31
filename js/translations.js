@@ -554,7 +554,30 @@ const translations = {
     "Opening Stock": "Tồn đầu kỳ",
     "Closing Stock": "Tồn cuối kỳ",
     "Total Quantity Balance: ": "Tổng số lượng còn lại: ",
-    "Total Pallet Balance: ": "Tổng số pallet còn lại: "
+    "Total Pallet Balance: ": "Tổng số pallet còn lại: ",
+//packaging material
+  "Transaction Record": "Ghi nhận giao dịch",
+  "Search by Item Code or Name...": "Tìm theo mã hoặc tên sản phẩm...",
+  "Name": "Tên",
+  "UOM": "Đơn vị",
+  "Actual Value": "Giá trị thực tế",
+  "Adjust": "Điều chỉnh",
+  "Stock Checking Form": "Biểu mẫu kiểm kê kho",
+  "Submit End Month Report": "Gửi báo cáo cuối tháng",
+  "View End Month Report": "Xem báo cáo cuối tháng",
+  "View": "Xem",
+  "Stock Transaction": "Giao dịch kho",
+  "Current Quantity:": "Số lượng hiện tại:",
+  "UOM:": "Đơn vị:",
+  "Quantity:": "Số lượng:",
+  "Add New Product": "Thêm sản phẩm mới",
+  "Item Code:": "Mã sản phẩm:",
+  "Name:": "Tên:",
+  "Category:": "Danh mục:",
+  "Packing Size:": "Kích thước đóng gói:",
+  "Location:": "Vị trí:"
+
+
   },
   zh: {
   "Login": "登录",
@@ -795,6 +818,27 @@ const translations = {
   "Closing Stock": "期末库存",
   "Total Quantity Balance: ": "总数量结余：",
   "Total Pallet Balance: ": "总托盘结余："
+//packaging material
+"Transaction Record": "交易记录",
+  "Search by Item Code or Name...": "通过物料编码或名称搜索...",
+  "Name": "名称",
+  "UOM": "单位",
+  "Actual Value": "实际数量",
+  "Adjust": "调整",
+  "Stock Checking Form": "库存盘点表",
+  "Submit End Month Report": "提交月末报告",
+  "View End Month Report": "查看月末报告",
+  "View": "查看",
+  "Stock Transaction": "库存变动",
+  "Current Quantity:": "当前数量：",
+  "UOM:": "单位：",
+  "Quantity:": "数量：",
+  "Add New Product": "新增产品",
+  "Item Code:": "物料编码：",
+  "Name:": "名称：",
+  "Category:": "类别：",
+  "Packing Size:": "包装规格：",
+  "Location:": "存放位置："
 }
 
 };
