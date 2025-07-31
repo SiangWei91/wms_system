@@ -523,7 +523,8 @@ const translations = {
     "Loc": "Vị trí",
     "Lot No": "Số lot",
     "Plts": "Pallets",
-    "Qty": "Số lượng",    "Regards,": "Trân trọng,",
+    "Qty": "Số lượng",
+    "Regards,": "Trân trọng,",
     "Issue By:": "Phát hành bởi:",
     "Collected By:": "Người nhận:",
     "Verified By:": "Xác nhận bởi:",
@@ -817,9 +818,8 @@ const translations = {
   "Opening Stock": "期初库存",
   "Closing Stock": "期末库存",
   "Total Quantity Balance: ": "总数量结余：",
-  "Total Pallet Balance: ": "总托盘结余：",
-//packaging material
-"Transaction Record": "交易记录",
+  "Total Pallet Balance: ": "总托盘结余：", //packaging material
+  "Transaction Record": "交易记录",
   "Search by Item Code or Name...": "通过物料编码或名称搜索...",
   "Name": "名称",
   "UOM": "单位",
