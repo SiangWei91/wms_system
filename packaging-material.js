@@ -547,8 +547,8 @@ window.loadPackagingMaterialPage = async (supabase) => {
                     @page { margin: 0; size: portrait; }
                     body { margin: 1cm; }
                 }
-                body { font-family: sans-serif; font-size: 8px; }
-                table { width: 100%; border-collapse: collapse; font-size: 8px; }
+                body { font-family: sans-serif; font-size: 12px; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
                 th, td { border: 1px solid black; padding: 4px; text-align: left; }
                 th { background-color: #f2f2f2; }
                 .empty-col { width: 150px; }
