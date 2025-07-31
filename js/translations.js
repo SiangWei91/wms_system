@@ -265,7 +265,29 @@ const translations = {
     "Opening Stock": "Opening Stock",
     "Closing Stock": "Closing Stock",
     "Total Quantity Balance: ": "Total Quantity Balance: ",
-    "Total Pallet Balance: ": "Total Pallet Balance: "
+    "Total Pallet Balance: ": "Total Pallet Balance: ",
+
+    // Packaging Material
+    "Transaction Record": "Transaction Record",
+    "Search by Item Code or Name...": "Search by Item Code or Name...",
+    "Name": "Name",
+    "UOM": "UOM",
+    "Actual Value": "Actual Value",
+    "Adjust": "Adjust",
+    "Stock Checking Form": "Stock Checking Form",
+    "Submit End Month Report": "Submit End Month Report",
+    "View End Month Report": "View End Month Report",
+    "View": "View",
+    "Stock Transaction": "Stock Transaction",
+    "Current Quantity:": "Current Quantity:",
+    "UOM:": "UOM:",
+    "Quantity:": "Quantity:",
+    "Add New Product": "Add New Product",
+    "Item Code:": "Item Code:",
+    "Name:": "Name:",
+    "Category:": "Category:",
+    "Packing Size:": "Packing Size:",
+    "Location:": "Location:"
   },
   vi: {
     // General
