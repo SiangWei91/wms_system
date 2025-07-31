@@ -42,6 +42,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
         const { data, error } = await supabase
             .from('p_transaction')
             .select(`
+                id,
                 transaction_date,
                 name,
                 transaction_type,
@@ -101,6 +102,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
                 <td class="${typeCellClass}">${tx.transaction_type}</td>
                 ${quantityCell}
                 <td>${tx.p_material.uom}</td>
+                <td><button class="delete-btn" data-id="${tx.id}" data-name="${tx.name}" data-type="${tx.transaction_type}" data-quantity="${tx.quantity}">&times;</button></td>
             `;
             transactionTableBody.appendChild(row);
         });
@@ -182,6 +184,61 @@ window.loadPackagingMaterialPage = async (supabase) => {
         openTransactionModal({ item_code, name, packing_size, quantity, uom });
     });
 
+    const deleteTransaction = async (id) => {
+        const { error } = await supabase
+            .from('p_transaction')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting transaction:', error);
+            alert('Failed to delete transaction.');
+            return false;
+        }
+        return true;
+    };
+
+    transactionTableBody.addEventListener('click', async (event) => {
+        if (!event.target.classList.contains('delete-btn')) {
+            return;
+        }
+
+        const button = event.target;
+        const id = button.dataset.id;
+        const name = button.dataset.name;
+        const type = button.dataset.type;
+        const quantity = parseInt(button.dataset.quantity, 10);
+
+        const { data: material, error: materialError } = await supabase
+            .from('p_material')
+            .select('quantity')
+            .eq('name', name)
+            .single();
+
+        if (materialError) {
+            console.error('Error fetching material quantity:', materialError);
+            alert('Could not fetch material details to revert stock.');
+            return;
+        }
+
+        let revertedQuantity;
+        if (type === 'Stock In') {
+            revertedQuantity = material.quantity - quantity;
+        } else if (type === 'Stock Out') {
+            revertedQuantity = material.quantity + quantity;
+        } else {
+            return; // Do nothing for other types
+        }
+
+        const quantityUpdated = await updateInventoryQuantity(name, revertedQuantity);
+        if (quantityUpdated) {
+            const transactionDeleted = await deleteTransaction(id);
+            if (transactionDeleted) {
+                await refreshInventory();
+            }
+        }
+    });
+
     // Add Product Modal specific logic
     const addProductBtn = document.getElementById('add-product-btn');
     const addProductForm = document.getElementById('add-product-form');
@@ -216,6 +273,23 @@ window.loadPackagingMaterialPage = async (supabase) => {
 
     addProductForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        // Get the last index
+        const { data: lastProduct, error: lastProductError } = await supabase
+            .from('p_material')
+            .select('index')
+            .order('index', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (lastProductError && lastProductError.code !== 'PGRST116') { // Ignore 'exact one row' error if table is empty
+            console.error('Error fetching last index:', lastProductError);
+            alert('Could not determine new product index.');
+            return;
+        }
+
+        const newIndex = lastProduct ? lastProduct.index + 1 : 1;
+
         const newProduct = {
             item_code: document.getElementById('new-item-code').value,
             name: document.getElementById('new-name').value,
@@ -223,7 +297,8 @@ window.loadPackagingMaterialPage = async (supabase) => {
             packing_size: document.getElementById('new-packing-size').value,
             quantity: parseInt(document.getElementById('new-quantity').value, 10),
             uom: document.getElementById('new-uom').value,
-            location: document.getElementById('new-location').value
+            location: document.getElementById('new-location').value,
+            index: newIndex
         };
 
         if (isNaN(newProduct.quantity)) {
@@ -233,7 +308,6 @@ window.loadPackagingMaterialPage = async (supabase) => {
 
         const productCreated = await createProduct(newProduct);
         if (productCreated) {
-            alert('Product added successfully!');
             addProductForm.reset();
             closeModal(addProductModal);
             await refreshInventory();
@@ -319,7 +393,6 @@ window.loadPackagingMaterialPage = async (supabase) => {
         if (quantityUpdated) {
             const transactionCreated = await createTransaction(name, transactionType, quantity, transactionDate);
             if (transactionCreated) {
-                alert('Transaction successful!');
                 transactionForm.reset();
                 stockInBtn.classList.remove('active');
                 stockOutBtn.classList.remove('active');

@@ -251,3 +251,12 @@ tbody tr:hover {
     color: #dc3545;
     font-weight: 600;
 }
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
