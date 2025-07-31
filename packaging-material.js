@@ -57,6 +57,8 @@ window.loadPackagingMaterialPage = async (supabase) => {
                 name,
                 transaction_type,
                 quantity,
+                system_quantity,
+                actual_quantity,
                 p_material (
                     packing_size,
                     uom
@@ -131,8 +133,12 @@ window.loadPackagingMaterialPage = async (supabase) => {
                     typeCellClass = 'text-red';
                     quantityCell = `<td class="${typeCellClass}">-${tx.quantity}</td>`;
                     break;
-                default:
-                    quantityCell = `<td>${tx.quantity}</td>`;
+                default: // Handles 'Adjustment' and any other types
+                    if (tx.transaction_type === 'Adjustment') {
+                        quantityCell = `<td>${tx.system_quantity} → ${tx.actual_quantity}</td>`;
+                    } else {
+                        quantityCell = `<td>${tx.quantity}</td>`;
+                    }
                     break;
             }
 
@@ -349,8 +355,8 @@ window.loadPackagingMaterialPage = async (supabase) => {
         searchBar.value = ''; // Clear search bar
         // Also refresh transaction tab if it's active
         if (document.querySelector('.tab-nav-button[data-tab="transaction-record"]').classList.contains('active')) {
-            const transactions = await fetchTransactions();
-            renderTransactionTable(transactions);
+            const { data, count } = await fetchTransactions(currentPage);
+            renderTransactionTable(data, count);
         }
     };
 
@@ -423,16 +429,22 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return true;
     };
 
-    const createTransaction = async (name, transactionType, quantity, date) => {
-        const transactionDate = date || new Date().toISOString().split('T')[0];
+    const createTransaction = async (transactionData) => {
+        const payload = {
+            transaction_date: transactionData.date || new Date().toISOString().split('T')[0],
+            name: transactionData.name,
+            transaction_type: transactionData.transaction_type,
+            quantity: transactionData.quantity
+        };
+
+        if (transactionData.transaction_type === 'Adjustment') {
+            payload.system_quantity = transactionData.system_quantity;
+            payload.actual_quantity = transactionData.actual_quantity;
+        }
+
         const { error } = await supabase
             .from('p_transaction')
-            .insert([{
-                transaction_date: transactionDate,
-                name: name,
-                transaction_type: transactionType,
-                quantity: quantity
-            }]);
+            .insert([payload]);
 
         if (error) {
             console.error('Error creating transaction:', error);
@@ -474,7 +486,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
 
         const quantityUpdated = await updateInventoryQuantity(name, newQuantity);
         if (quantityUpdated) {
-            const transactionCreated = await createTransaction(name, transactionType, quantity, transactionDate);
+            const transactionCreated = await createTransaction({ name, transaction_type: transactionType, quantity, date: transactionDate });
             if (transactionCreated) {
                 transactionForm.reset();
                 stockInBtn.classList.remove('active');
@@ -527,30 +539,28 @@ window.loadPackagingMaterialPage = async (supabase) => {
                         name: name,
                         transaction_type: 'Adjustment',
                         quantity: newQuantity - oldQuantity,
-                        transaction_date: new Date().toISOString().split('T')[0]
+                        system_quantity: oldQuantity,
+                        actual_quantity: newQuantity,
+                        date: new Date().toISOString().split('T')[0]
                     });
                 }
             }
         });
 
         if (updates.length > 0) {
-            const { error: updateError } = await supabase.from('p_material').upsert(updates, { onConflict: 'name' });
-            if (updateError) {
-                console.error('Error updating quantities:', updateError);
-                alert('Failed to update quantities.');
-                return;
-            }
+            const updatePromises = updates.map(u => updateInventoryQuantity(u.name, u.quantity));
+            const transactionPromises = transactions.map(t => createTransaction(t));
 
-            const { error: transactionError } = await supabase.from('p_transaction').insert(transactions);
-            if (transactionError) {
-                console.error('Error creating adjustment transactions:', transactionError);
-                alert('Failed to create adjustment transactions.');
-                return;
-            }
+            const updateResults = await Promise.all(updatePromises);
+            const transactionResults = await Promise.all(transactionPromises);
 
-            await refreshInventory();
-            // After refresh, switch back to the adjustment tab to see the changes
-            await switchTab('adjustment');
+            if (updateResults.includes(false) || transactionResults.includes(false)) {
+                alert('One or more adjustments failed. Please check the console for details.');
+            } else {
+                await refreshInventory();
+                // After refresh, switch back to the adjustment tab to see the changes
+                await switchTab('adjustment');
+            }
         }
     });
 };
