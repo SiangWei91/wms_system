@@ -67,6 +67,10 @@
             </div>
             <input type="hidden" id="transaction-type-input" name="transaction-type">
             <div class="form-group">
+                <label for="transaction-date">Date:</label>
+                <input type="date" id="transaction-date" name="transaction-date">
+            </div>
+            <div class="form-group">
                 <label for="item-name">Name:</label>
                 <input type="text" id="item-name" name="item-name" readonly>
             </div>
@@ -86,7 +90,9 @@
                 <label for="quantity">Quantity:</label>
                 <input type="number" id="quantity" name="quantity" required>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="form-submit-group">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
         </form>
     </div>
 </div>
@@ -125,7 +131,9 @@
                 <label for="new-location">Location:</label>
                 <input type="text" id="new-location" name="new-location">
             </div>
-            <button type="submit" class="btn btn-primary">Add Product</button>
+            <div class="form-submit-group">
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </div>
         </form>
     </div>
 </div>

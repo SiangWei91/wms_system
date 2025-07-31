@@ -59,6 +59,14 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return data;
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
     const renderTransactionTable = (transactions) => {
         transactionTableBody.innerHTML = '';
         if (transactions.length === 0) {
@@ -86,7 +94,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
             }
 
             row.innerHTML = `
-                <td>${tx.transaction_date}</td>
+                <td>${formatDate(tx.transaction_date)}</td>
                 <td>${tx.name}</td>
                 <td>${tx.p_material.packing_size || ''}</td>
                 <td class="${typeCellClass}">${tx.transaction_type}</td>
@@ -194,6 +202,17 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return true;
     };
 
+    const refreshInventory = async () => {
+        inventory = await fetchInventory();
+        renderInventoryTable(inventory);
+        searchBar.value = ''; // Clear search bar
+        // Also refresh transaction tab if it's active
+        if (document.querySelector('.tab-nav-button[data-tab="transaction-record"]').classList.contains('active')) {
+            const transactions = await fetchTransactions();
+            renderTransactionTable(transactions);
+        }
+    };
+
     addProductForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const newProduct = {
@@ -216,9 +235,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
             alert('Product added successfully!');
             addProductForm.reset();
             closeModal(addProductModal);
-            // Refresh inventory table
-            inventory = await fetchInventory();
-            renderInventoryTable(inventory);
+            await refreshInventory();
         }
     });
 
@@ -248,11 +265,12 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return true;
     };
 
-    const createTransaction = async (name, transactionType, quantity) => {
+    const createTransaction = async (name, transactionType, quantity, date) => {
+        const transactionDate = date || new Date().toISOString().split('T')[0];
         const { error } = await supabase
             .from('p_transaction')
             .insert([{
-                transaction_date: new Date().toISOString().split('T')[0],
+                transaction_date: transactionDate,
                 name: name,
                 transaction_type: transactionType,
                 quantity: quantity
@@ -273,6 +291,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
         const transactionType = transactionTypeInput.value;
         const quantity = parseInt(document.getElementById('quantity').value, 10);
         const currentQuantity = parseInt(document.getElementById('current-quantity').value, 10);
+        const transactionDate = document.getElementById('transaction-date').value;
 
         if (!transactionType) {
             alert('Please select a transaction type (Stock In or Stock Out).');
@@ -297,16 +316,14 @@ window.loadPackagingMaterialPage = async (supabase) => {
 
         const quantityUpdated = await updateInventoryQuantity(name, newQuantity);
         if (quantityUpdated) {
-            const transactionCreated = await createTransaction(name, transactionType, quantity);
+            const transactionCreated = await createTransaction(name, transactionType, quantity, transactionDate);
             if (transactionCreated) {
                 alert('Transaction successful!');
                 transactionForm.reset();
                 stockInBtn.classList.remove('active');
                 stockOutBtn.classList.remove('active');
                 closeModal(transactionModal);
-                // Refresh inventory table
-                inventory = await fetchInventory();
-                renderInventoryTable(inventory);
+                await refreshInventory();
             }
         }
     });
@@ -317,9 +334,11 @@ window.loadPackagingMaterialPage = async (supabase) => {
     searchBar.addEventListener('keyup', () => {
         const searchTerm = searchBar.value.toLowerCase();
         const filteredInventory = inventory.filter(item => {
+            const name = item.name || '';
+            const itemCode = item.item_code || '';
             return (
-                item.name.toLowerCase().includes(searchTerm) ||
-                item.item_code.toLowerCase().includes(searchTerm)
+                name.toLowerCase().includes(searchTerm) ||
+                itemCode.toLowerCase().includes(searchTerm)
             );
         });
         renderInventoryTable(filteredInventory);
