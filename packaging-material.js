@@ -539,59 +539,60 @@ window.loadPackagingMaterialPage = async (supabase) => {
         const month = new Date().toLocaleString('en-US', { month: 'long' });
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html>
-                <head>
-                    <title>${month} Month End Stock Balance</title>
-                    <style>
-                        @media print {
-                            @page { margin: 0; size: portrait; }
-                            body { margin: 1cm; }
-                        }
-                        body { font-family: sans-serif; }
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                        .empty-col { width: 150px; }
-                    </style>
-                </head>
-                <body>
-                    <h2>${month} Month End Stock Balance</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item Code</th>
-                                <th>Name</th>
-                                <th>Packing Size</th>
-                                <th>Quantity</th>
-                                <th>UOM</th>
-                                <th>Location</th>
-                                <th class="empty-col"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${printData.map(item => `
-                                <tr>
-                                    <td>${item.item_code || ''}</td>
-                                    <td>${item.name || ''}</td>
-                                    <td>${item.packing_size || ''}</td>
-                                    <td>${item.quantity || 0}</td>
-                                    <td>${item.uom || ''}</td>
-                                    <td>${item.location || ''}</td>
-                                    <td></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <script>
-                        window.onload = () => {
-                            window.print();
-                            window.close();
-                        }
-                    </script>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
+    <html>
+        <head>
+            <title>${month} Month End Stock Balance</title>
+            <style>
+                @media print {
+                    @page { margin: 0; size: portrait; }
+                    body { margin: 1cm; }
+                }
+                body { font-family: sans-serif; font-size: 8px; }
+                table { width: 100%; border-collapse: collapse; font-size: 8px; }
+                th, td { border: 1px solid black; padding: 4px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                .empty-col { width: 150px; }
+            </style>
+        </head>
+        <body>
+            <h2 style="font-size: 10px;">${month} Month End Stock Balance</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Code</th>
+                        <th>Name</th>
+                        <th>Packing Size</th>
+                        <th>Quantity</th>
+                        <th>UOM</th>
+                        <th>Location</th>
+                        <th class="empty-col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${printData.map(item => `
+                        <tr>
+                            <td>${item.item_code || ''}</td>
+                            <td>${item.name || ''}</td>
+                            <td>${item.packing_size || ''}</td>
+                            <td>${item.quantity || 0}</td>
+                            <td>${item.uom || ''}</td>
+                            <td>${item.location || ''}</td>
+                            <td></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <script>
+                window.onload = () => {
+                    window.print();
+                    window.close();
+                }
+            </script>
+        </body>
+    </html>
+`);
+printWindow.document.close();
+
     });
 
     const submitEndMonthReportBtn = document.getElementById('submit-end-month-report-btn');
@@ -611,11 +612,13 @@ window.loadPackagingMaterialPage = async (supabase) => {
             return;
         }
 
-        const today = new Date();
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const currentDate = new Date();
+const year = currentDate.getFullYear();
+const month = currentDate.getMonth();
+const firstDayOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
         const snapshotData = inventory.map(item => ({
-            snapshot_month: firstDayOfMonth.toISOString().split('T')[0],
+            snapshot_month: firstDayOfMonth,
             item_code: item.item_code,
             name: item.name,
             category: item.category,

@@ -22,7 +22,7 @@
     padding: 15px 25px;
     cursor: pointer;
     font-size: 16px;
-    color: #555;
+    color: black;
     position: relative;
     transition: color 0.3s ease;
 }
@@ -205,18 +205,22 @@ tbody tr:hover {
 }
 
 .btn {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #5dade2;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 123, 255, 0.25);
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
+
 
 .btn-primary:hover {
     background-color: #0056b3;
@@ -282,6 +286,7 @@ tbody tr:hover {
     border: none;
     text-align: center;
     width: 100px;
+    height: 30px; /* 调大这个值 */
     background-color: #f1f1f1;
     border-radius: 4px;
 }
@@ -297,9 +302,29 @@ tbody tr:hover {
 
 .report-btn {
     width: 250px;
-    padding: 15px;
-    font-size: 18px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    background:  #5dade2;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+    transition: all 0.3s ease;
 }
+
+.report-btn:hover {
+    background: linear-gradient(to right, #549fd4, #aed6f1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(93, 173, 226, 0.5);
+}
+
+.report-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(93, 173, 226, 0.3);
+}
+
 
 .report-view-container {
     margin-top: 20px;
@@ -308,3 +333,28 @@ tbody tr:hover {
     align-items: center;
     justify-content: center;
 }
+
+#month-select-dropdown {
+    appearance: none; /* 去掉默认样式 */
+    padding: 10px 14px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='7' viewBox='0 0 12 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23999' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  #month-select-dropdown:focus {
+    outline: none;
+    border-color: #2684ff;
+    box-shadow: 0 0 0 3px rgba(38, 132, 255, 0.3);
+  }
+  
