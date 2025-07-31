@@ -522,6 +522,190 @@ window.loadPackagingMaterialPage = async (supabase) => {
     renderInventoryTable(inventory);
     switchTab('inventory-summary'); // Ensure the first tab is active
 
+    // Report Tab Logic
+    const stockCheckingFormBtn = document.getElementById('stock-checking-form-btn');
+    stockCheckingFormBtn.addEventListener('click', async () => {
+        const { data: printData, error } = await supabase
+            .from('p_material')
+            .select('item_code, name, packing_size, quantity, uom, location')
+            .order('index', { ascending: true });
+
+        if (error) {
+            alert('Error fetching data for printing.');
+            console.error('Error fetching print data:', error);
+            return;
+        }
+
+        const month = new Date().toLocaleString('en-US', { month: 'long' });
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${month} Month End Stock Balance</title>
+                    <style>
+                        @media print {
+                            @page { margin: 0; size: portrait; }
+                            body { margin: 1cm; }
+                        }
+                        body { font-family: sans-serif; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .empty-col { width: 150px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${month} Month End Stock Balance</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Code</th>
+                                <th>Name</th>
+                                <th>Packing Size</th>
+                                <th>Quantity</th>
+                                <th>UOM</th>
+                                <th>Location</th>
+                                <th class="empty-col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${printData.map(item => `
+                                <tr>
+                                    <td>${item.item_code || ''}</td>
+                                    <td>${item.name || ''}</td>
+                                    <td>${item.packing_size || ''}</td>
+                                    <td>${item.quantity || 0}</td>
+                                    <td>${item.uom || ''}</td>
+                                    <td>${item.location || ''}</td>
+                                    <td></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            window.close();
+                        }
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    });
+
+    const submitEndMonthReportBtn = document.getElementById('submit-end-month-report-btn');
+    submitEndMonthReportBtn.addEventListener('click', async () => {
+        const confirmed = confirm('Are you sure you want to submit the end-of-month report? This will create a snapshot of the current inventory.');
+        if (!confirmed) {
+            return;
+        }
+
+        const { data: inventory, error } = await supabase
+            .from('p_material')
+            .select('*');
+
+        if (error) {
+            alert('Error fetching inventory for snapshot.');
+            console.error('Error fetching inventory for snapshot:', error);
+            return;
+        }
+
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        const snapshotData = inventory.map(item => ({
+            snapshot_month: firstDayOfMonth.toISOString().split('T')[0],
+            item_code: item.item_code,
+            name: item.name,
+            category: item.category,
+            packing_size: item.packing_size,
+            quantity: item.quantity,
+            uom: item.uom,
+            location: item.location
+        }));
+
+        const { error: insertError } = await supabase
+            .from('p_material_snapshot')
+            .insert(snapshotData);
+
+        if (insertError) {
+            alert('Error creating snapshot.');
+            console.error('Error creating snapshot:', insertError);
+        } else {
+            alert('End-of-month report submitted successfully!');
+        }
+    });
+
+    const viewEndMonthReportBtn = document.getElementById('view-end-month-report-btn');
+    const viewReportContainer = document.getElementById('view-report-container');
+    const monthSelectDropdown = document.getElementById('month-select-dropdown');
+
+    viewEndMonthReportBtn.addEventListener('click', async () => {
+        const { data, error } = await supabase
+            .rpc('get_distinct_snapshot_months');
+
+        if (error) {
+            alert('Error fetching snapshot months.');
+            console.error('Error fetching snapshot months:', error);
+            return;
+        }
+
+        monthSelectDropdown.innerHTML = '<option value="">Select a month</option>';
+        data.forEach(item => {
+            const option = document.createElement('option');
+            // Format date to YYYY-MM
+            const date = new Date(item.snapshot_month);
+            option.value = item.snapshot_month;
+            option.textContent = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            monthSelectDropdown.appendChild(option);
+        });
+
+        viewReportContainer.style.display = 'flex';
+    });
+
+    const viewSnapshotBtn = document.getElementById('view-snapshot-btn');
+    const viewSnapshotModal = document.getElementById('view-snapshot-modal');
+    const snapshotTableBody = document.getElementById('snapshot-table-body');
+    const snapshotModalTitle = document.getElementById('snapshot-modal-title');
+
+    viewSnapshotBtn.addEventListener('click', async () => {
+        const selectedMonth = monthSelectDropdown.value;
+        if (!selectedMonth) {
+            alert('Please select a month.');
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('p_material_snapshot')
+            .select('*')
+            .eq('snapshot_month', selectedMonth);
+
+        if (error) {
+            alert('Error fetching snapshot data.');
+            console.error('Error fetching snapshot data:', error);
+            return;
+        }
+
+        snapshotTableBody.innerHTML = '';
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.item_code || ''}</td>
+                <td>${item.name || ''}</td>
+                <td>${item.packing_size || ''}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${item.uom || ''}</td>
+                <td>${item.location || ''}</td>
+            `;
+            snapshotTableBody.appendChild(row);
+        });
+
+        const date = new Date(selectedMonth);
+        snapshotModalTitle.textContent = `End Month Report for ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        openModal(viewSnapshotModal);
+    });
+
     const adjustBtn = document.getElementById('adjust-btn');
     adjustBtn.addEventListener('click', async () => {
         const updates = [];

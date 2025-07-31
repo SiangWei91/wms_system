@@ -76,7 +76,40 @@
         </div>
     </div>
     <div id="report" class="tab-content">
-        <p>This feature is coming soon.</p>
+        <div class="report-container">
+            <button id="stock-checking-form-btn" class="btn btn-primary report-btn">Stock Checking Form</button>
+            <button id="submit-end-month-report-btn" class="btn btn-primary report-btn">Submit End Month Report</button>
+            <button id="view-end-month-report-btn" class="btn btn-primary report-btn">View End Month Report</button>
+        </div>
+        <div id="view-report-container" class="report-view-container" style="display: none;">
+            <select id="month-select-dropdown"></select>
+            <button id="view-snapshot-btn" class="btn">View</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Snapshot Modal -->
+<div id="view-snapshot-modal" class="modal">
+    <div class="modal-content" style="max-width: 90%;">
+        <span class="close-button">&times;</span>
+        <h2 id="snapshot-modal-title"></h2>
+        <div class="table-container">
+            <table id="snapshot-table">
+                <thead>
+                    <tr>
+                        <th>Item Code</th>
+                        <th>Name</th>
+                        <th>Packing Size</th>
+                        <th>Quantity</th>
+                        <th>UOM</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody id="snapshot-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
