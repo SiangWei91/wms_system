@@ -26,20 +26,30 @@ window.loadPackagingMaterialPage = async (supabase) => {
         inventory.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${item.item_code}</td>
-                <td>${item.name}</td>
+                <td>${item.item_code || ''}</td>
+                <td>${item.name || ''}</td>
                 <td>${item.packing_size || ''}</td>
-                <td>${item.quantity}</td>
-                <td>${item.uom}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${item.uom || ''}</td>
             `;
             tableBody.appendChild(row);
         });
     };
 
     const transactionTableBody = document.getElementById('transaction-table-body');
+    const prevPageBtn = document.getElementById('prev-page-btn');
+    const nextPageBtn = document.getElementById('next-page-btn');
+    const pageInfo = document.getElementById('page-info');
 
-    const fetchTransactions = async () => {
-        const { data, error } = await supabase
+    let currentPage = 0;
+    const rowsPerPage = 15;
+    let totalTransactions = 0;
+
+    const fetchTransactions = async (page = 0) => {
+        const from = page * rowsPerPage;
+        const to = from + rowsPerPage - 1;
+
+        const { data, error, count } = await supabase
             .from('p_transaction')
             .select(`
                 id,
@@ -51,14 +61,15 @@ window.loadPackagingMaterialPage = async (supabase) => {
                     packing_size,
                     uom
                 )
-            `)
-            .order('transaction_date', { ascending: false });
+            `, { count: 'exact' })
+            .order('transaction_date', { ascending: false })
+            .range(from, to);
 
         if (error) {
             console.error('Error fetching transactions:', error);
-            return [];
+            return { data: [], count: 0 };
         }
-        return data;
+        return { data, count };
     };
 
     const formatDate = (dateString) => {
@@ -69,10 +80,15 @@ window.loadPackagingMaterialPage = async (supabase) => {
         return `${day}/${month}/${year}`;
     };
 
-    const renderTransactionTable = (transactions) => {
+    const renderTransactionTable = (transactions, count) => {
         transactionTableBody.innerHTML = '';
+        totalTransactions = count;
+
         if (transactions.length === 0) {
-            transactionTableBody.innerHTML = '<tr><td colspan="6">No transactions found</td></tr>';
+            transactionTableBody.innerHTML = '<tr><td colspan="7">No transactions found</td></tr>';
+            pageInfo.textContent = '';
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = true;
             return;
         }
 
@@ -106,6 +122,11 @@ window.loadPackagingMaterialPage = async (supabase) => {
             `;
             transactionTableBody.appendChild(row);
         });
+
+        const totalPages = Math.ceil(totalTransactions / rowsPerPage);
+        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+        prevPageBtn.disabled = currentPage === 0;
+        nextPageBtn.disabled = currentPage >= totalPages - 1;
     };
 
     const switchTab = async (tabId) => {
@@ -120,10 +141,28 @@ window.loadPackagingMaterialPage = async (supabase) => {
         document.querySelector(`.tab-nav-button[data-tab="${tabId}"]`).classList.add('active');
 
         if (tabId === 'transaction-record') {
-            const transactions = await fetchTransactions();
-            renderTransactionTable(transactions);
+            currentPage = 0;
+            const { data, count } = await fetchTransactions(currentPage);
+            renderTransactionTable(data, count);
         }
     };
+
+    prevPageBtn.addEventListener('click', async () => {
+        if (currentPage > 0) {
+            currentPage--;
+            const { data, count } = await fetchTransactions(currentPage);
+            renderTransactionTable(data, count);
+        }
+    });
+
+    nextPageBtn.addEventListener('click', async () => {
+        const totalPages = Math.ceil(totalTransactions / rowsPerPage);
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            const { data, count } = await fetchTransactions(currentPage);
+            renderTransactionTable(data, count);
+        }
+    });
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -164,11 +203,26 @@ window.loadPackagingMaterialPage = async (supabase) => {
     const transactionTypeInput = document.getElementById('transaction-type-input');
 
     const openTransactionModal = (item) => {
+        // Reset form before populating
+        transactionForm.reset();
+        stockInBtn.classList.remove('active');
+        stockOutBtn.classList.remove('active');
+
         document.getElementById('item-name').value = item.name;
         document.getElementById('packing-size').value = item.packing_size || '';
         document.getElementById('current-quantity').value = item.quantity;
         document.getElementById('uom').value = item.uom;
+
+        // Set defaults
+        document.getElementById('transaction-date').valueAsDate = new Date();
+        stockOutBtn.click(); // Default to stock out
+
         openModal(transactionModal);
+
+        // Focus on quantity input
+        setTimeout(() => {
+            document.getElementById('quantity').focus();
+        }, 100); // Timeout to ensure modal is visible
     };
 
     tableBody.addEventListener('click', (event) => {

@@ -260,3 +260,16 @@ tbody tr:hover {
     font-size: 18px;
     font-weight: bold;
 }
+
+/* Pagination */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination-controls .btn:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
