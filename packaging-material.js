@@ -62,7 +62,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
                     uom
                 )
             `, { count: 'exact' })
-            .order('transaction_date', { ascending: false })
+            .order('created_at', { ascending: false })
             .range(from, to);
 
         if (error) {

@@ -269,6 +269,10 @@ tbody tr:hover {
     margin-top: 20px;
 }
 
+#transaction-record .pagination-controls {
+    display: flex;
+}
+
 .pagination-controls .btn:disabled {
     background-color: #e0e0e0;
     cursor: not-allowed;
