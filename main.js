@@ -93,7 +93,8 @@ const pageScripts = {
         redirect: 'coming-soon'
     },
     'packaging-material': {
-        redirect: 'coming-soon'
+        urls: ['packaging-material.js'],
+        init: () => window.loadPackagingMaterialPage(supabaseClient)
     }
 };
 

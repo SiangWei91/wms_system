@@ -1,0 +1,91 @@
+<link rel="stylesheet" href="packaging-material.css">
+<div class="container">
+    <div class="tab-nav">
+        <button class="tab-nav-button active" data-tab="inventory-summary">Inventory Summary</button>
+        <button class="tab-nav-button" data-tab="transaction-record">Transaction Record</button>
+        <button class="tab-nav-button" data-tab="adjustment">Adjustment</button>
+        <button class="tab-nav-button" data-tab="report">Report</button>
+    </div>
+    <div id="inventory-summary" class="tab-content active">
+        <h2>Inventory Summary</h2>
+        <div class="table-container">
+            <table id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Packing Size</th>
+                        <th>Quantity</th>
+                        <th>UOM</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="transaction-record" class="tab-content">
+        <h2>Transaction Record</h2>
+        <div class="table-container">
+            <table id="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Packing Size</th>
+                        <th>Transaction Type</th>
+                        <th>Quantity</th>
+                        <th>UOM</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="adjustment" class="tab-content">
+        <h2>Adjustment</h2>
+        <p>This feature is coming soon.</p>
+    </div>
+    <div id="report" class="tab-content">
+        <h2>Report</h2>
+        <p>This feature is coming soon.</p>
+    </div>
+</div>
+
+<!-- Transaction Modal -->
+<div id="transaction-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Stock Transaction</h2>
+        <form id="transaction-form">
+            <div class="transaction-type">
+                <button type="button" id="stock-in-btn" class="btn stock-in">Stock In</button>
+                <button type="button" id="stock-out-btn" class="btn stock-out">Stock Out</button>
+            </div>
+            <input type="hidden" id="transaction-type-input" name="transaction-type">
+            <div class="form-group">
+                <label for="item-name">Name:</label>
+                <input type="text" id="item-name" name="item-name" readonly>
+            </div>
+            <div class="form-group">
+                <label for="packing-size">Packing Size:</label>
+                <input type="text" id="packing-size" name="packing-size" readonly>
+            </div>
+            <div class="form-group">
+                <label for="current-quantity">Current Quantity:</label>
+                <input type="text" id="current-quantity" name="current-quantity" readonly>
+            </div>
+            <div class="form-group">
+                <label for="uom">UOM:</label>
+                <input type="text" id="uom" name="uom" readonly>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" required>
+            </div>
+            <button type="submit" class="btn">Submit</button>
+        </form>
+    </div>
+</div>
