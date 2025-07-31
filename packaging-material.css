@@ -277,3 +277,11 @@ tbody tr:hover {
     background-color: #e0e0e0;
     cursor: not-allowed;
 }
+
+.actual-value-input {
+    border: none;
+    text-align: center;
+    width: 100px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}

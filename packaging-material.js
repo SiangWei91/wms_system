@@ -101,7 +101,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
                 <td>${item.packing_size || ''}</td>
                 <td>${item.quantity || 0}</td>
                 <td>${item.uom || ''}</td>
-                <td><input type="number" class="actual-value-input" style="width: 100px;"></td>
+                <td><input type="number" class="actual-value-input"></td>
             `;
             adjustmentTableBody.appendChild(row);
         });
@@ -142,6 +142,10 @@ window.loadPackagingMaterialPage = async (supabase) => {
                     break;
             }
 
+            const deleteButtonCell = tx.transaction_type !== 'Adjustment'
+                ? `<td><button class="delete-btn" data-id="${tx.id}" data-name="${tx.name}" data-type="${tx.transaction_type}" data-quantity="${tx.quantity}">&times;</button></td>`
+                : '<td></td>';
+
             row.innerHTML = `
                 <td>${formatDate(tx.transaction_date)}</td>
                 <td>${tx.name}</td>
@@ -149,7 +153,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
                 <td class="${typeCellClass}">${tx.transaction_type}</td>
                 ${quantityCell}
                 <td>${tx.p_material.uom}</td>
-                <td><button class="delete-btn" data-id="${tx.id}" data-name="${tx.name}" data-type="${tx.transaction_type}" data-quantity="${tx.quantity}">&times;</button></td>
+                ${deleteButtonCell}
             `;
             transactionTableBody.appendChild(row);
         });
@@ -557,6 +561,7 @@ window.loadPackagingMaterialPage = async (supabase) => {
             if (updateResults.includes(false) || transactionResults.includes(false)) {
                 alert('One or more adjustments failed. Please check the console for details.');
             } else {
+                alert('Adjustments successful!');
                 await refreshInventory();
                 // After refresh, switch back to the adjustment tab to see the changes
                 await switchTab('adjustment');
