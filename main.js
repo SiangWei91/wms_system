@@ -84,20 +84,16 @@ const pageScripts = {
         init: () => window.loadLineagePage(supabaseClient)
     },
     'sing-long': {
-        urls: [],
-        init: () => navigateTo('coming-soon')
+        redirect: 'coming-soon'
     },
     'transfer': {
-        urls: [],
-        init: () => navigateTo('coming-soon')
+        redirect: 'coming-soon'
     },
     'surimi': {
-        urls: [],
-        init: () => navigateTo('coming-soon')
+        redirect: 'coming-soon'
     },
     'packaging-material': {
-        urls: [],
-        init: () => navigateTo('coming-soon')
+        redirect: 'coming-soon'
     }
 };
 
@@ -156,6 +152,12 @@ let isNavigating = false;
 
 const navigateTo = (page) => {
     if (isNavigating) {
+        return;
+    }
+
+    const pageScript = pageScripts[page];
+    if (pageScript && pageScript.redirect) {
+        navigateTo(pageScript.redirect);
         return;
     }
     
