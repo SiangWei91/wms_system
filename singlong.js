@@ -556,12 +556,10 @@ window.loadSingLongPage = (supabaseClient) => {
                 const destination_warehouse_id = row.querySelector('.transfer-to-select').value;
                 stockOutItems.push({
                     inventory_id: row.dataset.inventoryId,
-                    productName: cells[0].textContent,
-                    packingSize: cells[1].textContent,
-                    batchNo: cells[2].textContent,
-                    lotNumber: cells[3].textContent,
-                    quantity: cells[4].textContent,
-                    pallet: cells[5].textContent,
+                    batch_no: cells[2].textContent,
+                    lot_number: cells[3].textContent,
+                    withdraw_quantity: parseInt(cells[4].textContent) || 0,
+                    withdraw_pallet: parseInt(cells[5].textContent) || 0,
                     destination_warehouse_id: destination_warehouse_id,
                 });
             });
