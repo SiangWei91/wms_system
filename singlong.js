@@ -1263,7 +1263,7 @@ window.loadSingLongPage = (supabaseClient) => {
 
             alert(`Stock in successfully recorded with order number: ${newOrderNumber}`);
 
-            const printHtml = generateStockInPrintHTML(newOrderNumber, new Date(), stockInItemsForPrint);
+            const printHtml = generateStockInPrintHTML(newOrderNumber, firstDateStored, stockInItemsForPrint);
             const printWindow = window.open('', '_blank');
             printWindow.document.write(printHtml);
             printWindow.document.close();
