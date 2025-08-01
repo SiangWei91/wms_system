@@ -201,26 +201,26 @@ window.loadSingLongPage = (supabaseClient) => {
                     return today.toISOString().split('T')[0];
                 };
 
-                const cells = row.cells;
-                const itemCode = cells[0].textContent;
-                const productName = cells[1].textContent;
-                const packingSize = cells[2].textContent;
-                const lotNumber = cells[3].textContent;
-                const currentQuantity = cells[8].textContent;
-                const currentPallet = cells[9].textContent;
+                const rowIndex = Array.from(inventorySummaryTableBody.children).indexOf(row);
+                const item = inventoryData.filter(i => i.quantity > 0)[rowIndex];
+
+                if (!item) return;
+
+                const { item_code, batch_no, container, details } = item;
+                const { lotNumber, location, pallet_due_date, dateStored } = details;
+                const product = productsMap.get(item_code) || {};
 
                 modal.setAttribute('data-current-warehouse', 'singlong');
+                modal.dataset.batchNo = batch_no;
+                modal.dataset.location = location || '';
+
                 modalBody.innerHTML = `
-                    <div class="form-group">
-                        <label>Date:</label>
-                        <input type="date" id="singlong-stock-out-date" value="${getDefaultStockOutDate()}">
-                    </div>
-                    <p><strong>Item Code:</strong> ${itemCode}</p>
-                    <p><strong>Product Name:</strong> ${productName}</p>
-                    <p><strong>Packaging Size:</strong> ${packingSize}</p>
-                    <p><strong>Lot Number:</strong> ${lotNumber}</p>
-                    <p><strong>Current Quantity:</strong> ${currentQuantity}</p>
-                    <p><strong>Current Pallet:</strong> ${currentPallet}</p>
+                    <p><strong>Item Code:</strong> ${item_code}</p>
+                    <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
+                    <p><strong>Packaging Size:</strong> ${product.packing_size || ''}</p>
+                    <p><strong>Lot Number:</strong> ${lotNumber || ''}</p>
+                    <p><strong>Current Quantity:</strong> ${item.quantity}</p>
+                    <p><strong>Current Pallet:</strong> ${item.details.pallet}</p>
                     <div class="form-group">
                         <label>Quantity:</label>
                         <input type="number" id="singlong-stock-out-quantity" class="withdraw-quantity" min="0">
@@ -282,12 +282,15 @@ window.loadSingLongPage = (supabaseClient) => {
     };
 
     const handleModalSubmit = (e) => {
+        const modal = document.getElementById('modal-container');
         const modalBody = document.getElementById('jordon-modal-body');
         const stockOutTableBody = document.querySelector('#singlong-stock-out-table tbody');
 
-        const productName = modalBody.querySelector('p:nth-child(3)').textContent.replace('Product Name: ', '');
-        const packingSize = modalBody.querySelector('p:nth-child(4)').textContent.replace('Packaging Size: ', '');
-        const lotNumber = modalBody.querySelector('p:nth-child(5)').textContent.replace('Lot Number: ', '');
+        const productName = modalBody.querySelector('p:nth-child(2)').textContent.replace('Product Name: ', '');
+        const packingSize = modalBody.querySelector('p:nth-child(3)').textContent.replace('Packaging Size: ', '');
+        const lotNumber = modalBody.querySelector('p:nth-child(4)').textContent.replace('Lot Number: ', '');
+        const batchNo = modal.dataset.batchNo;
+        const location = modal.dataset.location;
         const quantity = document.getElementById('singlong-stock-out-quantity').value;
         const pallet = document.getElementById('singlong-stock-out-pallet').value;
 
@@ -296,8 +299,8 @@ window.loadSingLongPage = (supabaseClient) => {
             newRow.innerHTML = `
                 <td>${productName}</td>
                 <td>${packingSize}</td>
-                <td></td>
-                <td></td>
+                <td>${batchNo}</td>
+                <td>${location}</td>
                 <td>${lotNumber}</td>
                 <td>${quantity}</td>
                 <td>${pallet}</td>
@@ -307,7 +310,7 @@ window.loadSingLongPage = (supabaseClient) => {
             addRemoveStockOutListeners();
         }
 
-        document.getElementById('modal-container').style.display = 'none';
+        modal.style.display = 'none';
     };
 
     const modal = document.getElementById('modal-container');
@@ -321,12 +324,259 @@ window.loadSingLongPage = (supabaseClient) => {
         });
     }
 
+    const generatePrintHTML = (orderNumber, date, time, items) => {
+        const tableRows = items.map((item, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.productName}</td>
+                <td>${item.packingSize}</td>
+                <td>${item.lotNumber}</td>
+                <td>${item.batchNo}</td>
+                <td>${item.quantity}</td>
+                <td>${item.pallet}</td>
+            </tr>
+        `).join('');
+
+        const formattedDate = new Date(date).toLocaleDateString('en-GB');
+
+        const htmlContent = `
+        <html>
+        <head>
+            <title>Sing Long Stock Out Request Form</title>
+            <style>
+                @page { size: A4; margin: 0; }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12pt;
+                    margin: 0;
+                    line-height: 1.3;
+                }
+                .content {
+                    margin: 30px;
+                }
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-top: 20px;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                    font-size: 12pt;
+                }
+                th { background-color: #f2f2f2; }
+                .header { margin-bottom: 20px; }
+                .header p { margin: 3px 0; }
+                .company-name-container {
+                    margin-top: 30px;
+                }
+                .company-name {
+                    font-weight: bold;
+                    text-decoration: underline;
+                    font-size: 16pt;
+                    margin-bottom: 5px;
+                }
+                .attn {
+                    font-weight: bold;
+                    text-decoration: underline;
+                    font-size: 14pt;
+                    margin-top: 15px;
+                    margin-bottom: 5px;
+                }
+                .date-container {
+                    margin: 40px 0;
+                }
+                .date {
+                    font-weight: bold;
+                    font-size: 14pt;
+                }
+                .bold { font-weight: bold; }
+                .right-align {
+                    text-align: right;
+                    margin-top: 10px;
+                }
+                .header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .header-left { flex: 1; }
+                .header-right { text-align: right; }
+                h2 {
+                    font-size: 14pt;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                }
+                .footer { margin-top: 20px; }
+                .footer-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 40px;
+                }
+                .footer-item {
+                    flex: 1;
+                    text-align: left;
+                    margin-right: 30px;
+                }
+                .footer-line {
+                    border-top: 1px solid black;
+                    margin-top: 60px;
+                    width: 100%;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="content">
+                <div class="header">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <div class="company-name-container">
+                                <p class="company-name">Li Chuan Food Product Pte Ltd</p>
+                                <p>40 Woodlands Terrace 738456</p>
+                                <p>Tel 65 6755 7688 Fax 65 6755 6698</p>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <p class="bold">S/N: ${orderNumber}</p>
+                        </div>
+                    </div>
+                    <div class="date-container">
+                        <p class="date">Date: ${formattedDate}</p>
+                    </div>
+                    <p class="attn">Attn: Sing Long Foodstuff & Trading Co.Pte Ltd</p>
+                    <p>12 Woodlands Link Singapore 738740</p>
+                    <p>Tel 6284 5254 Fax 6289 7351</p>
+                    <p class="right-align"><span class="bold">Time: ${time}</span></p>
+                </div>
+                <h2>Sing Long Stock Out Request Form</h2>
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Product Description</th>
+                            <th>Packing</th>
+                            <th>Lot Number</th>
+                            <th>Batch</th>
+                            <th>Quantity</th>
+                            <th>Pallet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                <div class="footer">
+                    <p>Regards,</p>
+                    <div class="footer-row">
+                        <div class="footer-item">
+                            <p>Issue By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-item">
+                            <p>Collected By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-item">
+                            <p>Verified By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+        return htmlContent;
+    };
+
+    const handleStockOutSubmit = async () => {
+        const stockOutTableBody = document.querySelector('#singlong-stock-out-table tbody');
+        const rows = stockOutTableBody.querySelectorAll('tr');
+
+        if (rows.length === 0) {
+            alert('No items to submit.');
+            return;
+        }
+
+        const drawOutDate = document.getElementById('singlong-draw-out-date').value;
+        const drawOutTime = document.getElementById('singlong-draw-out-time').value;
+
+        if (!drawOutDate) {
+            alert('Please select a date.');
+            return;
+        }
+
+        try {
+            const { data: lastOrder, error: orderError } = await supabaseClient
+                .from('scheduled_transactions')
+                .select('order_number')
+                .like('order_number', 'LCSL-%')
+                .order('order_number', { ascending: false })
+                .limit(1)
+                .single();
+
+            let newOrderNumber;
+            if (orderError && orderError.code !== 'PGRST116') { // Ignore 'not found' error
+                throw orderError;
+            }
+            if (!lastOrder) {
+                newOrderNumber = 'LCSL-0001';
+            } else {
+                const lastNumber = parseInt(lastOrder.order_number.split('-')[1]);
+                newOrderNumber = `LCSL-${(lastNumber + 1).toString().padStart(4, '0')}`;
+            }
+
+            const stockOutItems = [];
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                stockOutItems.push({
+                    productName: cells[0].textContent,
+                    packingSize: cells[1].textContent,
+                    batchNo: cells[2].textContent,
+                    location: cells[3].textContent,
+                    lotNumber: cells[4].textContent,
+                    quantity: cells[5].textContent,
+                    pallet: cells[6].textContent,
+                });
+            });
+
+            const operator_id = getCookie('userName') || 'unknown';
+            const { error: insertError } = await supabaseClient
+                .from('scheduled_transactions')
+                .insert({
+                    order_number: newOrderNumber,
+                    draw_out_date: drawOutDate,
+                    draw_out_time: drawOutTime,
+                    warehouse_id: 'singlong',
+                    stock_out_items: stockOutItems,
+                    operator_id: operator_id,
+                });
+
+            if (insertError) {
+                throw insertError;
+            }
+
+            alert(`Stock out successfully scheduled with order number: ${newOrderNumber}`);
+
+            const printHtml = generatePrintHTML(newOrderNumber, drawOutDate, drawOutTime, stockOutItems);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printHtml);
+            printWindow.document.close();
+            printWindow.print();
+
+            clearStockOutData();
+
+        } catch (error) {
+            console.error('Error submitting stock out:', error);
+            alert(`Error submitting stock out: ${error.message}`);
+        }
+    };
+
     const stockOutSubmitButton = document.querySelector(`#${warehouseId}-submit-stock-out-btn`);
     if (stockOutSubmitButton) {
-        stockOutSubmitButton.addEventListener('click', () => {
-            console.log('Submit button clicked for singlong');
-            alert('Submit functionality for Sing Long is not yet implemented.');
-        });
+        stockOutSubmitButton.addEventListener('click', handleStockOutSubmit);
     }
 
     loadInventoryData();
