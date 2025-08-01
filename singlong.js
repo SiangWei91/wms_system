@@ -819,29 +819,43 @@ window.loadSingLongPage = (supabaseClient) => {
             return;
         }
 
-        const updatedData = {
-            details: {
-                lotNumber: row.cells[3].textContent,
-                pallet_due_date: row.cells[7].textContent,
-                dateStored: row.cells[5].textContent,
-            },
-            batch_no: row.cells[4].textContent,
-            container: row.cells[6].textContent,
-        };
+        try {
+            const { data: existingItem, error: fetchError } = await supabaseClient
+                .from('inventory')
+                .select('details')
+                .eq('id', inventoryId)
+                .single();
 
-        const { error } = await supabaseClient
-            .from('inventory')
-            .update(updatedData)
-            .eq('id', inventoryId);
+            if (fetchError) throw fetchError;
 
-        if (error) {
-            console.error('Error updating inventory record:', error);
-            alert('Error updating record.');
-        } else {
+            const existingDetails = existingItem.details || {};
+
+            const updatedData = {
+                details: {
+                    ...existingDetails,
+                    lotNumber: row.cells[3].textContent,
+                    pallet_due_date: row.cells[7].textContent,
+                    dateStored: row.cells[5].textContent,
+                },
+                batch_no: row.cells[4].textContent,
+                container: row.cells[6].textContent,
+            };
+
+            const { error: updateError } = await supabaseClient
+                .from('inventory')
+                .update(updatedData)
+                .eq('id', inventoryId);
+
+            if (updateError) throw updateError;
+
             alert('Record updated successfully.');
             row.querySelectorAll('td').forEach(cell => {
                 cell.contentEditable = false;
             });
+
+        } catch (error) {
+            console.error('Error updating inventory record:', error);
+            alert('Error updating record.');
         }
     };
 
@@ -961,10 +975,16 @@ window.loadSingLongPage = (supabaseClient) => {
                     .from('transactions')
                     .insert({
                         inventory_id: inventoryData.id,
-                        transaction_type: 'stock_in',
-                        quantity_change: quantity,
+                        transaction_type: 'Container Unload',
+                        quantity: quantity,
+                        item_code: item_code,
+                        warehouse_id: warehouseId,
+                        transaction_date: new Date().toISOString(),
                         inventory_details: {
                             pallet: pallet,
+                            lotNumber: lotNumber,
+                            batch_no: batch_no,
+                            container: container,
                         },
                         operator_id: operator_id,
                     });
