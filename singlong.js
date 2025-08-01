@@ -135,6 +135,7 @@ window.loadSingLongPage = (supabaseClient) => {
             inventoryData.filter(item => item.quantity > 0).forEach(item => {
                 const product = productsMap.get(item.item_code) || {};
                 const row = document.createElement('tr');
+                row.dataset.inventoryId = item.id;
 
                 const formatDate = (dateString) => {
                     if (!dateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return '';
@@ -161,6 +162,7 @@ window.loadSingLongPage = (supabaseClient) => {
                     <td>${product.product_name || ''}</td>
                     <td>${product.packing_size || ''}</td>
                     <td>${item.details.lotNumber || ''}</td>
+                    <td>${item.batch_no || ''}</td>
                     <td>${formatDate(item.details.dateStored)}</td>
                     <td>${item.container || ''}</td>
                     <td>${formatDate(palletDueDate)}</td>
@@ -183,6 +185,26 @@ window.loadSingLongPage = (supabaseClient) => {
                     </tr>
                 `;
             }
+
+            inventorySummaryTableBody.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                if (!row) return;
+
+                const cellsToEdit = [3, 4, 5, 6, 7]; // Corresponds to Lot Number, Batch No, Date Stored, Container Number, Pallet Due Date
+                cellsToEdit.forEach(index => {
+                    if(row.cells[index]) {
+                        row.cells[index].contentEditable = true;
+                    }
+                });
+                row.focus();
+
+                const focusOutListener = () => {
+                    updateInventoryRow(row);
+                    row.removeEventListener('focusout', focusOutListener);
+                };
+                row.addEventListener('focusout', focusOutListener);
+            });
 
             inventorySummaryTableBody.addEventListener('click', (e) => {
                 const row = e.target.closest('tr');
@@ -329,7 +351,10 @@ window.loadSingLongPage = (supabaseClient) => {
             `;
             const select = newRow.querySelector('.transfer-to-select');
             if(select) {
-                select.value = 'Defrost Room';
+                const defrostRoomOption = Array.from(select.options).find(option => option.text === 'Defrost Room');
+                if (defrostRoomOption) {
+                    select.value = defrostRoomOption.value;
+                }
             }
             stockOutTableBody.appendChild(newRow);
             addRemoveStockOutListeners();
@@ -783,6 +808,39 @@ window.loadSingLongPage = (supabaseClient) => {
                 newDate.setDate(newDate.getDate() + 29);
                 const palletDueDateCell = newRow.cells[8];
                 palletDueDateCell.textContent = newDate.toLocaleDateString('en-GB');
+            });
+        }
+    };
+
+    const updateInventoryRow = async (row) => {
+        const inventoryId = row.dataset.inventoryId;
+        if (!inventoryId) {
+            console.error('No inventory ID found for this row.');
+            return;
+        }
+
+        const updatedData = {
+            details: {
+                lotNumber: row.cells[3].textContent,
+                pallet_due_date: row.cells[7].textContent,
+                dateStored: row.cells[5].textContent,
+            },
+            batch_no: row.cells[4].textContent,
+            container: row.cells[6].textContent,
+        };
+
+        const { error } = await supabaseClient
+            .from('inventory')
+            .update(updatedData)
+            .eq('id', inventoryId);
+
+        if (error) {
+            console.error('Error updating inventory record:', error);
+            alert('Error updating record.');
+        } else {
+            alert('Record updated successfully.');
+            row.querySelectorAll('td').forEach(cell => {
+                cell.contentEditable = false;
             });
         }
     };
