@@ -5,3 +5,20 @@
     flex-direction: column;
     gap: 15px;
 }
+
+.report-btn {
+    text-align: center;
+    padding: 15px 20px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: block;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.report-btn:hover {
+    background-color: #e0e0e0;
+}

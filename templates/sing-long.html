@@ -96,9 +96,21 @@
       <button id="singlong-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
     </div>
     <div id="report" class="tab-pane">
-      <div class="report-container">
-        <p>Reports for Sing Long are coming soon.</p>
-      </div>
+        <div class="report-container">
+            <button id="view-end-month-report-btn" class="report-btn">View End Month Report</button>
+            <button id="pallet-due-date-report-btn" class="report-btn">Pallet Due Date (Account Use)</button>
+            <button id="inventory-transaction-report-btn" class="report-btn">Sing Long Inventory Transaction Report</button>
+            <button id="request-form-report-btn" class="report-btn">Sing Long Request Form</button>
+
+            <div id="request-form-section" style="display: none; margin-top: 20px;">
+                <button id="draw-out-btn" class="btn-secondary">Draw Out</button>
+                <button id="stock-in-btn" class="btn-secondary">Stock In</button>
+                <div id="draw-out-section" style="display: none; margin-top: 10px;">
+                    <select id="draw-out-order-number"></select>
+                    <button id="reprint-btn" class="btn-primary">Reprint</button>
+                </div>
+            </div>
+        </div>
     </div>
   </div>
 </div>

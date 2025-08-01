@@ -619,4 +619,70 @@ window.loadSingLongPage = (supabaseClient) => {
     loadInventoryData();
     initTabs();
     setDefaultDrawOutDate();
+
+    const requestFormBtn = document.getElementById('request-form-report-btn');
+    if (requestFormBtn) {
+        requestFormBtn.addEventListener('click', () => {
+            const requestFormSection = document.getElementById('request-form-section');
+            requestFormSection.style.display = requestFormSection.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    const drawOutBtn = document.getElementById('draw-out-btn');
+    if (drawOutBtn) {
+        drawOutBtn.addEventListener('click', () => {
+            const drawOutSection = document.getElementById('draw-out-section');
+            drawOutSection.style.display = drawOutSection.style.display === 'none' ? 'block' : 'none';
+            if (drawOutSection.style.display === 'block') {
+                loadDrawOutOrders();
+            }
+        });
+    }
+
+    const loadDrawOutOrders = async () => {
+        const orderNumberSelect = document.getElementById('draw-out-order-number');
+        if (!orderNumberSelect) return;
+
+        const { data, error } = await supabaseClient
+            .from('scheduled_transactions')
+            .select('order_number')
+            .like('order_number', 'LCSL-%')
+            .order('order_number', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching draw out orders:', error);
+            return;
+        }
+
+        orderNumberSelect.innerHTML = data.map(order => `<option value="${order.order_number}">${order.order_number}</option>`).join('');
+    };
+
+    const reprintBtn = document.getElementById('reprint-btn');
+    if (reprintBtn) {
+        reprintBtn.addEventListener('click', async () => {
+            const orderNumber = document.getElementById('draw-out-order-number').value;
+            if (!orderNumber) {
+                alert('Please select an order number.');
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('scheduled_transactions')
+                .select('*')
+                .eq('order_number', orderNumber)
+                .single();
+
+            if (error || !data) {
+                console.error('Error fetching order details for reprint:', error);
+                alert('Could not fetch order details for reprinting.');
+                return;
+            }
+
+            const printHtml = generatePrintHTML(data.order_number, data.draw_out_date, data.draw_out_time, data.stock_out_items);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printHtml);
+            printWindow.document.close();
+            printWindow.print();
+        });
+    }
 };
