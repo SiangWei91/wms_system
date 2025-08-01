@@ -906,4 +906,81 @@ window.loadSingLongPage = (supabaseClient) => {
             document.addEventListener('click', clickOutsideHandler);
         }, 0);
     };
+
+    const submitStockIn = async () => {
+        const stockInTableBody = document.querySelector('#singlong-stock-in-table tbody');
+        const rows = stockInTableBody.querySelectorAll('tr');
+
+        if (rows.length === 0) {
+            alert('No items to submit.');
+            return;
+        }
+
+        const operator_id = getCookie('userName') || 'unknown';
+
+        try {
+            for (const row of rows) {
+                const cells = row.querySelectorAll('td');
+                const item_code = cells[0].textContent;
+                const batch_no = cells[4].textContent;
+                const lotNumber = cells[5].textContent;
+                const dateStored = cells[6].querySelector('input').value;
+                const container = cells[7].querySelector('input').value;
+                const palletDueDate = cells[8].textContent;
+                const quantity = parseInt(cells[9].textContent) || 0;
+                const pallet = parseInt(cells[10].textContent) || 0;
+                const remark = cells[11].textContent;
+
+                if (!item_code || !lotNumber || !quantity || !pallet) {
+                    alert('Please ensure Item Code, Lot Number, Quantity, and Pallet are filled for all rows.');
+                    return;
+                }
+
+                const { data: inventoryData, error: inventoryError } = await supabaseClient
+                    .from('inventory')
+                    .insert({
+                        item_code: item_code,
+                        warehouse_id: warehouseId,
+                        batch_no: batch_no,
+                        quantity: quantity,
+                        container: container,
+                        details: {
+                            pallet: pallet,
+                            lotNumber: lotNumber,
+                            dateStored: dateStored,
+                            pallet_due_date: palletDueDate,
+                            remark: remark,
+                        }
+                    })
+                    .select()
+                    .single();
+
+                if (inventoryError) throw new Error(`Error inserting into inventory: ${inventoryError.message}`);
+
+                const { error: transactionError } = await supabaseClient
+                    .from('transactions')
+                    .insert({
+                        inventory_id: inventoryData.id,
+                        transaction_type: 'stock_in',
+                        quantity_change: quantity,
+                        pallet_change: pallet,
+                        operator_id: operator_id,
+                    });
+
+                if (transactionError) throw new Error(`Error inserting into transactions: ${transactionError.message}`);
+            }
+
+            alert('Stock in successfully recorded.');
+            stockInTableBody.innerHTML = ''; // Clear the table after successful submission
+            loadInventoryData(); // Refresh inventory summary
+        } catch (error) {
+            console.error('Error submitting stock in:', error);
+            alert(`Error submitting stock in: ${error.message}`);
+        }
+    };
+
+    const stockInSubmitButton = document.getElementById('submit-stock-in-btn');
+    if (stockInSubmitButton) {
+        stockInSubmitButton.addEventListener('click', submitStockIn);
+    }
 };
