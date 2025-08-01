@@ -1139,7 +1139,16 @@ window.loadSingLongPage = (supabaseClient) => {
                     alert('Please ensure "Date Stored" is filled for all rows.');
                     return;
                 }
-                const dateStored = dateStoredInput.value;
+                // Re-format the date to ensure it's YYYY-MM-DD
+                const dateObj = new Date(dateStoredInput.value);
+                if (isNaN(dateObj.getTime())) {
+                    alert(`Invalid date found in one of the "Date Stored" fields.`);
+                    return;
+                }
+                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                const day = dateObj.getDate().toString().padStart(2, '0');
+                const year = dateObj.getFullYear();
+                const dateStored = `${year}-${month}-${day}`;
                 const container = cells[7].querySelector('input').value;
                 const palletDueDate = cells[8].textContent;
                 const quantity = parseInt(cells[9].textContent) || 0;
@@ -1234,12 +1243,14 @@ window.loadSingLongPage = (supabaseClient) => {
                 });
             });
 
+            const stockInTime = document.getElementById('singlong-stock-in-time').value;
+
             const { error: insertError } = await supabaseClient
                 .from('scheduled_transactions')
                 .insert({
                     order_number: newOrderNumber,
                     draw_out_date: firstDateStored,
-                    draw_out_time: '00:00:00',
+                    draw_out_time: stockInTime,
                     warehouse_id: 'singlong',
                     stock_out_items: stockInItemsForPrint,
                     operator_id: operator_id,
