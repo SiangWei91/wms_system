@@ -281,7 +281,7 @@ window.loadSingLongPage = (supabaseClient) => {
         }
     };
 
-    const handleModalSubmit = (e) => {
+    const handleModalSubmit = async (e) => {
         const modal = document.getElementById('modal-container');
         const modalBody = document.getElementById('jordon-modal-body');
         const stockOutTableBody = document.querySelector('#singlong-stock-out-table tbody');
@@ -290,22 +290,42 @@ window.loadSingLongPage = (supabaseClient) => {
         const packingSize = modalBody.querySelector('p:nth-child(3)').textContent.replace('Packaging Size: ', '');
         const lotNumber = modalBody.querySelector('p:nth-child(4)').textContent.replace('Lot Number: ', '');
         const batchNo = modal.dataset.batchNo;
-        const location = modal.dataset.location;
         const quantity = document.getElementById('singlong-stock-out-quantity').value;
         const pallet = document.getElementById('singlong-stock-out-pallet').value;
 
         if (quantity > 0 || pallet > 0) {
+            const { data: warehouses, error } = await supabaseClient
+                .from('warehouses')
+                .select('name')
+                .like('details', '%for_3pl_list%');
+
+            if (error) {
+                console.error('Error fetching warehouses:', error);
+                alert('Error fetching warehouses.');
+                return;
+            }
+
+            const warehouseOptions = warehouses.map(w => `<option value="${w.name}">${w.name}</option>`).join('');
+
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${productName}</td>
                 <td>${packingSize}</td>
                 <td>${batchNo}</td>
-                <td>${location}</td>
                 <td>${lotNumber}</td>
                 <td>${quantity}</td>
                 <td>${pallet}</td>
+                <td>
+                    <select class="transfer-to-select">
+                        ${warehouseOptions}
+                    </select>
+                </td>
                 <td><button class="remove-stock-out-btn" style="background: transparent; color: red; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button></td>
             `;
+            const select = newRow.querySelector('.transfer-to-select');
+            if(select) {
+                select.value = 'Defrost Room';
+            }
             stockOutTableBody.appendChild(newRow);
             addRemoveStockOutListeners();
         }
@@ -531,14 +551,15 @@ window.loadSingLongPage = (supabaseClient) => {
             const stockOutItems = [];
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
+                const transferTo = row.querySelector('.transfer-to-select').value;
                 stockOutItems.push({
                     productName: cells[0].textContent,
                     packingSize: cells[1].textContent,
                     batchNo: cells[2].textContent,
-                    location: cells[3].textContent,
-                    lotNumber: cells[4].textContent,
-                    quantity: cells[5].textContent,
-                    pallet: cells[6].textContent,
+                    lotNumber: cells[3].textContent,
+                    quantity: cells[4].textContent,
+                    pallet: cells[5].textContent,
+                    transferTo: transferTo,
                 });
             });
 
@@ -574,6 +595,19 @@ window.loadSingLongPage = (supabaseClient) => {
         }
     };
 
+    const setDefaultDrawOutDate = () => {
+        const dateInput = document.getElementById('singlong-draw-out-date');
+        if (dateInput) {
+            const today = new Date();
+            if (today.getDay() === 6) { // Saturday
+                today.setDate(today.getDate() + 2);
+            } else {
+                today.setDate(today.getDate() + 1);
+            }
+            dateInput.value = today.toISOString().split('T')[0];
+        }
+    };
+
     const stockOutSubmitButton = document.querySelector(`#${warehouseId}-submit-stock-out-btn`);
     if (stockOutSubmitButton) {
         stockOutSubmitButton.addEventListener('click', handleStockOutSubmit);
@@ -581,4 +615,5 @@ window.loadSingLongPage = (supabaseClient) => {
 
     loadInventoryData();
     initTabs();
+    setDefaultDrawOutDate();
 };

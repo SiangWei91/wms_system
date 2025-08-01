@@ -1,1 +1,7 @@
 /* Styles for Sing Long page */
+
+#modal-container[data-current-warehouse="singlong"] #jordon-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
