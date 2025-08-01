@@ -1118,89 +1118,99 @@ window.loadSingLongPage = (supabaseClient) => {
     };
 
     const submitStockIn = async () => {
-        const stockInTableBody = document.querySelector('#singlong-stock-in-table tbody');
-        const rows = stockInTableBody.querySelectorAll('tr');
+    const stockInTableBody = document.querySelector('#singlong-stock-in-table tbody');
+    const rows = stockInTableBody.querySelectorAll('tr');
 
-        if (rows.length === 0) {
-            alert('No items to submit.');
-            return;
-        }
+    if (rows.length === 0) {
+        alert('No items to submit.');
+        return;
+    }
 
-        const operator_id = getCookie('userName') || 'unknown';
+    const operator_id = getCookie('userName') || 'unknown';
 
-        try {
-            for (const row of rows) {
-                const cells = row.querySelectorAll('td');
-                const item_code = cells[0].textContent;
-                const batch_no = cells[4].textContent;
-                const lotNumber = cells[5].textContent;
-                const dateStoredInput = cells[6].querySelector('input[type="date"]');
-                if (!dateStoredInput || !dateStoredInput.value) {
-                    alert('Please ensure "Date Stored" is filled for all rows.');
-                    return;
-                }
-                // Re-format the date to ensure it's YYYY-MM-DD
-                const dateObj = new Date(dateStoredInput.value);
-                if (isNaN(dateObj.getTime())) {
-                    alert(`Invalid date found in one of the "Date Stored" fields.`);
-                    return;
-                }
-                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-                const day = dateObj.getDate().toString().padStart(2, '0');
-                const year = dateObj.getFullYear();
-                const dateStored = `${year}-${month}-${day}`;
-                const container = cells[7].querySelector('input').value;
-                const palletDueDate = cells[8].textContent;
-                const quantity = parseInt(cells[9].textContent) || 0;
-                const pallet = parseInt(cells[10].textContent) || 0;
-                const remark = cells[11].textContent;
-
-                if (!item_code || !lotNumber || !quantity || !pallet) {
-                    alert('Please ensure Item Code, Lot Number, Quantity, and Pallet are filled for all rows.');
-                    return;
-                }
-
-                const { data: inventoryData, error: inventoryError } = await supabaseClient
-                    .from('inventory')
-                    .insert({
-                        item_code: item_code,
-                        warehouse_id: warehouseId,
-                        batch_no: batch_no,
-                        quantity: quantity,
-                        container: container,
-                        details: {
-                            pallet: pallet,
-                            lotNumber: lotNumber,
-                            dateStored: dateStored,
-                            pallet_due_date: palletDueDate,
-                            remark: remark,
-                        }
-                    })
-                    .select()
-                    .single();
-
-                if (inventoryError) throw new Error(`Error inserting into inventory: ${inventoryError.message}`);
-
-                const { error: transactionError } = await supabaseClient
-                    .from('transactions')
-                    .insert({
-                        inventory_id: inventoryData.id,
-                        transaction_type: 'Container Unload',
-                        quantity: quantity,
-                        item_code: item_code,
-                        warehouse_id: warehouseId,
-                        transaction_date: dateStored,
-                        inventory_details: {
-                            pallet: pallet,
-                            lotNumber: lotNumber,
-                            batch_no: batch_no,
-                            container: container,
-                        },
-                        operator_id: operator_id,
-                    });
-
-                if (transactionError) throw new Error(`Error inserting into transactions: ${transactionError.message}`);
+    try {
+        for (const row of rows) {
+            const cells = row.querySelectorAll('td');
+            const item_code = cells[0].textContent;
+            const batch_no = cells[4].textContent;
+            const lotNumber = cells[5].textContent;
+            
+            // 修复：正确获取日期输入值
+            const dateStoredInput = cells[6].querySelector('input[type="date"]');
+            if (!dateStoredInput || !dateStoredInput.value) {
+                alert('Please ensure "Date Stored" is filled for all rows.');
+                return;
             }
+            
+            // 直接使用input的value，它已经是YYYY-MM-DD格式
+            const dateStored = dateStoredInput.value;
+            console.log('Date stored value:', dateStored); // 调试用
+            
+            const containerInput = cells[7].querySelector('input');
+            const container = containerInput ? containerInput.value : '';
+            const palletDueDate = cells[8].textContent;
+            const quantity = parseInt(cells[9].textContent) || 0;
+            const pallet = parseInt(cells[10].textContent) || 0;
+            const remark = cells[11].textContent;
+
+            if (!item_code || !lotNumber || !quantity || !pallet) {
+                alert('Please ensure Item Code, Lot Number, Quantity, and Pallet are filled for all rows.');
+                return;
+            }
+
+            // 确保日期格式正确（DD/MM/YYYY 转为 YYYY-MM-DD）
+            let formattedDateStored = dateStored;
+            if (dateStored.includes('/')) {
+                const parts = dateStored.split('/');
+                if (parts.length === 3) {
+                    // 假设是DD/MM/YYYY格式
+                    formattedDateStored = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+            }
+
+            console.log('Formatted date stored:', formattedDateStored); // 调试用
+
+            const { data: inventoryData, error: inventoryError } = await supabaseClient
+                .from('inventory')
+                .insert({
+                    item_code: item_code,
+                    warehouse_id: warehouseId,
+                    batch_no: batch_no,
+                    quantity: quantity,
+                    container: container,
+                    details: {
+                        pallet: pallet,
+                        lotNumber: lotNumber,
+                        dateStored: formattedDateStored, // 确保使用格式化后的日期
+                        pallet_due_date: palletDueDate,
+                        remark: remark,
+                    }
+                })
+                .select()
+                .single();
+
+            if (inventoryError) throw new Error(`Error inserting into inventory: ${inventoryError.message}`);
+
+            const { error: transactionError } = await supabaseClient
+                .from('transactions')
+                .insert({
+                    inventory_id: inventoryData.id,
+                    transaction_type: 'Container Unload',
+                    quantity: quantity,
+                    item_code: item_code,
+                    warehouse_id: warehouseId,
+                    transaction_date: formattedDateStored, // 同样用格式化后的日期
+                    inventory_details: {
+                        pallet: pallet,
+                        lotNumber: lotNumber,
+                        batch_no: batch_no,
+                        container: container,
+                    },
+                    operator_id: operator_id,
+                });
+
+            if (transactionError) throw new Error(`Error inserting into transactions: ${transactionError.message}`);
+        }
 
             let lastOrder, orderError;
             try {
