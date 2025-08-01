@@ -852,7 +852,7 @@ window.loadSingLongPage = (supabaseClient) => {
         const { data, error } = await supabaseClient
             .from('scheduled_transactions')
             .select('order_number')
-            .like('order_number', 'LCSL-%')
+            .or('order_number.like.LCSL-%,order_number.like.LCSLIN-%')
             .order('order_number', { ascending: false });
 
         if (error) {
@@ -884,7 +884,12 @@ window.loadSingLongPage = (supabaseClient) => {
                 return;
             }
 
-            const printHtml = generatePrintHTML(data.order_number, data.draw_out_date, data.draw_out_time, data.stock_out_items);
+            let printHtml;
+            if (data.order_number.startsWith('LCSLIN-')) {
+                printHtml = generateStockInPrintHTML(data.order_number, data.draw_out_date, data.stock_out_items);
+            } else {
+                printHtml = generatePrintHTML(data.order_number, data.draw_out_date, data.draw_out_time, data.stock_out_items);
+            }
             const printWindow = window.open('', '_blank');
             printWindow.document.write(printHtml);
             printWindow.document.close();
@@ -1001,12 +1006,15 @@ window.loadSingLongPage = (supabaseClient) => {
 
             const existingDetails = existingItem.details || {};
 
+            const dateStoredInput = row.cells[5].querySelector('input');
+            const dateStoredValue = dateStoredInput ? dateStoredInput.value : row.cells[5].textContent;
+
             const updatedData = {
                 details: {
                     ...existingDetails,
                     lotNumber: row.cells[3].textContent,
                     pallet_due_date: row.cells[7].textContent,
-                    dateStored: row.cells[5].querySelector('input').value,
+                    dateStored: dateStoredValue,
                 },
                 batch_no: row.cells[4].textContent,
                 container: row.cells[6].textContent,
@@ -1165,13 +1173,18 @@ window.loadSingLongPage = (supabaseClient) => {
                 if (transactionError) throw new Error(`Error inserting into transactions: ${transactionError.message}`);
             }
 
-            const { data: lastOrder, error: orderError } = await supabaseClient
-                .from('scheduled_transactions')
-                .select('order_number')
-                .like('order_number', 'LCSLIN-%')
-                .order('order_number', { ascending: false })
-                .limit(1)
-                .single();
+            let lastOrder, orderError;
+            try {
+                ({ data: lastOrder, error: orderError } = await supabaseClient
+                    .from('scheduled_transactions')
+                    .select('order_number')
+                    .like('order_number', 'LCSLIN-*')
+                    .order('order_number', { ascending: false })
+                    .limit(1)
+                    .single());
+            } catch (e) {
+                console.warn("Could not fetch last order number, but this is not a critical error.", e);
+            }
 
             let newOrderNumber;
             if (orderError && orderError.code !== 'PGRST116') { // Ignore 'not found' error
