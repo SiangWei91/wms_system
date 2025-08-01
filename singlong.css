@@ -30,3 +30,11 @@
     font-size: inherit;
     color: inherit;
 }
+
+#singlong-stock-out-table .transfer-to-select {
+    border: none;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}

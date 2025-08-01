@@ -86,7 +86,8 @@ window.loadSingLongPage = (supabaseClient) => {
             const { data: inventoryData, error: inventoryError } = await supabaseClient
                 .from('inventory')
                 .select('*')
-                .eq('warehouse_id', warehouseId);
+                .eq('warehouse_id', warehouseId)
+                .order('details->>lotNumber', { ascending: true });
 
             if (inventoryError) throw inventoryError;
 
@@ -736,7 +737,7 @@ window.loadSingLongPage = (supabaseClient) => {
         const today = new Date().toISOString().split('T')[0];
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 29);
-        const palletDueDate = dueDate.toISOString().split('T')[0];
+        const palletDueDate = dueDate.toLocaleDateString('en-GB');
 
         let lotNumber = '';
         let dateStored = today;
