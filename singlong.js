@@ -76,215 +76,258 @@ window.loadSingLongPage = (supabaseClient) => {
     };
 
     const loadInventoryData = async () => {
-        try {
-            if (eventController) {
-                eventController.abort();
+    try {
+        if (eventController) {
+            eventController.abort();
+        }
+        eventController = new AbortController();
+        const signal = eventController.signal;
+
+        const { data: inventoryData, error: inventoryError } = await supabaseClient
+            .from('inventory')
+            .select('*')
+            .eq('warehouse_id', warehouseId)
+            .order('details->>lotNumber', { ascending: true });
+
+        if (inventoryError) throw inventoryError;
+
+        const { data: productsData, error: productsError } = await supabaseClient
+            .from('products')
+            .select('item_code, product_name, packing_size');
+
+        if (productsError) throw productsError;
+
+        const productsMap = new Map(productsData.map(p => [p.item_code, p]));
+
+        const inventorySummaryTable = document.querySelector(`#${warehouseId}-inventory-summary-table`);
+        if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-container`)) {
+            const searchContainer = document.createElement('div');
+            searchContainer.id = `${warehouseId}-search-container`;
+            searchContainer.style.marginBottom = '20px';
+            searchContainer.style.display = 'flex';
+            searchContainer.style.alignItems = 'center';
+            searchContainer.style.backgroundColor = '#f5f5f5';
+            searchContainer.style.borderRadius = '16px';
+            searchContainer.style.padding = '4px 12px';
+            searchContainer.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.08)';
+            searchContainer.style.width = '25%';
+            searchContainer.style.height = '40px';
+
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.id = `${warehouseId}-search-input`;
+            searchInput.placeholder = 'Search...';
+            searchInput.style.border = 'none';
+            searchInput.style.outline = 'none';
+            searchInput.style.background = 'transparent';
+            searchInput.style.width = '100%';
+            searchInput.style.fontSize = '0.875rem';
+
+            searchContainer.appendChild(searchInput);
+            inventorySummaryTable.parentNode.insertBefore(searchContainer, inventorySummaryTable);
+        }
+
+        const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
+        inventorySummaryTableBody.innerHTML = '';
+        let summaryTotalQuantity = 0;
+        let summaryTotalPallet = 0;
+
+        // 修复的formatDate函数 - 处理多种日期格式
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            
+            // 处理 YYYY-MM-DD 格式 (从 Stock In 来的)
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                const parts = dateString.split('-');
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
-            eventController = new AbortController();
-            const signal = eventController.signal;
-
-            const { data: inventoryData, error: inventoryError } = await supabaseClient
-                .from('inventory')
-                .select('*')
-                .eq('warehouse_id', warehouseId)
-                .order('details->>lotNumber', { ascending: true });
-
-            if (inventoryError) throw inventoryError;
-
-            const { data: productsData, error: productsError } = await supabaseClient
-                .from('products')
-                .select('item_code, product_name, packing_size');
-
-            if (productsError) throw productsError;
-
-            const productsMap = new Map(productsData.map(p => [p.item_code, p]));
-
-            const inventorySummaryTable = document.querySelector(`#${warehouseId}-inventory-summary-table`);
-            if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-container`)) {
-                const searchContainer = document.createElement('div');
-                searchContainer.id = `${warehouseId}-search-container`;
-                searchContainer.style.marginBottom = '20px';
-                searchContainer.style.display = 'flex';
-                searchContainer.style.alignItems = 'center';
-                searchContainer.style.backgroundColor = '#f5f5f5';
-                searchContainer.style.borderRadius = '16px';
-                searchContainer.style.padding = '4px 12px';
-                searchContainer.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.08)';
-                searchContainer.style.width = '25%';
-                searchContainer.style.height = '40px';
-
-                const searchInput = document.createElement('input');
-                searchInput.type = 'text';
-                searchInput.id = `${warehouseId}-search-input`;
-                searchInput.placeholder = 'Search...';
-                searchInput.style.border = 'none';
-                searchInput.style.outline = 'none';
-                searchInput.style.background = 'transparent';
-                searchInput.style.width = '100%';
-                searchInput.style.fontSize = '0.875rem';
-
-                searchContainer.appendChild(searchInput);
-                inventorySummaryTable.parentNode.insertBefore(searchContainer, inventorySummaryTable);
+            
+            // 处理 DD/MM/YYYY 格式 (原有的格式)
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+                return dateString;
             }
+            
+            // 处理其他可能的日期格式
+            try {
+                const date = new Date(dateString);
+                if (!isNaN(date.getTime())) {
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                console.error('Error parsing date:', dateString, e);
+            }
+            
+            return dateString; // 如果无法解析，返回原始字符串
+        };
 
-            const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
-            inventorySummaryTableBody.innerHTML = '';
-            let summaryTotalQuantity = 0;
-            let summaryTotalPallet = 0;
+        // 修复的calculateDaysLeft函数 - 处理多种日期格式
+        const calculateDaysLeft = (dueDateString) => {
+            if (!dueDateString) return 'N/A';
+            
+            let dueDate;
+            
+            // 处理 DD/MM/YYYY 格式
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dueDateString)) {
+                const parts = dueDateString.split('/');
+                dueDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            }
+            // 处理 YYYY-MM-DD 格式
+            else if (/^\d{4}-\d{2}-\d{2}$/.test(dueDateString)) {
+                dueDate = new Date(dueDateString);
+            }
+            // 尝试直接解析
+            else {
+                dueDate = new Date(dueDateString);
+            }
+            
+            if (isNaN(dueDate.getTime())) return 'N/A';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        };
 
-            inventoryData.filter(item => item.quantity > 0).forEach(item => {
-                const product = productsMap.get(item.item_code) || {};
-                const row = document.createElement('tr');
-                row.dataset.inventoryId = item.id;
+        inventoryData.filter(item => item.quantity > 0).forEach(item => {
+            const product = productsMap.get(item.item_code) || {};
+            const row = document.createElement('tr');
+            row.dataset.inventoryId = item.id;
 
-                const formatDate = (dateString) => {
-                    if (!dateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return '';
-                    const parts = dateString.split('/');
-                    return `${parts[0]}/${parts[1]}/${parts[2]}`;
-                };
+            const palletDueDate = item.details.pallet_due_date || '';
+            const daysLeft = calculateDaysLeft(palletDueDate);
 
-                const calculateDaysLeft = (dueDateString) => {
-                    if (!dueDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dueDateString)) return 'N/A';
-                    const parts = dueDateString.split('/');
-                    const dueDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const diffTime = dueDate.getTime() - today.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    return diffDays;
-                };
+            row.innerHTML = `
+                <td>${item.item_code}</td>
+                <td>${product.product_name || ''}</td>
+                <td>${product.packing_size || ''}</td>
+                <td>${item.details.lotNumber || ''}</td>
+                <td>${item.batch_no || ''}</td>
+                <td>${formatDate(item.details.dateStored)}</td>
+                <td>${item.container || ''}</td>
+                <td>${formatDate(palletDueDate)}</td>
+                <td>${daysLeft}</td>
+                <td>${item.quantity}</td>
+                <td>${item.details.pallet}</td>
+            `;
+            inventorySummaryTableBody.appendChild(row);
+            summaryTotalQuantity += item.quantity;
+            summaryTotalPallet += Number(item.details.pallet);
+        });
 
-                const palletDueDate = item.details.pallet_due_date || '';
-                const daysLeft = calculateDaysLeft(palletDueDate);
+        const summaryFooter = document.querySelector(`#${warehouseId}-inventory-summary-table tfoot`);
+        if (summaryFooter) {
+            summaryFooter.innerHTML = `
+                <tr>
+                    <td colspan="8">Total:</td>
+                    <td>${summaryTotalQuantity}</td>
+                    <td>${summaryTotalPallet}</td>
+                </tr>
+            `;
+        }
 
-                row.innerHTML = `
-                    <td>${item.item_code}</td>
-                    <td>${product.product_name || ''}</td>
-                    <td>${product.packing_size || ''}</td>
-                    <td>${item.details.lotNumber || ''}</td>
-                    <td>${item.batch_no || ''}</td>
-                    <td>${formatDate(item.details.dateStored)}</td>
-                    <td>${item.container || ''}</td>
-                    <td>${formatDate(palletDueDate)}</td>
-                    <td>${daysLeft}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.details.pallet}</td>
-                `;
-                inventorySummaryTableBody.appendChild(row);
-                summaryTotalQuantity += item.quantity;
-                summaryTotalPallet += Number(item.details.pallet);
+        inventorySummaryTableBody.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            const cellsToEdit = [3, 4, 5, 6, 7]; // Corresponds to Lot Number, Batch No, Date Stored, Container Number, Pallet Due Date
+            cellsToEdit.forEach(index => {
+                if(row.cells[index]) {
+                    row.cells[index].contentEditable = true;
+                }
             });
+            row.focus();
 
-            const summaryFooter = document.querySelector(`#${warehouseId}-inventory-summary-table tfoot`);
-            if (summaryFooter) {
-                summaryFooter.innerHTML = `
-                    <tr>
-                        <td colspan="8">Total:</td>
-                        <td>${summaryTotalQuantity}</td>
-                        <td>${summaryTotalPallet}</td>
-                    </tr>
-                `;
-            }
+            const focusOutListener = () => {
+                updateInventoryRow(row);
+                row.removeEventListener('focusout', focusOutListener);
+            };
+            row.addEventListener('focusout', focusOutListener);
+        });
 
-            inventorySummaryTableBody.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const row = e.target.closest('tr');
-                if (!row) return;
+        inventorySummaryTableBody.addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (!row) return;
 
-                const cellsToEdit = [3, 4, 5, 6, 7]; // Corresponds to Lot Number, Batch No, Date Stored, Container Number, Pallet Due Date
-                cellsToEdit.forEach(index => {
-                    if(row.cells[index]) {
-                        row.cells[index].contentEditable = true;
+            const modal = document.getElementById('modal-container');
+            const modalBody = document.getElementById('jordon-modal-body');
+            if (!modal || !modalBody) return;
+
+            const getDefaultStockOutDate = () => {
+                const today = new Date();
+                if (today.getDay() === 6) { // Saturday
+                    today.setDate(today.getDate() + 2);
+                } else {
+                    today.setDate(today.getDate() + 1);
+                }
+                return today.toISOString().split('T')[0];
+            };
+
+            const rowIndex = Array.from(inventorySummaryTableBody.children).indexOf(row);
+            const item = inventoryData.filter(i => i.quantity > 0)[rowIndex];
+
+            if (!item) return;
+
+            const { id: inventory_id, item_code, batch_no, container, details } = item;
+            const { lotNumber, location, pallet_due_date, dateStored } = details;
+            const product = productsMap.get(item_code) || {};
+
+            modal.setAttribute('data-current-warehouse', 'singlong');
+            modal.dataset.inventoryId = inventory_id;
+            modal.dataset.itemCode = item_code;
+            modal.dataset.batchNo = batch_no;
+            modal.dataset.location = location || '';
+
+            modalBody.innerHTML = `
+                <p><strong>Item Code:</strong> ${item_code}</p>
+                <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
+                <p><strong>Packaging Size:</strong> ${product.packing_size || ''}</p>
+                <p><strong>Lot Number:</strong> ${lotNumber || ''}</p>
+                <p><strong>Current Quantity:</strong> ${item.quantity}</p>
+                <p><strong>Current Pallet:</strong> ${item.details.pallet}</p>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" id="singlong-stock-out-quantity" class="withdraw-quantity" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Pallet:</label>
+                    <input type="number" id="singlong-stock-out-pallet" class="withdraw-pallet" min="0">
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }, { signal });
+
+        const searchInput = document.getElementById(`${warehouseId}-search-input`);
+        if (searchInput) {
+            searchInput.addEventListener('keyup', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const tableRows = document.querySelectorAll(`#${warehouseId}-inventory-summary-table tbody tr`);
+                tableRows.forEach(row => {
+                    const itemCode = row.cells[0].textContent.toLowerCase();
+                    const productName = row.cells[1].textContent.toLowerCase();
+                    const lotNumber = row.cells[3].textContent.toLowerCase();
+                    const container = row.cells[5].textContent.toLowerCase();
+
+                    if (itemCode.includes(searchTerm) || productName.includes(searchTerm) || lotNumber.includes(searchTerm) || container.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
                     }
                 });
-                row.focus();
-
-                const focusOutListener = () => {
-                    updateInventoryRow(row);
-                    row.removeEventListener('focusout', focusOutListener);
-                };
-                row.addEventListener('focusout', focusOutListener);
-            });
-
-            inventorySummaryTableBody.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                if (!row) return;
-
-                const modal = document.getElementById('modal-container');
-                const modalBody = document.getElementById('jordon-modal-body');
-                if (!modal || !modalBody) return;
-
-                const getDefaultStockOutDate = () => {
-                    const today = new Date();
-                    if (today.getDay() === 6) { // Saturday
-                        today.setDate(today.getDate() + 2);
-                    } else {
-                        today.setDate(today.getDate() + 1);
-                    }
-                    return today.toISOString().split('T')[0];
-                };
-
-                const rowIndex = Array.from(inventorySummaryTableBody.children).indexOf(row);
-                const item = inventoryData.filter(i => i.quantity > 0)[rowIndex];
-
-                if (!item) return;
-
-                const { id: inventory_id, item_code, batch_no, container, details } = item;
-                const { lotNumber, location, pallet_due_date, dateStored } = details;
-                const product = productsMap.get(item_code) || {};
-
-                modal.setAttribute('data-current-warehouse', 'singlong');
-                modal.dataset.inventoryId = inventory_id;
-                modal.dataset.itemCode = item_code;
-                modal.dataset.batchNo = batch_no;
-                modal.dataset.location = location || '';
-
-                modalBody.innerHTML = `
-                    <p><strong>Item Code:</strong> ${item_code}</p>
-                    <p><strong>Product Name:</strong> ${product.product_name || ''}</p>
-                    <p><strong>Packaging Size:</strong> ${product.packing_size || ''}</p>
-                    <p><strong>Lot Number:</strong> ${lotNumber || ''}</p>
-                    <p><strong>Current Quantity:</strong> ${item.quantity}</p>
-                    <p><strong>Current Pallet:</strong> ${item.details.pallet}</p>
-                    <div class="form-group">
-                        <label>Quantity:</label>
-                        <input type="number" id="singlong-stock-out-quantity" class="withdraw-quantity" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Pallet:</label>
-                        <input type="number" id="singlong-stock-out-pallet" class="withdraw-pallet" min="0">
-                    </div>
-                `;
-
-                modal.style.display = 'flex';
             }, { signal });
-
-            const searchInput = document.getElementById(`${warehouseId}-search-input`);
-            if (searchInput) {
-                searchInput.addEventListener('keyup', () => {
-                    const searchTerm = searchInput.value.toLowerCase();
-                    const tableRows = document.querySelectorAll(`#${warehouseId}-inventory-summary-table tbody tr`);
-                    tableRows.forEach(row => {
-                        const itemCode = row.cells[0].textContent.toLowerCase();
-                        const productName = row.cells[1].textContent.toLowerCase();
-                        const lotNumber = row.cells[3].textContent.toLowerCase();
-                        const container = row.cells[5].textContent.toLowerCase();
-
-                        if (itemCode.includes(searchTerm) || productName.includes(searchTerm) || lotNumber.includes(searchTerm) || container.includes(searchTerm)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                }, { signal });
-            }
-
-            loadStockOutData();
-
-        } catch (error) {
-            console.error('Error loading inventory data:', error);
         }
-    };
+
+        loadStockOutData();
+
+    } catch (error) {
+        console.error('Error loading inventory data:', error);
+    }
+};
 
     const initTabs = () => {
         const tabContainer = document.querySelector(`.${warehouseId}-container .tab-nav`);
