@@ -296,7 +296,7 @@ window.loadSingLongPage = (supabaseClient) => {
         if (quantity > 0 || pallet > 0) {
             const { data: warehouses, error } = await supabaseClient
                 .from('warehouses')
-                .select('name')
+                .select('warehouse_id, name')
                 .like('details', '%for_3pl_list%');
 
             if (error) {
@@ -305,7 +305,7 @@ window.loadSingLongPage = (supabaseClient) => {
                 return;
             }
 
-            const warehouseOptions = warehouses.map(w => `<option value="${w.name}">${w.name}</option>`).join('');
+            const warehouseOptions = warehouses.map(w => `<option value="${w.warehouse_id}">${w.name}</option>`).join('');
 
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
@@ -551,7 +551,7 @@ window.loadSingLongPage = (supabaseClient) => {
             const stockOutItems = [];
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
-                const transferTo = row.querySelector('.transfer-to-select').value;
+                const destination_warehouse_id = row.querySelector('.transfer-to-select').value;
                 stockOutItems.push({
                     productName: cells[0].textContent,
                     packingSize: cells[1].textContent,
@@ -559,7 +559,7 @@ window.loadSingLongPage = (supabaseClient) => {
                     lotNumber: cells[3].textContent,
                     quantity: cells[4].textContent,
                     pallet: cells[5].textContent,
-                    transferTo: transferTo,
+                    destination_warehouse_id: destination_warehouse_id,
                 });
             });
 
