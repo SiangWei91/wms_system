@@ -212,6 +212,7 @@ window.loadSingLongPage = (supabaseClient) => {
 
                 modal.setAttribute('data-current-warehouse', 'singlong');
                 modal.dataset.inventoryId = inventory_id;
+                modal.dataset.itemCode = item_code;
                 modal.dataset.batchNo = batch_no;
                 modal.dataset.location = location || '';
 
@@ -310,6 +311,7 @@ window.loadSingLongPage = (supabaseClient) => {
 
             const newRow = document.createElement('tr');
             newRow.dataset.inventoryId = modal.dataset.inventoryId;
+            newRow.dataset.itemCode = modal.dataset.itemCode;
             newRow.innerHTML = `
                 <td>${productName}</td>
                 <td>${packingSize}</td>
@@ -569,6 +571,7 @@ window.loadSingLongPage = (supabaseClient) => {
                 const destination_warehouse_id = row.querySelector('.transfer-to-select').value;
                 stockOutItemsForSupabase.push({
                     inventory_id: row.dataset.inventoryId,
+                    item_code: row.dataset.itemCode,
                     batch_no: cells[2].textContent,
                     lot_number: cells[3].textContent,
                     withdraw_quantity: parseInt(cells[4].textContent) || 0,
