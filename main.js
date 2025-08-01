@@ -84,7 +84,8 @@ const pageScripts = {
         init: () => window.loadLineagePage(supabaseClient)
     },
     'sing-long': {
-        redirect: 'coming-soon'
+        urls: ['warehouse.js', 'singlong.js'],
+        init: () => window.loadSingLongPage(supabaseClient)
     },
     'transfer': {
         redirect: 'coming-soon'

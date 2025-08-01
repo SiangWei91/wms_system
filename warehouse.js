@@ -585,6 +585,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
 
                 modal.style.display = 'flex';
             }, { signal });
+
         }
 
         attachEventListeners();
@@ -717,6 +718,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
             if (currentWarehouse !== warehouseId) {
               return;
             }
+
 
             // 防止重复提交
             if (e.target.disabled) {
@@ -956,6 +958,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
         };
         
         addClearStockOutButton();
+
         
       } catch (error) {
         console.error('Error loading inventory data:', error);

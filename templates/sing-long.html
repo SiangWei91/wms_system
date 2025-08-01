@@ -1,11 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sing Long</title>
-</head>
-<body>
-    <h1>Sing Long</h1>
-</body>
-</html>
+<link rel="stylesheet" href="inventory.css">
+<link rel="stylesheet" href="singlong.css">
+<div class="singlong-container modern-container">
+  <div class="tab-nav">
+    <button class="tab-button active" data-tab="inventory-summary" data-translate="Inventory Summary">Inventory Summary</button>
+    <button class="tab-button" data-tab="stock-out" data-translate="Stock Out">Stock Out</button>
+    <button class="tab-button" data-tab="stock-in" data-translate="Stock In">Stock In</button>
+    <button class="tab-button" data-tab="report" data-translate="Report">Report</button>
+  </div>
+  <div class="tab-content">
+    <div id="inventory-summary" class="tab-pane active">
+      <table id="singlong-inventory-summary-table" class="data-table">
+        <thead>
+          <tr>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container Number">Container Number</th>
+            <th data-translate="Pallet Due Date">Pallet Due Date</th>
+            <th data-translate="Day Left">Day Left</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be loaded here -->
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+    <div id="stock-out" class="tab-pane">
+      <div class="modern-filters">
+        <div class="form-group">
+          <label for="singlong-draw-out-time" data-translate="Time:">Time:</label>
+          <select id="singlong-draw-out-time">
+            <option value="09:00">9.00am</option>
+            <option value="10:00">10.00am</option>
+            <option value="11:00">11.00am</option>
+            <option value="13:30">1.30pm</option>
+            <option value="14:30">2.30pm</option>
+            <option value="15:30">3.30pm</option>
+            <option value="16:30">4.30pm</option>
+          </select>
+        </div>
+      </div>
+      <table id="singlong-stock-out-table" class="data-table">
+        <thead>
+          <tr>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate-="Withdraw Quantity">Withdraw Quantity</th>
+            <th data-translate="Withdraw Pallet">Withdraw Pallet</th>
+            <th data-translate="Actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+      <button id="singlong-submit-stock-out-btn" class="btn-primary" data-translate="Submit">Submit</button>
+    </div>
+    <div id="stock-in" class="tab-pane">
+      <table id="singlong-stock-in-table" class="data-table">
+        <thead>
+          <tr>
+            <th data-translate="Item Code">Item Code</th>
+            <th data-translate="Product Name">Product Name</th>
+            <th data-translate="Packing Size">Packing Size</th>
+            <th data-translate="Pallet Type">Pallet Type</th>
+            <th data-translate="Location">Location</th>
+            <th data-translate="Batch No">Batch No</th>
+            <th data-translate="Lot Number">Lot Number</th>
+            <th data-translate="Date Stored">Date Stored</th>
+            <th data-translate="Container">Container</th>
+            <th data-translate="Quantity">Quantity</th>
+            <th data-translate="Pallet">Pallet</th>
+            <th data-translate="Mix Pallet">Mix Pallet</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be loaded here -->
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+      <button id="singlong-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
+    </div>
+    <div id="report" class="tab-pane">
+      <div class="report-container">
+        <p>Reports for Sing Long are coming soon.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-container" class="jordon-withdrawal-modal" style="display: none;">
+  <div class="modal">
+      <div class="modal-header">
+          <h2 data-translate="Stock Out">Stock Out</h2>
+          <button id="jordon-modal-close-button" class="modal-close">&times;</button>
+      </div>
+      <div id="jordon-modal-body">
+          <!-- Dynamic content will be injected here -->
+      </div>
+      <div class="modal-footer">
+          <button id="modal-submit-btn" class="btn btn-primary" data-translate="Confirm">Confirm</button>
+      </div>
+  </div>
+</div>
