@@ -771,6 +771,16 @@ window.loadSingLongPage = (supabaseClient) => {
         newRow.querySelector('.product-name-cell').addEventListener('click', (e) => {
             showProductSearch(e.target);
         });
+
+        const dateStoredInput = newRow.querySelector('input[type="date"]');
+        if (dateStoredInput) {
+            dateStoredInput.addEventListener('change', (e) => {
+                const newDate = new Date(e.target.value);
+                newDate.setDate(newDate.getDate() + 29);
+                const palletDueDateCell = newRow.cells[8];
+                palletDueDateCell.textContent = newDate.toLocaleDateString('en-GB');
+            });
+        }
     };
 
     const showProductSearch = async (cell) => {

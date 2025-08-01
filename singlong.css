@@ -22,3 +22,11 @@
 .report-btn:hover {
     background-color: #e0e0e0;
 }
+
+#singlong-stock-in-table input[type="date"] {
+    border: none;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
