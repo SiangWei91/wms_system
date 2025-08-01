@@ -206,11 +206,12 @@ window.loadSingLongPage = (supabaseClient) => {
 
                 if (!item) return;
 
-                const { item_code, batch_no, container, details } = item;
+                const { id: inventory_id, item_code, batch_no, container, details } = item;
                 const { lotNumber, location, pallet_due_date, dateStored } = details;
                 const product = productsMap.get(item_code) || {};
 
                 modal.setAttribute('data-current-warehouse', 'singlong');
+                modal.dataset.inventoryId = inventory_id;
                 modal.dataset.batchNo = batch_no;
                 modal.dataset.location = location || '';
 
@@ -308,6 +309,7 @@ window.loadSingLongPage = (supabaseClient) => {
             const warehouseOptions = warehouses.map(w => `<option value="${w.warehouse_id}">${w.name}</option>`).join('');
 
             const newRow = document.createElement('tr');
+            newRow.dataset.inventoryId = modal.dataset.inventoryId;
             newRow.innerHTML = `
                 <td>${productName}</td>
                 <td>${packingSize}</td>
@@ -553,6 +555,7 @@ window.loadSingLongPage = (supabaseClient) => {
                 const cells = row.querySelectorAll('td');
                 const destination_warehouse_id = row.querySelector('.transfer-to-select').value;
                 stockOutItems.push({
+                    inventory_id: row.dataset.inventoryId,
                     productName: cells[0].textContent,
                     packingSize: cells[1].textContent,
                     batchNo: cells[2].textContent,
