@@ -71,29 +71,37 @@
       </div>
     </div>
     <div id="stock-in" class="tab-pane">
-      <table id="singlong-stock-in-table" class="data-table">
-        <thead>
-          <tr>
-            <th data-translate="Item Code">Item Code</th>
-            <th data-translate="Product Name">Product Name</th>
-            <th data-translate="Packing Size">Packing Size</th>
-            <th data-translate="Pallet Type">Pallet Type</th>
-            <th data-translate="Location">Location</th>
-            <th data-translate="Batch No">Batch No</th>
-            <th data-translate="Lot Number">Lot Number</th>
-            <th data-translate="Date Stored">Date Stored</th>
-            <th data-translate="Container">Container</th>
-            <th data-translate="Quantity">Quantity</th>
-            <th data-translate="Pallet">Pallet</th>
-            <th data-translate="Mix Pallet">Mix Pallet</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Data will be loaded here -->
-        </tbody>
-        <tfoot></tfoot>
-      </table>
-      <button id="singlong-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
+        <table id="singlong-stock-in-table" class="data-table">
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Product Name</th>
+                    <th>Packing Size</th>
+                    <th>Pallet Type</th>
+                    <th>Batch No</th>
+                    <th>Lot Number</th>
+                    <th>Date Stored</th>
+                    <th>Container Number</th>
+                    <th>Pallet Due Date</th>
+                    <th>Quantity</th>
+                    <th>Pallet</th>
+                    <th>Mix Pallet</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added here dynamically -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="12" style="text-align: left;">
+                        <button id="add-stock-in-row-btn" class="btn-primary">+</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="singlong-stock-in-submit-btn" class="btn-primary" data-translate="Submit">Submit</button>
+        </div>
     </div>
     <div id="report" class="tab-pane">
         <div class="report-container">

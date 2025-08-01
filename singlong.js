@@ -685,4 +685,142 @@ window.loadSingLongPage = (supabaseClient) => {
             printWindow.print();
         });
     }
+
+    const addStockInRowBtn = document.getElementById('add-stock-in-row-btn');
+    if (addStockInRowBtn) {
+        addStockInRowBtn.addEventListener('click', () => {
+            addStockInRow();
+        });
+    }
+
+    const getNextLotNumber = async (baseLotNumber) => {
+        if (!baseLotNumber) {
+            const { data, error } = await supabaseClient
+                .from('inventory')
+                .select('details->>lotNumber')
+                .eq('warehouse_id', 'singlong')
+                .order('details->>lotNumber', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching max lot number:', error);
+                return 'PCR 24 / 001';
+            }
+
+            baseLotNumber = data ? data.lotNumber : 'PCR 24 / 000';
+        }
+
+        const parts = baseLotNumber.split('/');
+        const number = parseInt(parts[1]) + 1;
+        return `${parts[0].trim()} / ${number}`;
+    };
+
+    const addStockInRow = async () => {
+        const stockInTableBody = document.querySelector('#singlong-stock-in-table tbody');
+        const newRow = document.createElement('tr');
+        const today = new Date().toISOString().split('T')[0];
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 29);
+        const palletDueDate = dueDate.toISOString().split('T')[0];
+
+        let lotNumber = '';
+        let dateStored = today;
+        let containerNumber = '';
+        let palletDueDateValue = palletDueDate;
+
+        const rows = stockInTableBody.querySelectorAll('tr');
+        if (rows.length > 0) {
+            const lastRow = rows[rows.length - 1];
+            lotNumber = await getNextLotNumber(lastRow.cells[5].textContent);
+            dateStored = lastRow.cells[6].querySelector('input').value;
+            containerNumber = lastRow.cells[7].querySelector('input').value;
+            palletDueDateValue = lastRow.cells[8].textContent;
+        } else {
+            lotNumber = await getNextLotNumber();
+        }
+
+        newRow.innerHTML = `
+            <td></td>
+            <td contenteditable="true" class="product-name-cell"></td>
+            <td></td>
+            <td contenteditable="true">LC</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true">${lotNumber}</td>
+            <td><input type="date" value="${dateStored}"></td>
+            <td><input type="text" value="${containerNumber}"></td>
+            <td>${palletDueDateValue}</td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+        `;
+
+        stockInTableBody.appendChild(newRow);
+
+        newRow.querySelector('.product-name-cell').addEventListener('click', (e) => {
+            showProductSearch(e.target);
+        });
+    };
+
+    const showProductSearch = async (cell) => {
+        const { data: products, error } = await supabaseClient
+            .from('products')
+            .select('item_code, product_name, packing_size')
+            .eq('type', 'Surimi');
+
+        if (error) {
+            console.error('Error fetching products:', error);
+            alert('Error fetching products.');
+            return;
+        }
+
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'product-search-container';
+        searchContainer.style.position = 'absolute';
+        searchContainer.style.background = 'white';
+        searchContainer.style.border = '1px solid #ccc';
+        searchContainer.style.zIndex = '1000';
+        searchContainer.style.maxHeight = '200px';
+        searchContainer.style.overflowY = 'auto';
+
+        const cellRect = cell.getBoundingClientRect();
+        searchContainer.style.left = `${cellRect.left}px`;
+        searchContainer.style.top = `${cellRect.bottom}px`;
+
+        const productList = document.createElement('ul');
+        products.forEach(product => {
+            const listItem = document.createElement('li');
+            listItem.textContent = product.product_name;
+            listItem.style.padding = '8px';
+            listItem.style.cursor = 'pointer';
+            listItem.addEventListener('mouseover', () => {
+                listItem.style.backgroundColor = '#f0f0f0';
+            });
+            listItem.addEventListener('mouseout', () => {
+                listItem.style.backgroundColor = 'white';
+            });
+            listItem.addEventListener('click', () => {
+                const row = cell.closest('tr');
+                row.cells[0].textContent = product.item_code;
+                cell.textContent = product.product_name;
+                row.cells[2].textContent = product.packing_size;
+                document.body.removeChild(searchContainer);
+            });
+            productList.appendChild(listItem);
+        });
+
+        searchContainer.appendChild(productList);
+        document.body.appendChild(searchContainer);
+
+        // Close the dropdown if user clicks outside of it
+        const clickOutsideHandler = (event) => {
+            if (!searchContainer.contains(event.target) && event.target !== cell) {
+                document.body.removeChild(searchContainer);
+                document.removeEventListener('click', clickOutsideHandler);
+            }
+        };
+        setTimeout(() => {
+            document.addEventListener('click', clickOutsideHandler);
+        }, 0);
+    };
 };
