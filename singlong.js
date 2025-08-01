@@ -897,7 +897,7 @@ window.loadSingLongPage = (supabaseClient) => {
 
         // Close the dropdown if user clicks outside of it
         const clickOutsideHandler = (event) => {
-            if (!searchContainer.contains(event.target) && event.target !== cell) {
+            if (searchContainer.parentNode && !searchContainer.contains(event.target) && event.target !== cell) {
                 document.body.removeChild(searchContainer);
                 document.removeEventListener('click', clickOutsideHandler);
             }
@@ -963,7 +963,9 @@ window.loadSingLongPage = (supabaseClient) => {
                         inventory_id: inventoryData.id,
                         transaction_type: 'stock_in',
                         quantity_change: quantity,
-                        pallet_change: pallet,
+                        inventory_details: {
+                            pallet: pallet,
+                        },
                         operator_id: operator_id,
                     });
 
