@@ -199,12 +199,9 @@ window.loadSingLongPage = (supabaseClient) => {
                 });
                 row.focus();
 
-                const focusOutListener = (e) => {
-                    // Check if the new focused element is a child of the row
-                    if (!row.contains(e.relatedTarget)) {
-                        updateInventoryRow(row);
-                        row.removeEventListener('focusout', focusOutListener);
-                    }
+                const focusOutListener = () => {
+                    updateInventoryRow(row);
+                    row.removeEventListener('focusout', focusOutListener);
                 };
                 row.addEventListener('focusout', focusOutListener);
             });
@@ -981,10 +978,15 @@ window.loadSingLongPage = (supabaseClient) => {
         }
     };
 
+    let isUpdating = false;
     const updateInventoryRow = async (row) => {
+        if (isUpdating) return;
+        isUpdating = true;
+
         const inventoryId = row.dataset.inventoryId;
         if (!inventoryId) {
             console.error('No inventory ID found for this row.');
+            isUpdating = false;
             return;
         }
 
@@ -1025,6 +1027,8 @@ window.loadSingLongPage = (supabaseClient) => {
         } catch (error) {
             console.error('Error updating inventory record:', error);
             alert('Error updating record.');
+        } finally {
+            isUpdating = false;
         }
     };
 
@@ -1148,7 +1152,7 @@ window.loadSingLongPage = (supabaseClient) => {
                         quantity: quantity,
                         item_code: item_code,
                         warehouse_id: warehouseId,
-                        transaction_date: new Date().toISOString(),
+                        transaction_date: dateStored,
                         inventory_details: {
                             pallet: pallet,
                             lotNumber: lotNumber,
@@ -1164,7 +1168,7 @@ window.loadSingLongPage = (supabaseClient) => {
             const { data: lastOrder, error: orderError } = await supabaseClient
                 .from('scheduled_transactions')
                 .select('order_number')
-                .like('order_number', 'LCSL-SI-%')
+                .like('order_number', 'LCSLIN-%')
                 .order('order_number', { ascending: false })
                 .limit(1)
                 .single();
@@ -1174,15 +1178,19 @@ window.loadSingLongPage = (supabaseClient) => {
                 throw orderError;
             }
             if (!lastOrder) {
-                newOrderNumber = 'LCSL-SI-0001';
+                newOrderNumber = 'LCSLIN-0001';
             } else {
-                const lastNumber = parseInt(lastOrder.order_number.split('-')[2]);
-                newOrderNumber = `LCSL-SI-${(lastNumber + 1).toString().padStart(4, '0')}`;
+                const lastNumber = parseInt(lastOrder.order_number.split('-')[1]);
+                newOrderNumber = `LCSLIN-${(lastNumber + 1).toString().padStart(4, '0')}`;
             }
 
             const stockInItemsForPrint = [];
-            rows.forEach(row => {
+            let firstDateStored = '';
+            rows.forEach((row, index) => {
                 const cells = row.querySelectorAll('td');
+                if (index === 0) {
+                    firstDateStored = cells[6].querySelector('input').value;
+                }
                 stockInItemsForPrint.push({
                     productName: cells[1].textContent,
                     packingSize: cells[2].textContent,
@@ -1197,11 +1205,12 @@ window.loadSingLongPage = (supabaseClient) => {
                 .from('scheduled_transactions')
                 .insert({
                     order_number: newOrderNumber,
-                    draw_out_date: new Date().toISOString().split('T')[0],
+                    draw_out_date: firstDateStored,
+                    draw_out_time: '00:00:00',
                     warehouse_id: 'singlong',
-                    stock_in_items: stockInItemsForPrint,
+                    stock_out_items: stockInItemsForPrint,
                     operator_id: operator_id,
-                    transaction_type: 'Stock In'
+                    status: 'done'
                 });
 
             if (insertError) {
