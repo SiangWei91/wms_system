@@ -838,25 +838,40 @@ window.loadSingLongPage = (supabaseClient) => {
     if (drawOutBtn) {
         drawOutBtn.addEventListener('click', () => {
             const drawOutSection = document.getElementById('draw-out-section');
-            drawOutSection.style.display = drawOutSection.style.display === 'none' ? 'block' : 'none';
-            if (drawOutSection.style.display === 'block') {
-                loadDrawOutOrders();
-            }
+            drawOutSection.style.display = 'block';
+            loadDrawOutOrders('LCSL');
         });
     }
 
-    const loadDrawOutOrders = async () => {
+    const stockInBtn = document.getElementById('stock-in-btn');
+    if (stockInBtn) {
+        stockInBtn.addEventListener('click', () => {
+            const drawOutSection = document.getElementById('draw-out-section');
+            drawOutSection.style.display = 'block';
+            loadDrawOutOrders('LCSLIN');
+        });
+    }
+
+    const loadDrawOutOrders = async (prefix) => {
         const orderNumberSelect = document.getElementById('draw-out-order-number');
         if (!orderNumberSelect) return;
+
+        orderNumberSelect.innerHTML = `<option>Loading...</option>`;
 
         const { data, error } = await supabaseClient
             .from('scheduled_transactions')
             .select('order_number')
-            .or('order_number.like.LCSL-%,order_number.like.LCSLIN-%')
+            .like('order_number', `${prefix}-%`)
             .order('order_number', { ascending: false });
 
         if (error) {
             console.error('Error fetching draw out orders:', error);
+            orderNumberSelect.innerHTML = `<option>Error fetching orders</option>`;
+            return;
+        }
+
+        if (data.length === 0) {
+            orderNumberSelect.innerHTML = `<option>No orders found</option>`;
             return;
         }
 
@@ -1119,7 +1134,12 @@ window.loadSingLongPage = (supabaseClient) => {
                 const item_code = cells[0].textContent;
                 const batch_no = cells[4].textContent;
                 const lotNumber = cells[5].textContent;
-                const dateStored = cells[6].querySelector('input').value;
+                const dateStoredInput = cells[6].querySelector('input[type="date"]');
+                if (!dateStoredInput || !dateStoredInput.value) {
+                    alert('Please ensure "Date Stored" is filled for all rows.');
+                    return;
+                }
+                const dateStored = dateStoredInput.value;
                 const container = cells[7].querySelector('input').value;
                 const palletDueDate = cells[8].textContent;
                 const quantity = parseInt(cells[9].textContent) || 0;
