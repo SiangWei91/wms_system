@@ -199,9 +199,12 @@ window.loadSingLongPage = (supabaseClient) => {
                 });
                 row.focus();
 
-                const focusOutListener = () => {
-                    updateInventoryRow(row);
-                    row.removeEventListener('focusout', focusOutListener);
+                const focusOutListener = (e) => {
+                    // Check if the new focused element is a child of the row
+                    if (!row.contains(e.relatedTarget)) {
+                        updateInventoryRow(row);
+                        row.removeEventListener('focusout', focusOutListener);
+                    }
                 };
                 row.addEventListener('focusout', focusOutListener);
             });
@@ -373,6 +376,172 @@ window.loadSingLongPage = (supabaseClient) => {
             }
         });
     }
+
+    const generateStockInPrintHTML = (orderNumber, date, items) => {
+        const tableRows = items.map((item, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.productName}</td>
+                <td>${item.packingSize}</td>
+                <td>${item.lotNumber}</td>
+                <td>${item.batchNo}</td>
+                <td>${item.quantity}</td>
+                <td>${item.pallet}</td>
+            </tr>
+        `).join('');
+
+        const formattedDate = new Date(date).toLocaleDateString('en-GB');
+
+        const htmlContent = `
+        <html>
+        <head>
+            <title>Sing Long Stock In Request Form</title>
+            <style>
+                @page { size: A4; margin: 0; }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12pt;
+                    margin: 0;
+                    line-height: 1.3;
+                }
+                .content {
+                    margin: 30px;
+                }
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-top: 20px;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                    font-size: 12pt;
+                }
+                th { background-color: #f2f2f2; }
+                .header { margin-bottom: 20px; }
+                .header p { margin: 3px 0; }
+                .company-name-container {
+                    margin-top: 30px;
+                }
+                .company-name {
+                    font-weight: bold;
+                    text-decoration: underline;
+                    font-size: 16pt;
+                    margin-bottom: 5px;
+                }
+                .attn {
+                    font-weight: bold;
+                    text-decoration: underline;
+                    font-size: 14pt;
+                    margin-top: 15px;
+                    margin-bottom: 5px;
+                }
+                .date-container {
+                    margin: 40px 0;
+                }
+                .date {
+                    font-weight: bold;
+                    font-size: 14pt;
+                }
+                .bold { font-weight: bold; }
+                .right-align {
+                    text-align: right;
+                    margin-top: 10px;
+                }
+                .header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .header-left { flex: 1; }
+                .header-right { text-align: right; }
+                h2 {
+                    font-size: 14pt;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                }
+                .footer { margin-top: 20px; }
+                .footer-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 40px;
+                }
+                .footer-item {
+                    flex: 1;
+                    text-align: left;
+                    margin-right: 30px;
+                }
+                .footer-line {
+                    border-top: 1px solid black;
+                    margin-top: 60px;
+                    width: 100%;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="content">
+                <div class="header">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <div class="company-name-container">
+                                <p class="company-name">Li Chuan Food Product Pte Ltd</p>
+                                <p>40 Woodlands Terrace 738456</p>
+                                <p>Tel 65 6755 7688 Fax 65 6755 6698</p>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <p class="bold">S/N: ${orderNumber}</p>
+                        </div>
+                    </div>
+                    <div class="date-container">
+                        <p class="date">Date: ${formattedDate}</p>
+                    </div>
+                    <p class="attn">Attn: Sing Long Foodstuff & Trading Co.Pte Ltd</p>
+                    <p>12 Woodlands Link Singapore 738740</p>
+                    <p>Tel 6284 5254 Fax 6289 7351</p>
+                </div>
+                <h2>Sing Long Stock In Request Form</h2>
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Product Description</th>
+                            <th>Packing</th>
+                            <th>Lot Number</th>
+                            <th>Batch</th>
+                            <th>Quantity</th>
+                            <th>Pallet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                <div class="footer">
+                    <p>Regards,</p>
+                    <div class="footer-row">
+                        <div class="footer-item">
+                            <p>Issue By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-item">
+                            <p>Received By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-item">
+                            <p>Verified By:</p>
+                            <div class="footer-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+        return htmlContent;
+    };
 
     const generatePrintHTML = (orderNumber, date, time, items) => {
         const tableRows = items.map((item, index) => `
@@ -835,7 +1004,7 @@ window.loadSingLongPage = (supabaseClient) => {
                     ...existingDetails,
                     lotNumber: row.cells[3].textContent,
                     pallet_due_date: row.cells[7].textContent,
-                    dateStored: row.cells[5].textContent,
+                    dateStored: row.cells[5].querySelector('input').value,
                 },
                 batch_no: row.cells[4].textContent,
                 container: row.cells[6].textContent,
@@ -992,7 +1161,61 @@ window.loadSingLongPage = (supabaseClient) => {
                 if (transactionError) throw new Error(`Error inserting into transactions: ${transactionError.message}`);
             }
 
-            alert('Stock in successfully recorded.');
+            const { data: lastOrder, error: orderError } = await supabaseClient
+                .from('scheduled_transactions')
+                .select('order_number')
+                .like('order_number', 'LCSL-SI-%')
+                .order('order_number', { ascending: false })
+                .limit(1)
+                .single();
+
+            let newOrderNumber;
+            if (orderError && orderError.code !== 'PGRST116') { // Ignore 'not found' error
+                throw orderError;
+            }
+            if (!lastOrder) {
+                newOrderNumber = 'LCSL-SI-0001';
+            } else {
+                const lastNumber = parseInt(lastOrder.order_number.split('-')[2]);
+                newOrderNumber = `LCSL-SI-${(lastNumber + 1).toString().padStart(4, '0')}`;
+            }
+
+            const stockInItemsForPrint = [];
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                stockInItemsForPrint.push({
+                    productName: cells[1].textContent,
+                    packingSize: cells[2].textContent,
+                    batchNo: cells[4].textContent,
+                    lotNumber: cells[5].textContent,
+                    quantity: cells[9].textContent,
+                    pallet: cells[10].textContent,
+                });
+            });
+
+            const { error: insertError } = await supabaseClient
+                .from('scheduled_transactions')
+                .insert({
+                    order_number: newOrderNumber,
+                    draw_out_date: new Date().toISOString().split('T')[0],
+                    warehouse_id: 'singlong',
+                    stock_in_items: stockInItemsForPrint,
+                    operator_id: operator_id,
+                    transaction_type: 'Stock In'
+                });
+
+            if (insertError) {
+                throw insertError;
+            }
+
+            alert(`Stock in successfully recorded with order number: ${newOrderNumber}`);
+
+            const printHtml = generateStockInPrintHTML(newOrderNumber, new Date(), stockInItemsForPrint);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printHtml);
+            printWindow.document.close();
+            printWindow.print();
+
             stockInTableBody.innerHTML = ''; // Clear the table after successful submission
             loadInventoryData(); // Refresh inventory summary
         } catch (error) {
