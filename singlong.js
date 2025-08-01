@@ -550,11 +550,24 @@ window.loadSingLongPage = (supabaseClient) => {
                 newOrderNumber = `LCSL-${(lastNumber + 1).toString().padStart(4, '0')}`;
             }
 
-            const stockOutItems = [];
+            const stockOutItemsForPrint = [];
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                stockOutItemsForPrint.push({
+                    productName: cells[0].textContent,
+                    packingSize: cells[1].textContent,
+                    batchNo: cells[2].textContent,
+                    lotNumber: cells[3].textContent,
+                    quantity: cells[4].textContent,
+                    pallet: cells[5].textContent,
+                });
+            });
+
+            const stockOutItemsForSupabase = [];
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const destination_warehouse_id = row.querySelector('.transfer-to-select').value;
-                stockOutItems.push({
+                stockOutItemsForSupabase.push({
                     inventory_id: row.dataset.inventoryId,
                     batch_no: cells[2].textContent,
                     lot_number: cells[3].textContent,
@@ -572,7 +585,7 @@ window.loadSingLongPage = (supabaseClient) => {
                     draw_out_date: drawOutDate,
                     draw_out_time: drawOutTime,
                     warehouse_id: 'singlong',
-                    stock_out_items: stockOutItems,
+                    stock_out_items: stockOutItemsForSupabase,
                     operator_id: operator_id,
                 });
 
@@ -582,7 +595,7 @@ window.loadSingLongPage = (supabaseClient) => {
 
             alert(`Stock out successfully scheduled with order number: ${newOrderNumber}`);
 
-            const printHtml = generatePrintHTML(newOrderNumber, drawOutDate, drawOutTime, stockOutItems);
+            const printHtml = generatePrintHTML(newOrderNumber, drawOutDate, drawOutTime, stockOutItemsForPrint);
             const printWindow = window.open('', '_blank');
             printWindow.document.write(printHtml);
             printWindow.document.close();
