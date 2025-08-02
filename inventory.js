@@ -68,36 +68,6 @@ window.loadInventoryPage = async (supabaseClient) => {
       sums.blk15 += row.blk15 || 0;
     });
 
-    const warehouseTotalsContainer = document.getElementById('warehouse-totals-container');
-    if (warehouseTotalsContainer) {
-      const warehouseNames = ['CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
-      const sumValues = Object.values(sums);
-
-      warehouseTotalsContainer.innerHTML = '';
-      const totalsEl = document.createElement('div');
-      totalsEl.style.display = 'flex';
-      totalsEl.style.gap = '20px';
-      totalsEl.style.flexWrap = 'wrap';
-
-      warehouseNames.forEach((name, index) => {
-        const itemEl = document.createElement('div');
-        itemEl.style.display = 'flex';
-        itemEl.style.flexDirection = 'column';
-        itemEl.style.alignItems = 'center';
-
-        const nameEl = document.createElement('span');
-        nameEl.textContent = name;
-        nameEl.style.fontWeight = 'bold';
-
-        const valueEl = document.createElement('span');
-        valueEl.textContent = Math.round(sumValues[index]);
-
-        itemEl.appendChild(nameEl);
-        itemEl.appendChild(valueEl);
-        totalsEl.appendChild(itemEl);
-      });
-      warehouseTotalsContainer.appendChild(totalsEl);
-    }
 
     const table = document.createElement('table');
     table.className = 'table';
@@ -119,6 +89,7 @@ window.loadInventoryPage = async (supabaseClient) => {
 
     if (!columnsHidden) {
       const sumRow = document.createElement('tr');
+      sumRow.classList.add('sum-row');
       for (let i = 0; i < 4; i++) {
         sumRow.appendChild(document.createElement('th'));
       }
@@ -128,7 +99,7 @@ window.loadInventoryPage = async (supabaseClient) => {
         th.textContent = Math.round(sum);
         sumRow.appendChild(th);
       });
-      thead.appendChild(sumRow);
+      thead.insertBefore(sumRow, headerRow);
     }
 
     // Create table rows
