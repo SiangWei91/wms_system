@@ -23,9 +23,28 @@ const loadServiceRecordPage = async (content, supabase) => {
       if (error) {
         throw error;
       }
-      if (data.values && data.values.length > 0) {
-        const headers = data.values[0];
-        tableData = data.values.slice(1).map(row => {
+
+      // 🔥 适配新的缓存API响应格式
+      let responseData;
+      if (data.values) {
+        // 直接包含values的格式（原始或缓存的都可能有这个字段）
+        responseData = data;
+        
+        // 如果有缓存信息，显示在控制台
+        if (data.cached) {
+          console.log('Service Record Cache info:', {
+            cached: data.cached,
+            cacheTime: data.cacheTime,
+            cacheAge: data.cacheAge
+          });
+        }
+      } else {
+        throw new Error("Invalid response format");
+      }
+
+      if (responseData.values && responseData.values.length > 0) {
+        const headers = responseData.values[0];
+        tableData = responseData.values.slice(1).map(row => {
           let rowObject = {};
           headers.forEach((header, index) => {
             rowObject[header] = row[index];
@@ -41,6 +60,31 @@ const loadServiceRecordPage = async (content, supabase) => {
       console.error('Error fetching service record:', error);
       const table = content.querySelector('#service-record-table tbody');
       table.innerHTML = `<tr><td colspan="100%">${translate("Error loading data: ")}${error.message}</td></tr>`;
+    }
+  };
+
+  // 🔥 新增：清除缓存的函数
+  const clearServiceRecordCache = async (supabase) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session.access_token;
+      
+      const { data, error } = await supabase.functions.invoke('service-record', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: { action: 'clear-cache' }, // 这会转换为 ?action=clear-cache
+      });
+
+      if (error) {
+        console.warn('Failed to clear cache:', error);
+      } else {
+        console.log('Cache cleared successfully');
+      }
+    } catch (error) {
+      console.warn('Failed to clear cache:', error.message);
     }
   };
 
@@ -109,7 +153,6 @@ const loadServiceRecordPage = async (content, supabase) => {
     }
   };
 
-
   const setupTabs = () => {
     const tabContainer = content.querySelector('.tab-nav');
     const tabPanes = content.querySelectorAll('.tab-pane');
@@ -175,6 +218,10 @@ const loadServiceRecordPage = async (content, supabase) => {
         loader.style.display = 'none';
         submitButton.disabled = false;
 
+        // 🔥 关键修改：提交成功后立即清除缓存
+        console.log('Record submitted successfully, clearing cache...');
+        await clearServiceRecordCache(supabase);
+
         const modal = document.getElementById('modal-servicerecord-container');
         modal.style.display = 'flex';
 
@@ -190,7 +237,10 @@ const loadServiceRecordPage = async (content, supabase) => {
         }
 
         form.reset();
+        const dateInput = content.querySelector('#date');
         dateInput.valueAsDate = new Date();
+        
+        // 🔥 重新获取数据（现在会是最新的，因为缓存已清除）
         fetchServiceRecord(supabase);
       } catch (error) {
         console.error('Error submitting form:', error);
