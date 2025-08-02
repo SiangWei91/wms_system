@@ -54,21 +54,6 @@ window.loadInventoryPage = async (supabaseClient) => {
     const tableContainer = document.getElementById('inventory-table-container');
     if (!tableContainer) return;
 
-    const sums = {
-      coldroom5: 0, coldroom6: 0, jordon: 0, singlong: 0, lineage: 0, coldroom1: 0, coldroom2: 0, blk15: 0,
-    };
-    data.forEach(row => {
-      sums.coldroom5 += row.coldroom5 || 0;
-      sums.coldroom6 += row.coldroom6 || 0;
-      sums.jordon += row.jordon || 0;
-      sums.singlong += row.singlong || 0;
-      sums.lineage += row.lineage || 0;
-      sums.coldroom1 += row.coldroom1 || 0;
-      sums.coldroom2 += row.coldroom2 || 0;
-      sums.blk15 += row.blk15 || 0;
-    });
-
-
     const table = document.createElement('table');
     table.className = 'table';
     const thead = document.createElement('thead');
@@ -76,30 +61,59 @@ window.loadInventoryPage = async (supabaseClient) => {
 
     // Create table headers
     const headers = ['Item Code', 'Product Name', 'Packing Size', 'Total', 'CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
-    const headerRow = document.createElement('tr');
-    headers.forEach((headerText, index) => {
-      const th = document.createElement('th');
-      th.textContent = translate(headerText);
-      if (columnsHidden && index >= 4 && index <= 11) {
-        th.classList.add('hidden');
-      }
-      if (!columnsHidden && index < 4) {
-        th.rowSpan = 2;
-      }
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
+
+    thead.innerHTML = ''; // Clear existing headers
 
     if (!columnsHidden) {
-      const sumRow = document.createElement('tr');
-      sumRow.classList.add('sum-row');
+        const sums = {
+          coldroom5: 0, coldroom6: 0, jordon: 0, singlong: 0, lineage: 0, coldroom1: 0, coldroom2: 0, blk15: 0,
+        };
+        data.forEach(row => {
+          sums.coldroom5 += row.coldroom5 || 0;
+          sums.coldroom6 += row.coldroom6 || 0;
+          sums.jordon += row.jordon || 0;
+          sums.singlong += row.singlong || 0;
+          sums.lineage += row.lineage || 0;
+          sums.coldroom1 += row.coldroom1 || 0;
+          sums.coldroom2 += row.coldroom2 || 0;
+          sums.blk15 += row.blk15 || 0;
+        });
 
-      Object.values(sums).forEach(sum => {
-        const th = document.createElement('th');
-        th.textContent = Math.round(sum);
-        sumRow.appendChild(th);
-      });
-      thead.insertBefore(sumRow, headerRow);
+        const firstHeaderRow = document.createElement('tr');
+        const secondHeaderRow = document.createElement('tr');
+
+        headers.forEach((headerText, index) => {
+            const th = document.createElement('th');
+            th.textContent = translate(headerText);
+
+            if (index < 4) {
+                th.rowSpan = 2;
+                firstHeaderRow.appendChild(th);
+            } else {
+                firstHeaderRow.appendChild(th);
+            }
+        });
+
+        const sumValues = Object.values(sums);
+        sumValues.forEach(sum => {
+            const sumTh = document.createElement('th');
+            sumTh.textContent = Math.round(sum);
+            secondHeaderRow.appendChild(sumTh);
+        });
+
+        thead.appendChild(firstHeaderRow);
+        thead.appendChild(secondHeaderRow);
+    } else {
+        const headerRow = document.createElement('tr');
+        headers.forEach((headerText, index) => {
+            const th = document.createElement('th');
+            th.textContent = translate(headerText);
+            if (index >= 4) {
+                th.classList.add('hidden');
+            }
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
     }
 
     // Create table rows

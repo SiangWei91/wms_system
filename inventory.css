@@ -64,7 +64,7 @@
 }
 
 .table th {
-  background-color: #fafafa;
+  background-color: white;
   position: -webkit-sticky; /* for Safari */
   position: sticky;
   z-index: 1;
