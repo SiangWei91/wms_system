@@ -70,21 +70,40 @@ window.loadInventoryPage = async (supabaseClient) => {
   
   // 计算合计数据的辅助函数
   const calculateSums = (data) => {
-    return data.reduce((sums, row) => {
-      sums.coldroom5 += row.coldroom5 || 0;
-      sums.coldroom6 += row.coldroom6 || 0;
-      sums.jordon += row.jordon || 0;
-      sums.singlong += row.singlong || 0;
-      sums.lineage += row.lineage || 0;
-      sums.coldroom1 += row.coldroom1 || 0;
-      sums.coldroom2 += row.coldroom2 || 0;
-      sums.blk15 += row.blk15 || 0;
-      return sums;
-    }, {
-      coldroom5: 0, coldroom6: 0, jordon: 0, singlong: 0,
-      lineage: 0, coldroom1: 0, coldroom2: 0, blk15: 0
-    });
+  // 解析coldroom数据的辅助函数
+  const parseColdroom = (value) => {
+    if (!value || value === '0') return 0;
+    
+    if (typeof value === 'string') {
+      // 处理 "5.2" 格式
+      if (value.includes('.') && !value.includes(' ')) {
+        const [ctn, pkt] = value.split('.');
+        return (parseFloat(ctn) || 0) + (parseFloat(pkt) || 0);
+      }
+      // 处理 "5 ctn" 或 "2 pkt" 格式
+      if (value.includes(' ctn') || value.includes(' pkt')) {
+        return parseFloat(value.split(' ')[0]) || 0;
+      }
+    }
+    
+    return parseFloat(value) || 0;
   };
+
+  return data.reduce((sums, row) => {
+    sums.coldroom5 += row.coldroom5 || 0;
+    sums.coldroom6 += row.coldroom6 || 0;
+    sums.jordon += row.jordon || 0;
+    sums.singlong += row.singlong || 0;
+    sums.lineage += row.lineage || 0;
+    sums.coldroom1 += parseColdroom(row.coldroom1);
+    sums.coldroom2 += parseColdroom(row.coldroom2);
+    sums.blk15 += row.blk15 || 0;
+    return sums;
+  }, {
+    coldroom5: 0, coldroom6: 0, jordon: 0, singlong: 0,
+    lineage: 0, coldroom1: 0, coldroom2: 0, blk15: 0
+  });
+};
 
   // 动态计算第二行表头的位置
   const adjustSecondHeaderPosition = () => {
@@ -101,10 +120,14 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   // 格式化数字显示（添加千位分隔符）
   const formatNumber = (num) => {
-    if (num === 0 || num === null || num === undefined) return '';
-    return Math.round(num).toLocaleString();
-  };
-
+  if (num === 0 || num === null || num === undefined) return '';
+  
+  // 如果是字符串（coldroom1, coldroom2 的情况），直接返回
+  if (typeof num === 'string') return num;
+  
+  // 如果是数字，添加千位分隔符
+  return Math.round(num).toLocaleString();
+};
   // ========================================
   // 表头渲染函数
   // ========================================
@@ -173,58 +196,89 @@ window.loadInventoryPage = async (supabaseClient) => {
   // 表格主体渲染函数
   // ========================================
   
-  const renderTableBody = (data) => {
-    const tbody = document.createElement('tbody');
+  // ========================================
+// 表格主体渲染函数（完整版本）
+// ========================================
 
-    data.forEach(row => {
-      const tr = document.createElement('tr');
+const renderTableBody = (data) => {
+  const tbody = document.createElement('tbody');
+
+  // 计算总计的辅助函数
+  const calculateTotal = (row) => {
+    const parseColdroom = (value) => {
+      if (!value || value === '0') return 0;
       
-      // 设置行背景色
-      const color = typeColorMap[row.type];
-      if (color) {
-        tr.style.backgroundColor = color;
-      }
-
-      // 计算总计
-      const total = (row.coldroom5 || 0) + (row.coldroom6 || 0) + (row.jordon || 0) + 
-                   (row.singlong || 0) + (row.lineage || 0) + (row.coldroom1 || 0) + 
-                   (row.coldroom2 || 0) + (row.blk15 || 0);
-
-      // 准备单元格数据
-      const cells = [
-        row.item_code,
-        row.product_full_name,
-        row.packing_size,
-        formatNumber(total),
-        formatNumber(row.coldroom5),
-        formatNumber(row.coldroom6),
-        formatNumber(row.jordon),
-        formatNumber(row.singlong),
-        formatNumber(row.lineage),
-        formatNumber(row.coldroom1),
-        formatNumber(row.coldroom2),
-        formatNumber(row.blk15)
-      ];
-
-      // 创建单元格
-      cells.forEach((cellText, index) => {
-        const td = document.createElement('td');
-        td.textContent = cellText;
-        
-        // 在折叠状态下隐藏指定列
-        if (columnsHidden && index >= 4 && index <= 11) {
-          td.classList.add('hidden');
+      if (typeof value === 'string') {
+        // 处理 "5.2" 格式
+        if (value.includes('.') && !value.includes(' ')) {
+          const [ctn, pkt] = value.split('.');
+          return (parseFloat(ctn) || 0) + (parseFloat(pkt) || 0);
         }
-        
-        tr.appendChild(td);
-      });
+        // 处理 "5 ctn" 或 "2 pkt" 格式
+        if (value.includes(' ctn') || value.includes(' pkt')) {
+          return parseFloat(value.split(' ')[0]) || 0;
+        }
+      }
+      
+      return parseFloat(value) || 0;
+    };
 
-      tbody.appendChild(tr);
-    });
-
-    return tbody;
+    return (row.coldroom5 || 0) + 
+           (row.coldroom6 || 0) + 
+           (row.jordon || 0) + 
+           (row.singlong || 0) + 
+           (row.lineage || 0) + 
+           parseColdroom(row.coldroom1) + 
+           parseColdroom(row.coldroom2) + 
+           (row.blk15 || 0);
   };
 
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    
+    // 设置行背景色
+    const color = typeColorMap[row.type];
+    if (color) {
+      tr.style.backgroundColor = color;
+    }
+
+    // 计算总计
+    const total = calculateTotal(row);
+
+    // 准备单元格数据
+    const cells = [
+      row.item_code,
+      row.product_full_name,
+      row.packing_size,
+      formatNumber(total),
+      formatNumber(row.coldroom5),
+      formatNumber(row.coldroom6),
+      formatNumber(row.jordon),
+      formatNumber(row.singlong),
+      formatNumber(row.lineage),
+      formatNumber(row.coldroom1),  // 这里会直接返回字符串格式
+      formatNumber(row.coldroom2),  // 这里会直接返回字符串格式
+      formatNumber(row.blk15)
+    ];
+
+    // 创建单元格
+    cells.forEach((cellText, index) => {
+      const td = document.createElement('td');
+      td.textContent = cellText;
+      
+      // 在折叠状态下隐藏指定列
+      if (columnsHidden && index >= 4 && index <= 11) {
+        td.classList.add('hidden');
+      }
+      
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  return tbody;
+};
   // ========================================
   // 主表格渲染函数
   // ========================================
