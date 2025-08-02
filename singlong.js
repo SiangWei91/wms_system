@@ -222,7 +222,7 @@ window.loadSingLongPage = (supabaseClient) => {
         if (summaryFooter) {
             summaryFooter.innerHTML = `
                 <tr>
-                    <td colspan="8">Total:</td>
+                <td colspan="9" style="text-align: right;">Total:</td>
                     <td>${summaryTotalQuantity}</td>
                     <td>${summaryTotalPallet}</td>
                 </tr>

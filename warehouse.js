@@ -354,6 +354,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
 }
 
 
+
         const inventorySummaryTableBody = document.querySelector(`#${warehouseId}-inventory-summary-table tbody`);
         const stockInTableBody = document.querySelector(`#${warehouseId}-stock-in-table tbody`);
 
@@ -595,7 +596,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
         if (summaryFooter) {
           summaryFooter.innerHTML = `
             <tr>
-              <td colspan="9">Total:</td>
+            <td colspan="9" style="text-align: right;">Total:</td>
               <td>${summaryTotalQuantity}</td>
               <td>${summaryTotalPallet}</td>
             </tr>

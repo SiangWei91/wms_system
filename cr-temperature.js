@@ -18,18 +18,14 @@ const loadCrTemperaturePage = (() => {
 
   async function fetchData(supabase) {
     try {
-      const { data: fetchedData, error } = await supabase.functions.invoke(
-        "get-coldroom-data"
-      );
+      const { data: fetchedData, error } = await supabase.functions.invoke("get-coldroom-data");
 
       if (error) {
         throw error;
       }
 
-      // 🔥 关键修复：适配新的API响应格式
       let rawData;
       if (fetchedData.data) {
-        // 新格式：{ data: [...], cached: true, cacheTime: ... }
         rawData = fetchedData.data;
         console.log('CR Temperature Cache info:', {
           cached: fetchedData.cached,
@@ -38,7 +34,6 @@ const loadCrTemperaturePage = (() => {
           nextRefresh: fetchedData.nextRefresh
         });
       } else {
-        // 旧格式兼容：直接就是数组
         rawData = fetchedData;
       }
 
@@ -79,12 +74,12 @@ const loadCrTemperaturePage = (() => {
     });
 
     tabNav.addEventListener('click', (e) => {
-        const tab = e.target.closest('.tab-button');
-        if (!tab) return;
+      const tab = e.target.closest('.tab-button');
+      if (!tab) return;
 
-        document.querySelectorAll(".tab-button").forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        renderContent();
+      document.querySelectorAll(".tab-button").forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      renderContent();
     });
   }
 
@@ -167,11 +162,18 @@ const loadCrTemperaturePage = (() => {
     const canvas = document.createElement("canvas");
     container.appendChild(canvas);
 
-    // 移除了数据排序，直接使用原始数据
-    const labels = chartData.map((item) => item.Time);
-    const temperatures = chartData.map((item) => item.Temperature);
+    // ✅ 按时间排序（最早 → 最新）
+    const sortedData = [...chartData].sort((a, b) => {
+      const parseTime = (timeStr) => {
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+      return parseTime(a.Time) - parseTime(b.Time);
+    });
 
-    // 判断是否为冷冻冷藏室（负温度为主）
+    const labels = sortedData.map((item) => item.Time);
+    const temperatures = sortedData.map((item) => item.Temperature);
+
     const isFreezer = ["Coldroom 5 - 1", "Coldroom 5 - 2", "Coldroom 6", "Blk 15", "Coldroom 1", "Coldroom 2"].includes(coldroomName);
 
     const chart = new Chart(canvas, {
@@ -194,12 +196,12 @@ const loadCrTemperaturePage = (() => {
         scales: {
           y: {
             beginAtZero: false,
-            // 如果是冷冻室，反转Y轴让-2在上方，-10在下方
-            reverse: isFreezer
+            reverse: isFreezer,
           },
         },
       },
     });
+
     charts.push(chart);
     return container;
   }
