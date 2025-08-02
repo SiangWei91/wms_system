@@ -53,10 +53,27 @@ window.loadStockTakeData = async function(content, supabase) {
       const errorText = await response.text();
       throw new Error(`Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`);
     }
-    allData = await response.json();
-
-    if (allData.error) {
-      throw new Error(allData.error);
+    
+    const responseData = await response.json();
+    
+    // 🔥 关键修复：适配新的API响应格式
+    if (responseData.error) {
+      throw new Error(responseData.error);
+    }
+    
+    // 检查是否有data字段（新格式）还是直接就是数据（旧格式兼容）
+    if (responseData.data) {
+      // 新格式：{ data: { CR1: [...], CR2: [...] }, cached: true, ... }
+      allData = responseData.data;
+      console.log('Cache info:', {
+        cached: responseData.cached,
+        cacheTime: responseData.cacheTime,
+        updatePeriod: responseData.updatePeriod,
+        singaporeTime: responseData.singaporeTime
+      });
+    } else {
+      // 旧格式兼容：直接就是 { CR1: [...], CR2: [...] }  
+      allData = responseData;
     }
 
     displayData();
@@ -87,7 +104,7 @@ function displayData() {
   const formattedDate = `${(selectedDateObject.getDate()).toString().padStart(2, '0')}/${(selectedDateObject.getMonth() + 1).toString().padStart(2, '0')}/${selectedDateObject.getFullYear()}`;
 
   const tableData = allData[coldroom];
-  if (!tableData) {
+  if (!tableData || !Array.isArray(tableData) || tableData.length === 0) {
     const morningTbody = document.getElementById('morning-table-body');
     const afternoonTbody = document.getElementById('afternoon-table-body');
     morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translate('No data found for the selected coldroom.')}</td></tr>`;
@@ -201,6 +218,82 @@ function displayData() {
 
     return;
   }
+
+  document.querySelector('#morning-wrapper h2').textContent = 'Morning';
+  document.querySelector('#afternoon-wrapper h2').textContent = 'Afternoon';
+  document.querySelector('#afternoon-wrapper .comparison-header').style.display = '';
+
+  const morningData = filteredData.filter(row => {
+    if (!row[1]) {
+      return false;
+    }
+    const time = row[1].split(':');
+    const hour = parseInt(time[0], 10);
+    return hour < 12;
+  });
+
+  const afternoonData = filteredData.filter(row => {
+    if (!row[1]) {
+        return false;
+    }
+    const time = row[1].split(':');
+    const hour = parseInt(time[0], 10);
+    return hour >= 12;
+  });
+
+  const morningTbody = document.getElementById('morning-table-body');
+  morningTbody.innerHTML = '';
+  const afternoonTbody = document.getElementById('afternoon-table-body');
+  afternoonTbody.innerHTML = '';
+
+  if (morningData.length === 0) {
+    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translate('No data found for the morning.')}</td></tr>`;
+  } else {
+    morningData.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row[3] || ''}</td>
+        <td>${row[4] || ''}</td>
+        <td>${row[5] || ''}</td>
+        <td>${row[7] || ''}</td>
+      `;
+      morningTbody.appendChild(tr);
+    });
+  }
+
+  if (afternoonData.length === 0) {
+    afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">${translate('No data found for the afternoon.')}</td></tr>`;
+  } else {
+    const morningItems = {};
+    morningData.forEach(row => {
+      morningItems[row[2]] = { ctn: parseInt(row[5], 10) || 0 };
+    });
+
+    afternoonData.forEach(row => {
+      const itemCode = row[2];
+      const morningItem = morningItems[itemCode];
+      let ctnDiff = 0;
+      if (morningItem) {
+        const afternoonCtn = parseInt(row[5], 10) || 0;
+        ctnDiff = afternoonCtn - morningItem.ctn;
+      }
+
+      const ctnColor = ctnDiff > 0 ? 'green' : (ctnDiff < 0 ? 'red' : 'black');
+      const ctnSign = ctnDiff > 0 ? '+' : '';
+      const ctnDisplay = ctnDiff === 0 ? '' : `${ctnSign}${ctnDiff}`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row[3] || ''}</td>
+        <td>${row[4] || ''}</td>
+        <td>${row[5] || ''}</td>
+        <td>${row[7] || ''}</td>
+        <td style="color: ${ctnColor}; background-color: #e0f7ff;">${ctnDisplay}</td>
+      `;
+      afternoonTbody.appendChild(tr);
+    });
+  }
+}
 
   document.querySelector('#morning-wrapper h2').textContent = 'Morning';
   document.querySelector('#afternoon-wrapper h2').textContent = 'Afternoon';
