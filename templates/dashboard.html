@@ -1,28 +1,42 @@
 <!-- 默认显示仪表盘 -->
 <div class="dashboard">
-  <div class="stats">
-    <div class="stat-card">
-      <i class="fas fa-boxes"></i>
-      <div>
-        <h3 data-translate="Total Product">Total Product</h3>
-        <p>0</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <i class="fas fa-warehouse"></i>
-      <div>
-        <h3 data-translate="Total Stock">Total Stock</h3>
-        <p>0</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <i class="fas fa-exchange-alt"></i>
-      <div>
-        <h3 data-translate="Transaction">Transaction</h3>
-        <p>0</p>
-      </div>
-    </div>
-  </div>
+<style>
+  .warehouse-capacity-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .warehouse-capacity-container .stat-card {
+    flex: 1 1 200px; /* Flex grow, shrink, and basis */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    min-height: 220px;
+    text-align: center;
+  }
+  .warehouse-capacity-container .stat-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+  }
+  .warehouse-capacity-container .stat-card canvas {
+    margin-bottom: 10px;
+    max-width: 120px;
+    max-height: 120px;
+  }
+  .warehouse-capacity-container .stat-card p {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 0;
+  }
+</style>
+
+<h2 data-translate="Public Warehouse Pallet Capacity Usage">Public Warehouse Pallet Capacity Usage</h2>
+<div class="warehouse-capacity-container" id="warehouse-capacity-container">
+  <!-- Warehouse capacity cards will be dynamically inserted here by dashboard.js -->
+</div>
   
   <h2 data-translate="Coldroom Temperature">Coldroom Temperature</h2>
   

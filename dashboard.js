@@ -122,13 +122,108 @@ function createTemperatureCard(tempData) {
   container.appendChild(card);
 }
 
-window.loadDashboard = async function(supabase) {
-  const container = document.getElementById("temperature-summary-container");
-  if (!container) {
-    return;
+// --- Warehouse Capacity Functions ---
+
+const warehouseCapacities = {
+  jordon: { name: "Jordon", max: 150 },
+  lineage: { name: "Lineage", max: 50 },
+  singlong: { name: "Sing Long", max: 75 },
+};
+
+async function getPalletCount(supabase, warehouseId) {
+  const { data, error } = await supabase
+    .from("inventory")
+    .select("details->pallet")
+    .eq("warehouse_id", warehouseId);
+
+  if (error) {
+    console.error(`Error fetching pallet count for ${warehouseId}:`, error);
+    return 0;
   }
-  updateText();
-  const latestTemps = await getLatestTemperatures(supabase);
-  container.innerHTML = "";
-  latestTemps.forEach(createTemperatureCard);
+
+  // The result from Supabase is an array of objects, e.g., [{ pallet: 1 }, { pallet: 0 }]
+  // We need to sum the 'pallet' property of each object.
+  return data.reduce((total, item) => total + (item.pallet || 0), 0);
+}
+
+function renderWarehouseCard(container, name, current, max, id) {
+  const card = document.createElement("div");
+  card.className = "stat-card";
+
+  // Determine color based on usage percentage
+  const usagePercentage = max > 0 ? (current / max) * 100 : 0;
+  let usageColor = '#28a745'; // Green for normal
+  if (usagePercentage > 90) {
+    usageColor = '#dc3545'; // Red for high
+  } else if (usagePercentage > 70) {
+    usageColor = '#ffc107'; // Yellow for warning
+  }
+
+  card.innerHTML = `
+    <h3 data-translate="${name}">${name}</h3>
+    <canvas id="${id}-chart" width="120" height="120"></canvas>
+    <p>${current} / ${max}</p>
+  `;
+
+  container.appendChild(card);
+
+  const ctx = document.getElementById(`${id}-chart`).getContext("2d");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: [translate("Used"), translate("Available")],
+      datasets: [
+        {
+          data: [current, Math.max(0, max - current)], // Ensure available is not negative
+          backgroundColor: [usageColor, "#e9ecef"],
+          borderColor: "rgba(255, 255, 255, 0)", // Transparent border
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "70%",
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          enabled: true,
+        },
+      },
+    },
+  });
+}
+
+async function loadWarehouseCapacity(supabase) {
+  const container = document.getElementById("warehouse-capacity-container");
+  if (!container) return;
+
+  container.innerHTML = ""; // Clear previous content before loading
+
+  for (const id in warehouseCapacities) {
+    const warehouse = warehouseCapacities[id];
+    const currentPallets = await getPalletCount(supabase, id);
+    renderWarehouseCard(container, warehouse.name, currentPallets, warehouse.max, id);
+  }
+}
+
+
+// --- Main Dashboard Loading Function ---
+
+window.loadDashboard = async function(supabase) {
+  updateText(); // For translations
+
+  // Load warehouse capacity first
+  await loadWarehouseCapacity(supabase);
+
+  // Then load temperature data
+  const tempContainer = document.getElementById("temperature-summary-container");
+  if (tempContainer) {
+    tempContainer.innerHTML = ""; // Clear temperature cards before loading
+    const latestTemps = await getLatestTemperatures(supabase);
+    latestTemps.forEach(createTemperatureCard);
+  }
 }
