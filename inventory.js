@@ -285,6 +285,28 @@ window.loadInventoryPage = async (supabaseClient) => {
       renderTable(data);
     });
   }
+
+  const productTypeFilter = document.getElementById('product-type-filter');
+  if (productTypeFilter) {
+    const types = [...new Set(data.map(item => item.type).filter(Boolean))];
+    productTypeFilter.innerHTML = `<option value="">All Types</option>`;
+    types.forEach(type => {
+      productTypeFilter.innerHTML += `<option value="${type}">${type}</option>`;
+    });
+
+    productTypeFilter.addEventListener('change', () => {
+      const selectedType = productTypeFilter.value;
+      const tableRows = document.querySelectorAll('.table tbody tr');
+      tableRows.forEach((row, index) => {
+        const rowType = data[index].type;
+        if (!selectedType || rowType === selectedType) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
   
 
   const modal = document.getElementById('transaction-modal');
