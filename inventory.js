@@ -11,18 +11,22 @@ window.loadInventoryPage = async (supabaseClient) => {
 
     const { data: productsData, error: productsError } = await supabaseClient
       .from('products')
-      .select('item_code, row_index');
+      .select('item_code, row_index, type');
 
     if (productsError) {
       console.error('Error fetching products:', productsError);
       return [];
     }
 
-    const productsMap = new Map(productsData.map(p => [p.item_code, p.row_index]));
-    const joinedData = summaryData.map(summaryItem => ({
-      ...summaryItem,
-      row_index: productsMap.get(summaryItem.item_code)
-    }));
+    const productsMap = new Map(productsData.map(p => [p.item_code, { row_index: p.row_index, type: p.type }]));
+    const joinedData = summaryData.map(summaryItem => {
+      const productInfo = productsMap.get(summaryItem.item_code);
+      return {
+        ...summaryItem,
+        row_index: productInfo ? productInfo.row_index : undefined,
+        type: productInfo ? productInfo.type : undefined
+      };
+    });
 
     joinedData.sort((a, b) => (a.row_index || Infinity) - (b.row_index || Infinity));
 
@@ -30,6 +34,21 @@ window.loadInventoryPage = async (supabaseClient) => {
   };
 
   let columnsHidden = true;
+
+  const typeColorMap = {
+    'Export': '#E0F7FA',
+    'FISH CAKE': '#E3F2FD',
+    'General Product': '#F5F5F5',
+    'Local Product': '#F0F9E8',
+    'New Year': '#FFE5E5',
+    'NGOH HIANG': '#FDE2E4',
+    'Production Use': '#FFF3E0',
+    'QC': '#F3E8FD',
+    'Special Order': '#FEF9C3',
+    'Surimi': '#E0F2FE',
+    'TRADING': '#E8EAF6',
+    'Tray Product': '#E0F2F1',
+  };
 
   const renderTable = (data) => {
     const tableContainer = document.getElementById('inventory-table-container');
@@ -56,6 +75,10 @@ window.loadInventoryPage = async (supabaseClient) => {
     // Create table rows
     data.forEach(row => {
       const tr = document.createElement('tr');
+      const color = typeColorMap[row.type];
+      if (color) {
+        tr.style.backgroundColor = color;
+      }
       const total = (row.coldroom5 || 0) + (row.coldroom6 || 0) + (row.jordon || 0) + (row.singlong || 0) + (row.lineage || 0) + (row.coldroom1 || 0) + (row.coldroom2 || 0) + (row.blk15 || 0);
       const cells = [
         row.item_code,
