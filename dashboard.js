@@ -152,11 +152,11 @@ function renderWarehouseCard(container, name, current, max, id) {
 
   // Determine color based on usage percentage
   const usagePercentage = max > 0 ? (current / max) * 100 : 0;
-  let usageColor = '#28a745'; // Green for normal
+  let usageColor = '#007bff'; // Blue for normal
   if (usagePercentage > 90) {
     usageColor = '#dc3545'; // Red for high
   } else if (usagePercentage > 70) {
-    usageColor = '#ffc107'; // Yellow for warning
+    usageColor = '#fd7e14'; // Orange for warning
   }
 
   card.innerHTML = `
