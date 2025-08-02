@@ -370,3 +370,79 @@ function displayData() {
     });
   }
 }
+
+  document.querySelector('#morning-wrapper h2').textContent = 'Morning';
+  document.querySelector('#afternoon-wrapper h2').textContent = 'Afternoon';
+  document.querySelector('#afternoon-wrapper .comparison-header').style.display = '';
+
+  const morningData = filteredData.filter(row => {
+    if (!row[1]) {
+      return false;
+    }
+    const time = row[1].split(':');
+    const hour = parseInt(time[0], 10);
+    return hour < 12;
+  });
+
+  const afternoonData = filteredData.filter(row => {
+    if (!row[1]) {
+        return false;
+    }
+    const time = row[1].split(':');
+    const hour = parseInt(time[0], 10);
+    return hour >= 12;
+  });
+
+  const morningTbody = document.getElementById('morning-table-body');
+  morningTbody.innerHTML = '';
+  const afternoonTbody = document.getElementById('afternoon-table-body');
+  afternoonTbody.innerHTML = '';
+
+  if (morningData.length === 0) {
+    morningTbody.innerHTML = `<tr><td colspan="4" class="text-center">${translate('No data found for the morning.')}</td></tr>`;
+  } else {
+    morningData.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row[3] || ''}</td>
+        <td>${row[4] || ''}</td>
+        <td>${row[5] || ''}</td>
+        <td>${row[7] || ''}</td>
+      `;
+      morningTbody.appendChild(tr);
+    });
+  }
+
+  if (afternoonData.length === 0) {
+    afternoonTbody.innerHTML = `<tr><td colspan="5" class="text-center">${translate('No data found for the afternoon.')}</td></tr>`;
+  } else {
+    const morningItems = {};
+    morningData.forEach(row => {
+      morningItems[row[2]] = { ctn: parseInt(row[5], 10) || 0 };
+    });
+
+    afternoonData.forEach(row => {
+      const itemCode = row[2];
+      const morningItem = morningItems[itemCode];
+      let ctnDiff = 0;
+      if (morningItem) {
+        const afternoonCtn = parseInt(row[5], 10) || 0;
+        ctnDiff = afternoonCtn - morningItem.ctn;
+      }
+
+      const ctnColor = ctnDiff > 0 ? 'green' : (ctnDiff < 0 ? 'red' : 'black');
+      const ctnSign = ctnDiff > 0 ? '+' : '';
+      const ctnDisplay = ctnDiff === 0 ? '' : `${ctnSign}${ctnDiff}`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row[3] || ''}</td>
+        <td>${row[4] || ''}</td>
+        <td>${row[5] || ''}</td>
+        <td>${row[7] || ''}</td>
+        <td style="color: ${ctnColor}; background-color: #e0f7ff;">${ctnDisplay}</td>
+      `;
+      afternoonTbody.appendChild(tr);
+    });
+  }
+}
