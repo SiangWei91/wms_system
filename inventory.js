@@ -83,6 +83,9 @@ window.loadInventoryPage = async (supabaseClient) => {
       if (columnsHidden && index >= 4 && index <= 11) {
         th.classList.add('hidden');
       }
+      if (!columnsHidden && index < 4) {
+        th.rowSpan = 2;
+      }
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -90,9 +93,6 @@ window.loadInventoryPage = async (supabaseClient) => {
     if (!columnsHidden) {
       const sumRow = document.createElement('tr');
       sumRow.classList.add('sum-row');
-      for (let i = 0; i < 4; i++) {
-        sumRow.appendChild(document.createElement('th'));
-      }
 
       Object.values(sums).forEach(sum => {
         const th = document.createElement('th');

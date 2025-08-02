@@ -67,7 +67,6 @@
   background-color: #fafafa;
   position: -webkit-sticky; /* for Safari */
   position: sticky;
-  top: 0;
   z-index: 1;
   font-weight: 600;
 }
@@ -152,7 +151,10 @@
   text-align: left;
 }
 
-.table .sum-row th:nth-child(-n+4) {
-  background-color: transparent;
-  border: none;
+.table thead tr:first-child th {
+  top: 0;
+}
+
+.table thead tr:nth-child(2) th {
+  top: 48px; /* Adjust this value based on the height of the first header row */
 }
