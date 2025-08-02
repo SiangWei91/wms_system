@@ -21,7 +21,23 @@ async function getLatestTemperatures(supabase) {
       throw error;
     }
 
-    const data = fetchedData.data.map((item) => ({
+    // 🔥 关键修复：适配新的API响应格式
+    let rawData;
+    if (fetchedData.data) {
+      // 新格式：{ data: [...], cached: true, cacheTime: ... }
+      rawData = fetchedData.data;
+      console.log('Dashboard Cache info:', {
+        cached: fetchedData.cached,
+        cacheTime: fetchedData.cacheTime,
+        cacheAge: fetchedData.cacheAge,
+        nextRefresh: fetchedData.nextRefresh
+      });
+    } else {
+      // 旧格式兼容：直接就是数组
+      rawData = fetchedData;
+    }
+
+    const data = rawData.map((item) => ({
       ...item,
       Coldroom: coldroomNameMap[item.Coldroom] || item.Coldroom,
       DateTime: new Date(
