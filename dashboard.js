@@ -162,7 +162,7 @@ function renderWarehouseCard(container, name, current, max, id) {
   card.innerHTML = `
     <h3 data-translate="${name}">${name}</h3>
     <canvas id="${id}-chart" width="120" height="120"></canvas>
-    <p>${current} / ${max}</p>
+    <p>${current} / ${max} Pallets</p>
   `;
 
   container.appendChild(card);
