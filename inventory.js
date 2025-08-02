@@ -54,6 +54,51 @@ window.loadInventoryPage = async (supabaseClient) => {
     const tableContainer = document.getElementById('inventory-table-container');
     if (!tableContainer) return;
 
+    const sums = {
+      coldroom5: 0, coldroom6: 0, jordon: 0, singlong: 0, lineage: 0, coldroom1: 0, coldroom2: 0, blk15: 0,
+    };
+    data.forEach(row => {
+      sums.coldroom5 += row.coldroom5 || 0;
+      sums.coldroom6 += row.coldroom6 || 0;
+      sums.jordon += row.jordon || 0;
+      sums.singlong += row.singlong || 0;
+      sums.lineage += row.lineage || 0;
+      sums.coldroom1 += row.coldroom1 || 0;
+      sums.coldroom2 += row.coldroom2 || 0;
+      sums.blk15 += row.blk15 || 0;
+    });
+
+    const warehouseTotalsContainer = document.getElementById('warehouse-totals-container');
+    if (warehouseTotalsContainer) {
+      const warehouseNames = ['CR 5', 'CR 6', 'JD', 'SL', 'Lineage', 'CR 1', 'CR 2', 'B15'];
+      const sumValues = Object.values(sums);
+
+      warehouseTotalsContainer.innerHTML = '';
+      const totalsEl = document.createElement('div');
+      totalsEl.style.display = 'flex';
+      totalsEl.style.gap = '20px';
+      totalsEl.style.flexWrap = 'wrap';
+
+      warehouseNames.forEach((name, index) => {
+        const itemEl = document.createElement('div');
+        itemEl.style.display = 'flex';
+        itemEl.style.flexDirection = 'column';
+        itemEl.style.alignItems = 'center';
+
+        const nameEl = document.createElement('span');
+        nameEl.textContent = name;
+        nameEl.style.fontWeight = 'bold';
+
+        const valueEl = document.createElement('span');
+        valueEl.textContent = Math.round(sumValues[index]);
+
+        itemEl.appendChild(nameEl);
+        itemEl.appendChild(valueEl);
+        totalsEl.appendChild(itemEl);
+      });
+      warehouseTotalsContainer.appendChild(totalsEl);
+    }
+
     const table = document.createElement('table');
     table.className = 'table';
     const thead = document.createElement('thead');
@@ -71,6 +116,20 @@ window.loadInventoryPage = async (supabaseClient) => {
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
+
+    if (!columnsHidden) {
+      const sumRow = document.createElement('tr');
+      for (let i = 0; i < 4; i++) {
+        sumRow.appendChild(document.createElement('th'));
+      }
+
+      Object.values(sums).forEach(sum => {
+        const th = document.createElement('th');
+        th.textContent = Math.round(sum);
+        sumRow.appendChild(th);
+      });
+      thead.appendChild(sumRow);
+    }
 
     // Create table rows
     data.forEach(row => {
