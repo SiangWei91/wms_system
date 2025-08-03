@@ -96,9 +96,11 @@ async function initializeForms(supabaseClient) {
     inventory.defrostRoom = {};
 
     inventoryData.forEach(item => {
-        const productName = item.products.product_name;
-        inventory.mainWarehouse[productName] = item.quantity;
-        inventory.defrostRoom[productName] = 0;
+        if (item.products) {
+            const productName = item.products.product_name;
+            inventory.mainWarehouse[productName] = item.quantity;
+            inventory.defrostRoom[productName] = 0;
+        }
     });
 
     activeProducts = new Set(Object.keys(inventory.defrostRoom));
@@ -107,17 +109,19 @@ async function initializeForms(supabaseClient) {
     // Initialize main warehouse transfer form
     let transferHTML = '<div class="form-row transfer-row" style="background: #e3f2fd; font-weight: bold;"><div>Product Name</div><div>Main Stock</div><div>Batch Number</div><div>Transfer Qty</div><div>Current Defrost</div><div>Action</div></div>';
     products.forEach(productName => {
-        const item = inventoryData.find(i => i.products.product_name === productName);
-        transferHTML += `
-            <div class="form-row transfer-row">
-                <div class="product-name">${productName}</div>
-                <div>${inventory.mainWarehouse[productName]}</div>
-                <input type="text" id="batch_transfer_${productName}" value="${item.batch_no}" readonly>
-                <input type="number" id="transfer_${productName}" value="${inventory.mainWarehouse[productName]}" min="0" max="${inventory.mainWarehouse[productName]}" style="border: none;">
-                <div class="zero-stock">${inventory.defrostRoom[productName]}</div>
-                <button class="remove-btn" onclick="removeProduct('${productName}')" title="Remove this product">×</button>
-            </div>
-        `;
+        const item = inventoryData.find(i => i.products && i.products.product_name === productName);
+        if (item) {
+            transferHTML += `
+                <div class="form-row transfer-row">
+                    <div class="product-name">${productName}</div>
+                    <div>${inventory.mainWarehouse[productName]}</div>
+                    <input type="text" id="batch_transfer_${productName}" value="${item.batch_no}" readonly>
+                    <input type="number" id="transfer_${productName}" value="${inventory.mainWarehouse[productName]}" min="0" max="${inventory.mainWarehouse[productName]}" style="border: none;">
+                    <div class="zero-stock">${inventory.defrostRoom[productName]}</div>
+                    <button class="remove-btn" onclick="removeProduct('${productName}')" title="Remove this product">×</button>
+                </div>
+            `;
+        }
     });
     document.getElementById('transferFromMain').innerHTML = transferHTML;
 
