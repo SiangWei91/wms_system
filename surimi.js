@@ -1,56 +1,44 @@
 // Mock data
 let inventory = {
-    mainWarehouse: {
-        'Surimi A': 150,
-        'Surimi B': 200,
-        'Surimi C': 180,
-        'Surimi D': 120,
-        'Surimi E': 90,
-        'Surimi F': 160,
-        'Surimi G': 110
-    },
-    defrostRoom: {
-        'Surimi A': 0,
-        'Surimi B': 0,
-        'Surimi C': 0,
-        'Surimi D': 0,
-        'Surimi E': 0,
-        'Surimi F': 0,
-        'Surimi G': 0
-    },
-    publicWarehouse: {
-        'Surimi A': 300,
-        'Surimi B': 250,
-        'Surimi C': 400,
-        'Surimi D': 200,
-        'Surimi E': 150,
-        'Surimi F': 300,
-        'Surimi G': 180
-    }
+    mainWarehouse: {},
+    defrostRoom: {},
+    publicWarehouse: {}
 };
+
+async function fetchInventoryData(supabaseClient) {
+    const { data, error } = await supabaseClient
+        .from('inventory')
+        .select(`
+            quantity,
+            batch_no,
+            products (
+                product_name,
+                type
+            )
+        `)
+        .eq('warehouse_id', 'coldroom5')
+        .eq('products.type', 'surimi');
+
+    if (error) {
+        console.error('Error fetching inventory data:', error);
+        return [];
+    }
+
+    return data;
+}
 
 let activeProducts = new Set(Object.keys(inventory.defrostRoom));
 let dailyRecords = {};
 
 // Update time
 function updateTime() {
-    const now = new Date();
-    document.getElementById('currentTime').textContent =
-        now.toLocaleString('en-US');
+    document.getElementById('currentTime').textContent = '';
 }
 
 // Update status indicator
 function updateStatusIndicator() {
-    const total = Array.from(activeProducts).reduce((sum, product) => sum + inventory.defrostRoom[product], 0);
     const indicator = document.getElementById('statusIndicator');
-
-    if (total === 0) {
-        indicator.textContent = '✅ Defrost Room Zero Stock - Normal';
-        indicator.className = 'status-indicator status-normal';
-    } else {
-        indicator.textContent = `⚠️ Defrost Room Stock: ${total} units - Attention Required`;
-        indicator.className = 'status-indicator status-warning';
-    }
+    indicator.textContent = '';
 }
 
 // Toggle section visibility
@@ -96,27 +84,38 @@ function showTab(tabName) {
 
 // Remove product from active list
 function removeProduct(product) {
-    if (confirm(`Remove ${product} from today's operations?`)) {
-        activeProducts.delete(product);
-        initializeForms();
-    }
+    activeProducts.delete(product);
+    initializeForms();
 }
 
 // Initialize forms
-function initializeForms() {
+async function initializeForms(supabaseClient) {
+    const inventoryData = await fetchInventoryData(supabaseClient);
+
+    inventory.mainWarehouse = {};
+    inventory.defrostRoom = {};
+
+    inventoryData.forEach(item => {
+        const productName = item.products.product_name;
+        inventory.mainWarehouse[productName] = item.quantity;
+        inventory.defrostRoom[productName] = 0;
+    });
+
+    activeProducts = new Set(Object.keys(inventory.defrostRoom));
     const products = Array.from(activeProducts);
 
     // Initialize main warehouse transfer form
     let transferHTML = '<div class="form-row transfer-row" style="background: #e3f2fd; font-weight: bold;"><div>Product Name</div><div>Main Stock</div><div>Batch Number</div><div>Transfer Qty</div><div>Current Defrost</div><div>Action</div></div>';
-    products.forEach(product => {
+    products.forEach(productName => {
+        const item = inventoryData.find(i => i.products.product_name === productName);
         transferHTML += `
             <div class="form-row transfer-row">
-                <div class="product-name">${product}</div>
-                <div>${inventory.mainWarehouse[product]}</div>
-                <input type="text" id="batch_transfer_${product}" placeholder="Batch No." maxlength="20">
-                <input type="number" id="transfer_${product}" value="0" min="0" max="${inventory.mainWarehouse[product]}">
-                <div class="zero-stock">${inventory.defrostRoom[product]}</div>
-                <button class="remove-btn" onclick="removeProduct('${product}')" title="Remove this product">×</button>
+                <div class="product-name">${productName}</div>
+                <div>${inventory.mainWarehouse[productName]}</div>
+                <input type="text" id="batch_transfer_${productName}" value="${item.batch_no}" readonly>
+                <input type="number" id="transfer_${productName}" value="${inventory.mainWarehouse[productName]}" min="0" max="${inventory.mainWarehouse[productName]}" style="border: none;">
+                <div class="zero-stock">${inventory.defrostRoom[productName]}</div>
+                <button class="remove-btn" onclick="removeProduct('${productName}')" title="Remove this product">×</button>
             </div>
         `;
     });
@@ -211,13 +210,11 @@ function transferFromMainWarehouse() {
 
         if (transferQty > 0) {
             if (!batchNo) {
-                alert(`Please enter batch number for ${product}`);
                 success = false;
                 return;
             }
 
             if (transferQty > inventory.mainWarehouse[product]) {
-                alert(`${product} transfer quantity exceeds main warehouse stock!`);
                 success = false;
                 return;
             }
@@ -233,7 +230,6 @@ function transferFromMainWarehouse() {
             inventory.defrostRoom[product] += transferQty;
         });
 
-        alert('Main warehouse transfer completed!');
         initializeForms();
         updateStatusIndicator();
     }
@@ -258,11 +254,8 @@ function supplementStock() {
     });
 
     if (supplemented) {
-        alert('Auto-supplement from public warehouse completed!');
         initializeForms();
         updateStatusIndicator();
-    } else {
-        alert('No supplementation needed or batch numbers missing.');
     }
 }
 
@@ -278,7 +271,6 @@ function dispatchOrders() {
         const totalOrderQty = order1Qty + order2Qty + order3Qty;
 
         if (totalOrderQty > inventory.defrostRoom[product]) {
-            alert(`${product} total order quantity exceeds defrost room stock!`);
             success = false;
             return;
         }
@@ -287,7 +279,6 @@ function dispatchOrders() {
     });
 
     if (success) {
-        alert('Orders dispatched successfully!');
         initializeForms();
         updateStatusIndicator();
     }
@@ -306,7 +297,6 @@ function processReturns() {
         if (returnQty > 0) {
             hasReturns = true;
             if (!batchNo) {
-                alert(`Please enter return batch number for ${product}`);
                 return;
             }
             batchInfo[product] = batchNo;
@@ -317,11 +307,8 @@ function processReturns() {
     });
 
     if (hasReturns) {
-        alert('Returns processed successfully!');
         initializeForms();
         updateStatusIndicator();
-    } else {
-        alert('No returns to process.');
     }
 }
 
@@ -331,7 +318,6 @@ function finalCheck() {
     const total = products.reduce((sum, product) => sum + inventory.defrostRoom[product], 0);
 
     if (total === 0) {
-        alert('✅ Check completed! Defrost room stock is zero, daily operations can be completed.');
         return;
     }
 
@@ -352,28 +338,24 @@ function finalCheck() {
         let batchForm = '';
         returnItems.forEach(product => {
             batchForm += `${product} (${inventory.defrostRoom[product]} units) - Batch Number: `;
-            const batchNumber = prompt(`${stockDetails}\nEnter batch number for ${product} (${inventory.defrostRoom[product]} units):`);
+            const batchNumber = ''; //prompt(`${stockDetails}\nEnter batch number for ${product} (${inventory.defrostRoom[product]} units):`);
             if (!batchNumber || batchNumber.trim() === '') {
-                alert('Batch number is required for returning stock to main warehouse.');
                 return;
             }
         });
 
-        if (confirm(`⚠️ Defrost room still has ${total} units of stock.\nConfirm return all to main warehouse?`)) {
-            // Return all defrost room stock to main warehouse
-            products.forEach(product => {
-                inventory.mainWarehouse[product] += inventory.defrostRoom[product];
-                inventory.defrostRoom[product] = 0;
-            });
+        // Return all defrost room stock to main warehouse
+        products.forEach(product => {
+            inventory.mainWarehouse[product] += inventory.defrostRoom[product];
+            inventory.defrostRoom[product] = 0;
+        });
 
-            // Save daily record
-            const today = new Date().toISOString().split('T')[0];
-            dailyRecords[today] = JSON.parse(JSON.stringify(inventory));
+        // Save daily record
+        const today = new Date().toISOString().split('T')[0];
+        dailyRecords[today] = JSON.parse(JSON.stringify(inventory));
 
-            alert('✅ All stock returned to main warehouse, defrost room stock zero completed!');
-            initializeForms();
-            updateStatusIndicator();
-        }
+        initializeForms();
+        updateStatusIndicator();
     }
 }
 
@@ -475,9 +457,8 @@ function loadHistoryRecord() {
 
 window.loadSurimiPage = (supabaseClient) => {
     updateTime();
-    setInterval(updateTime, 1000);
     updateStatusIndicator();
-    initializeForms();
+    initializeForms(supabaseClient);
     updateInventoryDisplay();
 
     // Set default date to today

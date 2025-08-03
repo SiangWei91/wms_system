@@ -231,7 +231,8 @@ input[type='number'] {
 }
 #historyDate {
   padding: 8px;
-  border: 1px solid #ced4da;
+  border: none;
+  background: transparent;
   border-radius: 4px;
 }
 
