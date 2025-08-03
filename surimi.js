@@ -502,8 +502,7 @@ function loadHistoryRecord() {
     document.getElementById('historyResults').innerHTML = historyHTML;
 }
 
-// Page initialization
-document.addEventListener('DOMContentLoaded', function() {
+window.loadSurimiPage = (supabaseClient) => {
     updateTime();
     setInterval(updateTime, 1000);
     updateStatusIndicator();
@@ -512,4 +511,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Set default date to today
     document.getElementById('historyDate').value = new Date().toISOString().split('T')[0];
-});
+};

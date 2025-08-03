@@ -91,7 +91,8 @@ const pageScripts = {
         redirect: 'coming-soon'
     },
     'surimi': {
-        redirect: 'coming-soon'
+        urls: ['surimi.js'],
+        init: () => window.loadSurimiPage(supabaseClient)
     },
     'packaging-material': {
         urls: ['packaging-material.js'],
