@@ -312,15 +312,16 @@ function initializeSupplementForm() {
 
 function initializeOrderForm() {
     const products = Array.from(activeProducts);
-    let orderHTML = '<div class="form-row order-row" style="background: #f3e5f5; font-weight: bold;"><div>Product Name</div><div>Current Stock</div><div>Order 1 Qty</div><div>Order 2 Qty</div><div>Order 3 Qty</div><div>After Dispatch</div></div>';
+    let orderHTML = '<div class="form-row order-row" style="background: #f3e5f5; font-weight: bold;"><div>Product Name</div><div>Current Stock</div><div>1st Batch</div><div>2nd Batch</div><div>Premium</div><div>Replenish</div><div>After Dispatch</div></div>';
     products.forEach(product => {
         orderHTML += `
             <div class="form-row order-row">
                 <div class="product-name">${product}</div>
                 <div id="order_current_${product}">${inventory.defrostRoom[product]}</div>
-                <input type="number" id="order1_${product}" value="0" min="0" onchange="updateOrderResult('${product}')">
-                <input type="number" id="order2_${product}" value="0" min="0" onchange="updateOrderResult('${product}')">
-                <input type="number" id="order3_${product}" value="0" min="0" onchange="updateOrderResult('${product}')">
+                <input type="number" id="order1_${product}" placeholder="" min="0" step="0.5" onchange="updateOrderResult('${product}')">
+                <input type="number" id="order2_${product}" placeholder="" min="0" step="0.5" onchange="updateOrderResult('${product}')">
+                <input type="number" id="order3_${product}" placeholder="" min="0" step="0.5" onchange="updateOrderResult('${product}')">
+                <input type="number" id="order4_${product}" placeholder="" min="0" step="0.5" onchange="updateOrderResult('${product}')">
                 <div id="order_result_${product}">${inventory.defrostRoom[product]}</div>
             </div>
         `;
@@ -336,7 +337,7 @@ function initializeReturnForm() {
             <div class="form-row return-row">
                 <div class="product-name">${product}</div>
                 <div id="return_current_${product}">${inventory.defrostRoom[product]}</div>
-                <input type="number" id="return_${product}" value="0" min="0" onchange="updateReturnResult('${product}')">
+                <input type="number" id="return_${product}" placeholder="" min="0" step="0.5" onchange="updateReturnResult('${product}')">
                 <div id="return_result_${product}">${inventory.defrostRoom[product]}</div>
                 <input type="text" id="batch_return_${product}" placeholder="Return Batch No." maxlength="20">
             </div>
@@ -345,12 +346,52 @@ function initializeReturnForm() {
     document.getElementById('returnFromProduction').innerHTML = returnHTML;
 }
 
+// 新增：更新所有表单的库存显示
+function updateAllFormsStock() {
+    const products = Array.from(activeProducts);
+    
+    // 更新 Order 表单的 Current Stock
+    products.forEach(product => {
+        const orderCurrentElement = document.getElementById(`order_current_${product}`);
+        if (orderCurrentElement) {
+            orderCurrentElement.textContent = inventory.defrostRoom[product];
+        }
+        
+        const orderResultElement = document.getElementById(`order_result_${product}`);
+        if (orderResultElement) {
+            orderResultElement.textContent = inventory.defrostRoom[product];
+        }
+    });
+    
+    // 更新 Return 表单的 Current Stock
+    products.forEach(product => {
+        const returnCurrentElement = document.getElementById(`return_current_${product}`);
+        if (returnCurrentElement) {
+            returnCurrentElement.textContent = inventory.defrostRoom[product];
+        }
+        
+        const returnResultElement = document.getElementById(`return_result_${product}`);
+        if (returnResultElement) {
+            returnResultElement.textContent = inventory.defrostRoom[product];
+        }
+    });
+    
+    // 更新 Supplement 表单的 Defrost Stock
+    products.forEach(product => {
+        const supplementResultElement = document.getElementById(`supplement_result_${product}`);
+        if (supplementResultElement) {
+            supplementResultElement.textContent = inventory.defrostRoom[product];
+        }
+    });
+}
+
 function updateOrderResult(product) {
     const current = inventory.defrostRoom[product];
     const order1 = parseFloat(document.getElementById(`order1_${product}`).value) || 0;
     const order2 = parseFloat(document.getElementById(`order2_${product}`).value) || 0;
     const order3 = parseFloat(document.getElementById(`order3_${product}`).value) || 0;
-    const total = order1 + order2 + order3;
+    const order4 = parseFloat(document.getElementById(`order4_${product}`).value) || 0;
+    const total = order1 + order2 + order3 + order4;
     const remaining = parseFloat((current - total).toFixed(1));
 
     document.getElementById(`order_result_${product}`).textContent = remaining;
@@ -359,8 +400,8 @@ function updateOrderResult(product) {
 
 function updateReturnResult(product) {
     const current = inventory.defrostRoom[product];
-    const returnQty = parseInt(document.getElementById(`return_${product}`).value) || 0;
-    const updated = current + returnQty;
+    const returnQty = parseFloat(document.getElementById(`return_${product}`).value) || 0;
+    const updated = parseFloat((current + returnQty).toFixed(1));
 
     document.getElementById(`return_result_${product}`).textContent = updated;
 }
@@ -403,6 +444,7 @@ function transferFromMainWarehouse() {
 
         updateStatusIndicator();
         updateInventoryDisplay();
+        updateAllFormsStock(); // 更新所有表单的库存显示
         
         // 更新显示
         products.forEach(product => {
@@ -424,19 +466,24 @@ function supplementStock() {
     let supplemented = false;
 
     products.forEach(product => {
-        const batchNo = document.getElementById(`batch_supplement_${product}`).value.trim();
+        const batchElement = document.getElementById(`batch_supplement_${product}`);
+        
+        // 只处理有对应表单元素的产品（即在 public warehouse 有库存的产品）
+        if (batchElement) {
+            const batchNo = batchElement.value.trim();
 
-        // Auto supplement if defrost room stock is low and batch number is provided
-        if (batchNo && inventory.defrostRoom[product] < 50) {
-            const publicItem = inventory.publicWarehouse[product];
-            const availableQty = publicItem ? publicItem.quantity : 0;
-            const supplementQty = Math.min(50, availableQty);
-            
-            if (supplementQty > 0 && publicItem) {
-                publicItem.quantity -= supplementQty;
-                inventory.defrostRoom[product] += supplementQty;
-                supplemented = true;
-                document.getElementById(`supplement_result_${product}`).textContent = inventory.defrostRoom[product];
+            // Auto supplement if defrost room stock is low and batch number is provided
+            if (batchNo && inventory.defrostRoom[product] < 50) {
+                const publicItem = inventory.publicWarehouse[product];
+                const availableQty = publicItem ? publicItem.quantity : 0;
+                const supplementQty = Math.min(50, availableQty);
+                
+                if (supplementQty > 0 && publicItem) {
+                    publicItem.quantity -= supplementQty;
+                    inventory.defrostRoom[product] += supplementQty;
+                    supplemented = true;
+                    document.getElementById(`supplement_result_${product}`).textContent = inventory.defrostRoom[product];
+                }
             }
         }
     });
@@ -444,6 +491,7 @@ function supplementStock() {
     if (supplemented) {
         updateStatusIndicator();
         updateInventoryDisplay();
+        updateAllFormsStock(); // 更新所有表单的库存显示
     }
 }
 
@@ -456,7 +504,8 @@ function dispatchOrders() {
         const order1Qty = parseFloat(document.getElementById(`order1_${product}`).value) || 0;
         const order2Qty = parseFloat(document.getElementById(`order2_${product}`).value) || 0;
         const order3Qty = parseFloat(document.getElementById(`order3_${product}`).value) || 0;
-        const totalOrderQty = order1Qty + order2Qty + order3Qty;
+        const order4Qty = parseFloat(document.getElementById(`order4_${product}`).value) || 0;
+        const totalOrderQty = order1Qty + order2Qty + order3Qty + order4Qty;
 
         if (totalOrderQty > inventory.defrostRoom[product]) {
             success = false;
@@ -469,21 +518,22 @@ function dispatchOrders() {
             const order1Qty = parseFloat(document.getElementById(`order1_${product}`).value) || 0;
             const order2Qty = parseFloat(document.getElementById(`order2_${product}`).value) || 0;
             const order3Qty = parseFloat(document.getElementById(`order3_${product}`).value) || 0;
-            const totalOrderQty = order1Qty + order2Qty + order3Qty;
+            const order4Qty = parseFloat(document.getElementById(`order4_${product}`).value) || 0;
+            const totalOrderQty = order1Qty + order2Qty + order3Qty + order4Qty;
             
             inventory.defrostRoom[product] = parseFloat((inventory.defrostRoom[product] - totalOrderQty).toFixed(1));
         });
 
         updateStatusIndicator();
         updateInventoryDisplay();
+        updateAllFormsStock(); // 更新所有表单的库存显示
         
-        // 更新显示
+        // 重置订单输入
         products.forEach(product => {
-            document.getElementById(`order_current_${product}`).textContent = inventory.defrostRoom[product];
-            document.getElementById(`order_result_${product}`).textContent = inventory.defrostRoom[product];
-            document.getElementById(`order1_${product}`).value = 0;
-            document.getElementById(`order2_${product}`).value = 0;
-            document.getElementById(`order3_${product}`).value = 0;
+            document.getElementById(`order1_${product}`).value = '';
+            document.getElementById(`order2_${product}`).value = '';
+            document.getElementById(`order3_${product}`).value = '';
+            document.getElementById(`order4_${product}`).value = '';
         });
     }
 }
@@ -495,7 +545,7 @@ function processReturns() {
     let hasReturns = false;
 
     products.forEach(product => {
-        const returnQty = parseInt(document.getElementById(`return_${product}`).value) || 0;
+        const returnQty = parseFloat(document.getElementById(`return_${product}`).value) || 0;
         const batchNo = document.getElementById(`batch_return_${product}`).value.trim();
 
         if (returnQty > 0) {
@@ -506,18 +556,18 @@ function processReturns() {
             batchInfo[product] = batchNo;
         }
 
-        inventory.defrostRoom[product] += returnQty;
+        inventory.defrostRoom[product] = parseFloat((inventory.defrostRoom[product] + returnQty).toFixed(1));
         document.getElementById(`return_result_${product}`).textContent = inventory.defrostRoom[product];
     });
 
     if (hasReturns) {
         updateStatusIndicator();
         updateInventoryDisplay();
+        updateAllFormsStock(); // 更新所有表单的库存显示
         
-        // 更新显示
+        // 重置返回输入
         products.forEach(product => {
-            document.getElementById(`return_current_${product}`).textContent = inventory.defrostRoom[product];
-            document.getElementById(`return_${product}`).value = 0;
+            document.getElementById(`return_${product}`).value = '';
             document.getElementById(`batch_return_${product}`).value = '';
         });
     }
@@ -560,6 +610,7 @@ function finalCheck() {
 
         updateStatusIndicator();
         updateInventoryDisplay();
+        updateAllFormsStock(); // 更新所有表单的库存显示
         
         if (window.supabaseClient) {
             initializeForms(window.supabaseClient);

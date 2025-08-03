@@ -814,15 +814,16 @@ nav ul li i {
 
 /* ===== 服务记录页面样式 ===== */
 .service-record-container {
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+    background-color: #ffffff;
+      padding: 2rem;
+        border-radius: 10px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
 
-.service-record-container h1 {
-  margin-bottom: 2rem;
-}
+          .service-record-container h1 {
+            margin-bottom: 2rem;
+            }
+
 
 .service-record-container.add-record-active {
   max-width: 800px;

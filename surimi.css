@@ -6,72 +6,53 @@ body {
   color: #333;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
 
-.header {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-.status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.status-bar h1 {
-  margin: 0;
-  font-size: 24px;
-  color: #007bff;
-}
-
-#currentTime {
-  font-size: 16px;
-  color: #666;
-}
-
-.status-indicator {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.status-normal {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-warning {
-  background-color: #fff3cd;
-  color: #856404;
+.container{
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .tabs {
   display: flex;
+  border-bottom: 2px solid #e0e0e0;
   margin-bottom: 20px;
 }
 
 .tab {
-  padding: 10px 20px;
-  cursor: pointer;
+  background: none;
   border: none;
-  background-color: #e9ecef;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
+  padding: 15px 25px;
+  cursor: pointer;
   font-size: 16px;
+  color: black;
+  position: relative;
+  transition: color 0.3s ease;
 }
 
 .tab.active {
-  background-color: #007bff;
-  color: #fff;
+  color: #007bff;
 }
+
+.tab::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #007bff;
+  transition: width 0.3s ease;
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tab.active::after {
+  width: 100%;
+}
+
+
 
 .content .section {
   display: none;
