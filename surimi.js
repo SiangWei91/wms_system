@@ -375,35 +375,6 @@ function finalCheck() {
             updateStatusIndicator();
         }
     }
-} > 0) {
-    stockDetails += `${product}: ${qty} units\n`;
-    needsBatchNumbers = true;
-}
-});
-
-if (needsBatchNumbers) {
-    const batchNumber = prompt(`${stockDetails}\nPlease enter batch number for return to main warehouse:`);
-    if (!batchNumber || batchNumber.trim() === '') {
-        alert('Batch number is required for returning stock to main warehouse.');
-        return;
-    }
-}
-
-if (confirm(`⚠️ Defrost room still has ${total} units of stock.\nConfirm return all to main warehouse?`)) {
-    // Return all defrost room stock to main warehouse
-    Object.keys(inventory.defrostRoom).forEach(product => {
-        inventory.mainWarehouse[product] += inventory.defrostRoom[product];
-        inventory.defrostRoom[product] = 0;
-    });
-
-    // Save daily record
-    const today = new Date().toISOString().split('T')[0];
-    dailyRecords[today] = JSON.parse(JSON.stringify(inventory));
-
-    alert('✅ All stock returned to main warehouse, defrost room stock zero completed!');
-    initializeForms();
-    updateStatusIndicator();
-}
 }
 
 // Update inventory display
