@@ -6,7 +6,21 @@ let inventory = {
 };
 
 async function fetchInventoryData(supabaseClient) {
-    const { data, error } = await supabaseClient
+    // Step 1: Fetch item_codes for products of type 'surimi'
+    const { data: productsData, error: productsError } = await supabaseClient
+        .from('products')
+        .select('item_code')
+        .eq('type', 'surimi');
+
+    if (productsError) {
+        console.error('Error fetching surimi products:', productsError);
+        return [];
+    }
+
+    const surimiItemCodes = productsData.map(p => p.item_code);
+
+    // Step 2: Fetch inventory data for the surimi products in the specified warehouse
+    const { data: inventoryData, error: inventoryError } = await supabaseClient
         .from('inventory')
         .select(`
             quantity,
@@ -17,14 +31,14 @@ async function fetchInventoryData(supabaseClient) {
             )
         `)
         .eq('warehouse_id', 'coldroom5')
-        .eq('products.type', 'surimi');
+        .in('item_code', surimiItemCodes);
 
-    if (error) {
-        console.error('Error fetching inventory data:', error);
+    if (inventoryError) {
+        console.error('Error fetching inventory data:', inventoryError);
         return [];
     }
 
-    return data;
+    return inventoryData;
 }
 
 let activeProducts = new Set(Object.keys(inventory.defrostRoom));
