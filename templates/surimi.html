@@ -12,8 +12,16 @@
     </button>
   </div>
 
+  <div class="content">
     <!-- Daily Operations -->
+    <div id="daily" class="section active">
       <h2 style="margin-bottom: 25px">Daily Inventory Operations</h2>
+
+      <!-- Date Picker -->
+      <div class="date-picker-container">
+        <label for="operationDate">Date:</label>
+        <input type="date" id="operationDate" onchange="onDateChange()">
+      </div>
 
       <!-- Step 1: Transfer from Main Warehouse -->
       <div class="form-group" id="mainTransferSection">
@@ -171,5 +179,6 @@
         </p>
       </div>
     </div>
+  </div>
 
 </div>

@@ -1,4 +1,3 @@
-
 let inventory = {
     mainWarehouse: {},
     defrostRoom: {},
@@ -24,7 +23,7 @@ async function fetchInventoryData(supabaseClient) {
 
         const surimiItemCodes = productsData.map(p => p.item_code);
 
-        // 获取库存数据
+        // 获取库存数据，只获取数量大于0的记录
         const { data: inventoryData, error: inventoryError } = await supabaseClient
             .from('inventory')
             .select(`
@@ -40,7 +39,8 @@ async function fetchInventoryData(supabaseClient) {
                 )
             `)
             .eq('warehouse_id', 'coldroom5')
-            .in('item_code', surimiItemCodes);
+            .in('item_code', surimiItemCodes)
+            .gt('quantity', 0); // 只获取数量大于0的记录
 
         if (inventoryError) {
             console.error('Error fetching inventory data:', inventoryError);
@@ -55,8 +55,8 @@ async function fetchInventoryData(supabaseClient) {
     }
 }
 
-// 新增：获取 defrost 仓库的库存数据
-async function fetchDefrostInventoryData(supabaseClient) {
+// 修改：获取 defrost 仓库的库存数据，根据选择的日期过滤
+async function fetchDefrostInventoryData(supabaseClient, selectedDate) {
     try {
         // 获取 type 为 'Surimi' 的产品
         const { data: productsData, error: productsError } = await supabaseClient
@@ -75,7 +75,11 @@ async function fetchDefrostInventoryData(supabaseClient) {
 
         const surimiItemCodes = productsData.map(p => p.item_code);
 
-        // 获取 defrost 仓库的库存数据
+        // 构建日期过滤条件
+        const startDate = `${selectedDate}T00:00:00.000Z`;
+        const endDate = `${selectedDate}T23:59:59.999Z`;
+
+        // 获取 defrost 仓库的库存数据，根据updated_at过滤日期
         const { data: defrostData, error: defrostError } = await supabaseClient
             .from('inventory')
             .select(`
@@ -84,6 +88,7 @@ async function fetchDefrostInventoryData(supabaseClient) {
                 quantity,
                 batch_no,
                 warehouse_id,
+                updated_at,
                 products (
                     item_code,
                     product_name,
@@ -91,7 +96,9 @@ async function fetchDefrostInventoryData(supabaseClient) {
                 )
             `)
             .eq('warehouse_id', 'defrost')
-            .in('item_code', surimiItemCodes);
+            .in('item_code', surimiItemCodes)
+            .gte('updated_at', startDate)
+            .lte('updated_at', endDate);
 
         if (defrostError) {
             console.error('Error fetching defrost inventory data:', defrostError);
@@ -106,8 +113,16 @@ async function fetchDefrostInventoryData(supabaseClient) {
     }
 }
 
-let activeProducts = new Set(Object.keys(inventory.defrostRoom));
+let activeProducts = new Set();
 let dailyRecords = {};
+
+// Date change handler
+function onDateChange() {
+    const selectedDate = document.getElementById('operationDate').value;
+    if (selectedDate && window.supabaseClient) {
+        initializeForms(window.supabaseClient);
+    }
+}
 
 // Update status indicator
 function updateStatusIndicator() {
@@ -185,8 +200,10 @@ function removeProduct(product) {
 
 // Initialize forms
 async function initializeForms(supabaseClient) {
+    const selectedDate = document.getElementById('operationDate').value || new Date().toISOString().split('T')[0];
+    
     const inventoryData = await fetchInventoryData(supabaseClient);
-    const defrostData = await fetchDefrostInventoryData(supabaseClient);
+    const defrostData = await fetchDefrostInventoryData(supabaseClient, selectedDate);
 
     // 重置库存数据
     inventory.mainWarehouse = {};
@@ -222,12 +239,40 @@ async function initializeForms(supabaseClient) {
         });
     }
 
-    activeProducts = new Set(Object.keys(inventory.mainWarehouse));
+    // 合并所有产品（包括在coldroom5和defrost中的产品）
+    const allProducts = new Set([
+        ...Object.keys(inventory.mainWarehouse),
+        ...Object.keys(inventory.publicWarehouse)
+    ]);
+
+    // 确保所有产品都有完整的库存记录
+    allProducts.forEach(productName => {
+        if (!inventory.mainWarehouse[productName]) {
+            inventory.mainWarehouse[productName] = {
+                quantity: 0,
+                batch_no: '',
+                inventory_id: null
+            };
+        }
+        if (!inventory.defrostRoom[productName]) {
+            inventory.defrostRoom[productName] = 0;
+        }
+        if (!inventory.publicWarehouse[productName]) {
+            inventory.publicWarehouse[productName] = {
+                quantity: 0,
+                batch_no: '',
+                inventory_id: null
+            };
+        }
+    });
+
+    activeProducts = allProducts;
+    
     const products = Array.from(activeProducts);
 
     if (products.length === 0) {
         document.getElementById('transferFromMain').innerHTML = 
-            '<div style="text-align: center; padding: 20px; color: #666;">No Surimi products found in coldroom5</div>';
+            '<div style="text-align: center; padding: 20px; color: #666;">No Surimi products found</div>';
         return;
     }
 
@@ -236,7 +281,7 @@ async function initializeForms(supabaseClient) {
     
     products.forEach(productName => {
         const mainItem = inventory.mainWarehouse[productName];
-        if (mainItem) {
+        if (mainItem && mainItem.quantity > 0) { // 只显示有库存的产品
             transferHTML += `
                 <div class="form-row transfer-row">
                     <div class="product-name">${productName}</div>
@@ -262,12 +307,13 @@ function initializeSupplementForm() {
     const products = Array.from(activeProducts);
     let supplementHTML = '<div class="form-row supplement-row" style="background: #e8f5e8; font-weight: bold;"><div>Product Name</div><div>Public Stock</div><div>Batch Number</div><div>Defrost Stock</div></div>';
     
-    // 只显示在 defrost 仓库有库存的产品
+    // 只显示在Public Warehouse有库存的产品（quantity > 0）
     products.forEach(product => {
         const publicItem = inventory.publicWarehouse[product];
-        if (publicItem && publicItem.quantity > 0) {
-            const publicQuantity = publicItem.quantity;
-            const publicBatch = publicItem.batch_no || '';
+        const publicQuantity = publicItem ? publicItem.quantity : 0;
+        
+        if (publicQuantity > 0) {
+            const publicBatch = publicItem ? publicItem.batch_no || '' : '';
             
             supplementHTML += `
                 <div class="form-row supplement-row">
@@ -281,8 +327,13 @@ function initializeSupplementForm() {
     });
     
     // 如果没有产品有库存，显示提示信息
-    if (!products.some(product => inventory.publicWarehouse[product] && inventory.publicWarehouse[product].quantity > 0)) {
-        supplementHTML += '<div style="text-align: center; padding: 20px; color: #666;">No Surimi products available in defrost warehouse</div>';
+    const hasStock = products.some(product => {
+        const publicItem = inventory.publicWarehouse[product];
+        return publicItem && publicItem.quantity > 0;
+    });
+    
+    if (!hasStock) {
+        supplementHTML += '<div style="text-align: center; padding: 20px; color: #666;">No Surimi products available in Public Warehouse</div>';
     }
     
     document.getElementById('supplementFromPublic').innerHTML = supplementHTML;
@@ -324,7 +375,7 @@ function initializeReturnForm() {
     document.getElementById('returnFromProduction').innerHTML = returnHTML;
 }
 
-// 新增：更新所有表单的库存显示
+// 更新所有表单的库存显示
 function updateAllFormsStock() {
     const products = Array.from(activeProducts);
     
@@ -391,47 +442,56 @@ function transferFromMainWarehouse() {
     let batchInfo = {};
 
     products.forEach(product => {
-        const transferQty = parseFloat(document.getElementById(`transfer_${product}`).value) || 0;
-        const batchNo = document.getElementById(`batch_transfer_${product}`).value.trim();
+        const transferElement = document.getElementById(`transfer_${product}`);
+        const batchElement = document.getElementById(`batch_transfer_${product}`);
+        
+        if (transferElement && batchElement) {
+            const transferQty = parseFloat(transferElement.value) || 0;
+            const batchNo = batchElement.value.trim();
 
-        if (transferQty > 0) {
-            if (!batchNo) {
-                success = false;
-                return;
+            if (transferQty > 0) {
+                if (!batchNo) {
+                    success = false;
+                    return;
+                }
+
+                const mainItem = inventory.mainWarehouse[product];
+                if (transferQty > (mainItem ? mainItem.quantity : 0)) {
+                    success = false;
+                    return;
+                }
+
+                batchInfo[product] = batchNo;
             }
-
-            const mainItem = inventory.mainWarehouse[product];
-            if (transferQty > (mainItem ? mainItem.quantity : 0)) {
-                success = false;
-                return;
-            }
-
-            batchInfo[product] = batchNo;
         }
     });
 
     if (success) {
         products.forEach(product => {
-            const transferQty = parseFloat(document.getElementById(`transfer_${product}`).value) || 0;
-            const mainItem = inventory.mainWarehouse[product];
-            if (mainItem && transferQty > 0) {
-                mainItem.quantity = parseFloat((mainItem.quantity - transferQty).toFixed(1));
-                inventory.defrostRoom[product] = parseFloat((inventory.defrostRoom[product] + transferQty).toFixed(1));
+            const transferElement = document.getElementById(`transfer_${product}`);
+            if (transferElement) {
+                const transferQty = parseFloat(transferElement.value) || 0;
+                const mainItem = inventory.mainWarehouse[product];
+                if (mainItem && transferQty > 0) {
+                    mainItem.quantity = parseFloat((mainItem.quantity - transferQty).toFixed(1));
+                    inventory.defrostRoom[product] = parseFloat((inventory.defrostRoom[product] + transferQty).toFixed(1));
+                }
             }
         });
 
         updateStatusIndicator();
         updateInventoryDisplay();
-        updateAllFormsStock(); // 更新所有表单的库存显示
+        updateAllFormsStock();
         
         // 更新显示
         products.forEach(product => {
             const mainItem = inventory.mainWarehouse[product];
-            if (mainItem) {
-                const transferRow = document.querySelector(`[id="transfer_${product}"]`).parentNode;
+            const transferElement = document.getElementById(`transfer_${product}`);
+            if (mainItem && transferElement) {
+                const transferRow = transferElement.parentNode;
                 transferRow.children[1].textContent = mainItem.quantity;
-                document.querySelector(`[id="transfer_${product}"]`).setAttribute('max', mainItem.quantity);
-                document.querySelector(`[id="transfer_${product}"]`).value = mainItem.quantity;
+                transferElement.setAttribute('max', mainItem.quantity);
+                transferElement.value = mainItem.quantity;
                 transferRow.children[4].textContent = inventory.defrostRoom[product];
             }
         });
@@ -446,7 +506,6 @@ function supplementStock() {
     products.forEach(product => {
         const batchElement = document.getElementById(`batch_supplement_${product}`);
         
-        // 只处理有对应表单元素的产品（即在 public warehouse 有库存的产品）
         if (batchElement) {
             const batchNo = batchElement.value.trim();
 
@@ -469,7 +528,7 @@ function supplementStock() {
     if (supplemented) {
         updateStatusIndicator();
         updateInventoryDisplay();
-        updateAllFormsStock(); // 更新所有表单的库存显示
+        updateAllFormsStock();
     }
 }
 
@@ -504,7 +563,7 @@ function dispatchOrders() {
 
         updateStatusIndicator();
         updateInventoryDisplay();
-        updateAllFormsStock(); // 更新所有表单的库存显示
+        updateAllFormsStock();
         
         // 重置订单输入
         products.forEach(product => {
@@ -541,7 +600,7 @@ function processReturns() {
     if (hasReturns) {
         updateStatusIndicator();
         updateInventoryDisplay();
-        updateAllFormsStock(); // 更新所有表单的库存显示
+        updateAllFormsStock();
         
         // 重置返回输入
         products.forEach(product => {
@@ -588,7 +647,7 @@ function finalCheck() {
 
         updateStatusIndicator();
         updateInventoryDisplay();
-        updateAllFormsStock(); // 更新所有表单的库存显示
+        updateAllFormsStock();
         
         if (window.supabaseClient) {
             initializeForms(window.supabaseClient);
@@ -700,13 +759,19 @@ window.loadSurimiPage = (supabaseClient) => {
     // 存储 supabaseClient 供其他函数使用
     window.supabaseClient = supabaseClient;
     
+    // 设置默认日期为今天
+    const operationDateElement = document.getElementById('operationDate');
+    const historyDateElement = document.getElementById('historyDate');
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (operationDateElement) {
+        operationDateElement.value = today;
+    }
+    if (historyDateElement) {
+        historyDateElement.value = today;
+    }
+    
     updateStatusIndicator();
     initializeForms(supabaseClient);
     updateInventoryDisplay();
-
-    // Set default date to today
-    const historyDateElement = document.getElementById('historyDate');
-    if (historyDateElement) {
-        historyDateElement.value = new Date().toISOString().split('T')[0];
-    }
 };

@@ -1,5 +1,3 @@
-
-
 .container{
   background-color: #ffffff;
   padding: 2rem;
@@ -48,14 +46,36 @@
 
 .content .section {
   display: none;
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 .content .section.active {
   display: block;
+}
+
+/* Date Picker Styling */
+.date-picker-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.date-picker-container label {
+  font-weight: bold;
+  margin-right: 15px;
+  color: #495057;
+}
+
+.date-picker-container input[type="date"] {
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #495057;
 }
 
 .form-group {
