@@ -1,4 +1,4 @@
-// Mock data
+
 let inventory = {
     mainWarehouse: {},
     defrostRoom: {},
@@ -109,33 +109,11 @@ async function fetchDefrostInventoryData(supabaseClient) {
 let activeProducts = new Set(Object.keys(inventory.defrostRoom));
 let dailyRecords = {};
 
-// Update time
-function updateTime() {
-    document.getElementById('currentTime').textContent = '';
-}
-
 // Update status indicator
 function updateStatusIndicator() {
     const indicator = document.getElementById('statusIndicator');
-    indicator.textContent = '';
-}
-
-// Toggle section visibility
-function toggleSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    const content = section.querySelector('div:not(h3)');
-    const button = section.querySelector('button:not(.btn)');
-
-    if (section.style.opacity === '0.3') {
-        section.style.opacity = '1';
-        content.style.display = 'block';
-        button.textContent = '×';
-        button.title = 'Hide this section';
-    } else {
-        section.style.opacity = '0.3';
-        content.style.display = 'none';
-        button.textContent = '+';
-        button.title = 'Show this section';
+    if (indicator) {
+        indicator.textContent = '';
     }
 }
 
@@ -312,7 +290,7 @@ function initializeSupplementForm() {
 
 function initializeOrderForm() {
     const products = Array.from(activeProducts);
-    let orderHTML = '<div class="form-row order-row" style="background: #f3e5f5; font-weight: bold;"><div>Product Name</div><div>Current Stock</div><div>1st Batch</div><div>2nd Batch</div><div>Premium</div><div>Replenish</div><div>After Dispatch</div></div>';
+    let orderHTML = '<div class="form-row order-row" style="background: #f3e5f5; font-weight: bold;"><div>Product</div><div>Current</div><div>1st</div><div>2nd</div><div>Premium</div><div>Replenish</div><div>After</div></div>';
     products.forEach(product => {
         orderHTML += `
             <div class="form-row order-row">
@@ -722,11 +700,13 @@ window.loadSurimiPage = (supabaseClient) => {
     // 存储 supabaseClient 供其他函数使用
     window.supabaseClient = supabaseClient;
     
-    updateTime();
     updateStatusIndicator();
     initializeForms(supabaseClient);
     updateInventoryDisplay();
 
     // Set default date to today
-    document.getElementById('historyDate').value = new Date().toISOString().split('T')[0];
+    const historyDateElement = document.getElementById('historyDate');
+    if (historyDateElement) {
+        historyDateElement.value = new Date().toISOString().split('T')[0];
+    }
 };

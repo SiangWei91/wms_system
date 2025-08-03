@@ -13,7 +13,6 @@
   </div>
 
     <!-- Daily Operations -->
-    <div id="daily" class="section active">
       <h2 style="margin-bottom: 25px">Daily Inventory Operations</h2>
 
       <!-- Step 1: Transfer from Main Warehouse -->
@@ -21,13 +20,6 @@
         <h3>
           <span class="step-number">1</span>
           Transfer from Coldroom 5 to Defrost Room
-          <button
-            class="close-btn"
-            onclick="toggleSection('mainTransferSection')"
-            title="Hide this section"
-          >
-            ×
-          </button>
         </h3>
         <div id="transferFromMain">
           <div
@@ -55,13 +47,6 @@
         <h3>
           <span class="step-number">2</span>
           Transfer from Public Coldroom
-          <button
-            class="close-btn"
-            onclick="toggleSection('supplementSection')"
-            title="Hide this section"
-          >
-            ×
-          </button>
         </h3>
         <div id="supplementFromPublic">
           <div
@@ -84,13 +69,6 @@
         <h3>
           <span class="step-number">3</span>
           Order Dispatch to Production
-          <button
-            class="close-btn"
-            onclick="toggleSection('orderSection')"
-            title="Hide this section"
-          >
-            ×
-          </button>
         </h3>
 
         <div class="order-section">
@@ -99,13 +77,13 @@
               class="form-row order-row"
               style="background: #f3e5f5; font-weight: bold"
             >
-              <div>Product Name</div>
-              <div>Current Stock</div>
-              <div>1st Batch</div>
-              <div>2nd Batch</div>
+              <div>Product</div>
+              <div>Current</div>
+              <div>1st</div>
+              <div>2nd</div>
               <div>Premium</div>
               <div>Replenish</div>
-              <div>After Dispatch</div>
+              <div>After</div>
             </div>
           </div>
         </div>
@@ -120,13 +98,6 @@
         <h3>
           <span class="step-number">4</span>
           Returns from Production
-          <button
-            class="close-btn"
-            onclick="toggleSection('returnSection')"
-            title="Hide this section"
-          >
-            ×
-          </button>
         </h3>
         <div id="returnFromProduction">
           <div
