@@ -91,6 +91,7 @@ const pageScripts = {
         redirect: 'coming-soon'
     },
     'surimi': {
+        styles: ['surimi.css'],
         urls: ['surimi.js'],
         init: () => window.loadSurimiPage(supabaseClient)
     },
@@ -98,6 +99,29 @@ const pageScripts = {
         urls: ['packaging-material.js'],
         init: () => window.loadPackagingMaterialPage(supabaseClient)
     }
+};
+
+const loadedStyles = new Set();
+
+const loadStyle = (url) => {
+    return new Promise((resolve, reject) => {
+        if (loadedStyles.has(url)) {
+            resolve();
+            return;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.onload = () => {
+            loadedStyles.add(url);
+            resolve();
+        };
+        link.onerror = (error) => {
+            reject(new Error(`Failed to load style: ${url}`));
+        };
+        document.head.appendChild(link);
+    });
 };
 
 const loadScript = (url) => {
@@ -135,8 +159,15 @@ const loadContent = async (page) => {
         const pageScript = pageScripts[page];
         if (pageScript) {
             try {
-                for (const url of pageScript.urls) {
-                    await loadScript(url);
+                if (pageScript.styles) {
+                    for (const url of pageScript.styles) {
+                        await loadStyle(url);
+                    }
+                }
+                if (pageScript.urls) {
+                    for (const url of pageScript.urls) {
+                        await loadScript(url);
+                    }
                 }
                 if (pageScript.init) {
                     pageScript.init(content);
