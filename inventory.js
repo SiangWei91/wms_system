@@ -90,7 +90,7 @@ window.loadInventoryPage = async (supabaseClient) => {
   };
 
   return data.reduce((sums, row) => {
-    sums.coldroom5 += row.coldroom5 || 0;
+    sums.coldroom5 += parseFloat(row.coldroom5) || 0;
     sums.coldroom6 += row.coldroom6 || 0;
     sums.jordon += row.jordon || 0;
     sums.singlong += row.singlong || 0;
@@ -223,7 +223,7 @@ const renderTableBody = (data) => {
       return parseFloat(value) || 0;
     };
 
-    return (row.coldroom5 || 0) + 
+    return (parseFloat(row.coldroom5) || 0) +
            (row.coldroom6 || 0) + 
            (row.jordon || 0) + 
            (row.singlong || 0) + 
