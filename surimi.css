@@ -78,7 +78,7 @@
   color: #495057;
 }
 
-.form-group {
+.form-group-surimi {
   margin-bottom: 30px;
   border: 1px solid #e0e0e0;
   padding: 24px;
@@ -88,7 +88,7 @@
  }
 
 
-.form-group h3 {
+.form-group-surimi h3 {
   margin-top: 0;
   color: #495057;
   border-bottom: 2px solid #007bff;
