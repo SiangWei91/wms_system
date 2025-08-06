@@ -95,12 +95,6 @@ renderHTML() {
                             <label for="transaction-type">${translate('Transaction Type')}</label>
                             <select id="transaction-type" name="transaction-type" class="tx-form-control">
                                 <option value="">${translate('All Types')}</option>
-                                <option value="inbound">${translate('Inbound')}</option>
-                                <option value="outbound">${translate('Outbound')}</option>
-                                <option value="internal_transfer">${translate('Internal Transfer')}</option>
-                                <option value="to_production">${translate('To Production')}</option>
-                                <option value="from_production">${translate('From Production')}</option>
-                                <option value="adjustment">${translate('Adjustment')}</option>
                             </select>
                         </div>
                         <div class="tx-form-group">
@@ -346,13 +340,14 @@ async populateFilterOptions() {
 
         if (transactionTypesError) throw transactionTypesError;
 
-        const uniqueTransactionTypes = [...new Set(transactionTypes.map(t => t.transaction_type).filter(Boolean))];
+        const uniqueTransactionTypes = [...new Set(transactionTypes.map(t => t.transaction_type).filter(Boolean))].sort();
 
         const transactionTypeSelect = document.getElementById('transaction-type');
         uniqueTransactionTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
-            option.textContent = type;
+            // Capitalize words and replace underscores for better readability
+            option.textContent = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             transactionTypeSelect.appendChild(option);
         });
 
@@ -836,14 +831,24 @@ getTypeDisplay(type) {
         'adjustment': { text: 'Adjustment', class: 'tx-type-adjustment', icon: 'fa-edit' }
     };
 
-    const typeInfo = typeMap[type] || { text: type, class: 'tx-type-default', icon: 'fa-question' };
+    const typeInfo = typeMap[type];
 
-    return `
-        <span class="tx-transaction-type ${typeInfo.class}">
-            <i class="fas ${typeInfo.icon}"></i>
-            ${typeInfo.text}
-        </span>
-    `;
+    if (typeInfo) {
+        return `
+            <span class="tx-transaction-type ${typeInfo.class}">
+                <i class="fas ${typeInfo.icon}"></i>
+                ${typeInfo.text}
+            </span>
+        `;
+    } else {
+        // For unknown types, just display the text, formatted nicely.
+        const formattedText = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return `
+            <span class="tx-transaction-type tx-type-default">
+                ${this.escapeHtml(formattedText)}
+            </span>
+        `;
+    }
 }
 
 /**
