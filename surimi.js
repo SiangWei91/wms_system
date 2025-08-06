@@ -382,13 +382,20 @@ function initializeOrderForm() {
 }
 
 function divideOrderInput(element) {
-    if (element.value) {
-        setTimeout(() => {
-            let value = parseFloat(element.value);
-            if (!isNaN(value)) {
-                element.value = value / 2;
-            }
-        }, 800);
+    if (element.value === '') {
+        element.dataset.divided = 'false';
+        return;
+    }
+    if (element.dataset.divided !== 'true') {
+        if (element.value) {
+            setTimeout(() => {
+                let value = parseFloat(element.value);
+                if (!isNaN(value)) {
+                    element.value = value / 2;
+                    element.dataset.divided = 'true';
+                }
+            }, 800);
+        }
     }
 }
 
