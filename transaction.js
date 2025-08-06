@@ -95,6 +95,12 @@ renderHTML() {
                             <label for="transaction-type">${translate('Transaction Type')}</label>
                             <select id="transaction-type" name="transaction-type" class="tx-form-control">
                                 <option value="">${translate('All Types')}</option>
+                                <option value="inbound">${translate('Inbound')}</option>
+                                <option value="outbound">${translate('Outbound')}</option>
+                                <option value="internal_transfer">${translate('Internal Transfer')}</option>
+                                <option value="to_production">${translate('To Production')}</option>
+                                <option value="from_production">${translate('From Production')}</option>
+                                <option value="adjustment">${translate('Adjustment')}</option>
                             </select>
                         </div>
                         <div class="tx-form-group">
@@ -340,14 +346,13 @@ async populateFilterOptions() {
 
         if (transactionTypesError) throw transactionTypesError;
 
-        const uniqueTransactionTypes = [...new Set(transactionTypes.map(t => t.transaction_type).filter(Boolean))].sort();
+        const uniqueTransactionTypes = [...new Set(transactionTypes.map(t => t.transaction_type).filter(Boolean))];
 
         const transactionTypeSelect = document.getElementById('transaction-type');
         uniqueTransactionTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
-            // Capitalize words and replace underscores for better readability
-            option.textContent = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            option.textContent = type;
             transactionTypeSelect.appendChild(option);
         });
 
@@ -782,13 +787,10 @@ createTransactionRow(transaction) {
 getWarehouseDisplay(transaction) {
     if (transaction.transaction_type === 'internal_transfer' || transaction.transaction_type === 'P.Warehouse transfer') {
         const warehouseName = transaction.warehouses?.name || transaction.warehouse_id;
-        const sourceName = transaction.source_warehouses?.name || transaction.source_warehouse_id;
         const destName = transaction.dest_warehouses?.name || transaction.destination_warehouse_id;
         return `
             <div class="tx-warehouse-transfer">
                 <span class="tx-warehouse-name">${this.escapeHtml(warehouseName)}</span>
-                <i class="fas fa-arrow-right tx-transfer-arrow"></i>
-                <span class="tx-source">${this.escapeHtml(sourceName)}</span>
                 <i class="fas fa-arrow-right tx-transfer-arrow"></i>
                 <span class="tx-destination">${this.escapeHtml(destName)}</span>
             </div>
@@ -834,24 +836,14 @@ getTypeDisplay(type) {
         'adjustment': { text: 'Adjustment', class: 'tx-type-adjustment', icon: 'fa-edit' }
     };
 
-    const typeInfo = typeMap[type];
+    const typeInfo = typeMap[type] || { text: type, class: 'tx-type-default', icon: 'fa-question' };
 
-    if (typeInfo) {
-        return `
-            <span class="tx-transaction-type ${typeInfo.class}">
-                <i class="fas ${typeInfo.icon}"></i>
-                ${typeInfo.text}
-            </span>
-        `;
-    } else {
-        // For unknown types, just display the text, formatted nicely.
-        const formattedText = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        return `
-            <span class="tx-transaction-type tx-type-default">
-                ${this.escapeHtml(formattedText)}
-            </span>
-        `;
-    }
+    return `
+        <span class="tx-transaction-type ${typeInfo.class}">
+            <i class="fas ${typeInfo.icon}"></i>
+            ${typeInfo.text}
+        </span>
+    `;
 }
 
 /**
