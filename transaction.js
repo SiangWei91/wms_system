@@ -1,207 +1,4 @@
 /**
-     * 显示确认对话框
-     */
-showConfirmDialog(title, message, confirmText = 'Confirm', type = 'primary') {
-    return new Promise((resolve) => {
-        const modalHTML = `
-            <div class="tx-modal-backdrop" id="confirm-modal">
-                <div class="tx-modal-content">
-                    <div class="tx-modal-header">
-                        <h3>${this.escapeHtml(title)}</h3>
-                    </div>
-                    <div class="tx-modal-body">
-                        <p>${this.escapeHtml(message)}</p>
-                    </div>
-                    <div class="tx-modal-footer">
-                        <button class="tx-btn tx-btn-secondary" type="button" data-action="cancel">
-                            ${translate('Cancel')}
-                        </button>
-                        <button class="tx-btn tx-btn-${type}" type="button" data-action="confirm">
-                            ${this.escapeHtml(confirmText)}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        const modal = document.getElementById('confirm-modal');
-        modal.addEventListener('click', (e) => {
-            const action = e.target.dataset.action;
-            if (action === 'confirm') {
-                resolve(true);
-            } else if (action === 'cancel' || e.target === modal) {
-                resolve(false);
-            }
-            modal.remove();
-        });
-    });
-}
-
-/**
- * 显示成功消息
- */
-showSuccessMessage(message) {
-    this.showToast(message, 'success');
-}
-
-/**
- * 显示错误消息
- */
-showErrorMessage(message) {
-    this.showToast(message, 'error');
-}
-
-/**
- * 显示提示消息
- */
-showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `tx-toast tx-toast-${type}`;
-    toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        <span>${this.escapeHtml(message)}</span>
-    `;
-
-    document.body.appendChild(toast);
-
-    // 显示动画
-    setTimeout(() => toast.classList.add('tx-show'), 100);
-
-    // 自动隐藏
-    setTimeout(() => {
-        toast.classList.remove('tx-show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}    /**
- * 显示产品建议
- */
-showProductSuggestions(products) {
-    const suggestionsDiv = document.getElementById('product-suggestions');
-    if (!suggestionsDiv) return;
-
-    if (!products || products.length === 0) {
-        this.hideSuggestions();
-        return;
-    }
-
-    suggestionsDiv.innerHTML = products.map(product => `
-        <div class="tx-suggestion-item" data-value="${this.escapeHtml(product.item_code)} - ${this.escapeHtml(product.product_name)}">
-            <strong>${this.escapeHtml(product.item_code)}</strong>
-            <span>${this.escapeHtml(product.product_name)}</span>
-        </div>
-    `).join('');
-
-    suggestionsDiv.style.display = 'block';
-
-    // 绑定点击事件
-    suggestionsDiv.querySelectorAll('.tx-suggestion-item').forEach(item => {
-        item.addEventListener('click', () => {
-            document.getElementById('product-search').value = item.dataset.value;
-            this.hideSuggestions();
-        });
-    });
-}
-
-/**
- * 隐藏产品建议
- */
-hideSuggestions() {
-    const suggestionsDiv = document.getElementById('product-suggestions');
-    if (suggestionsDiv) {
-        suggestionsDiv.style.display = 'none';
-    }
-}
-
-/**
- * 处理搜索
- */
-async handleSearch(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const searchParams = {
-        start_date: formData.get('start-date') || null,
-        end_date: formData.get('end-date') || null,
-        warehouse_id: formData.get('warehouse') || null,
-        product_search: formData.get('product-search') || null,
-        operator_id: formData.get('operator') || null,
-        transaction_type: formData.get('transaction-type') || null,
-    };
-
-    // 清除空值
-    Object.keys(searchParams).forEach(key => {
-        if (!searchParams[key]) {
-            delete searchParams[key];
-        }
-    });
-
-    this.state.currentPage = 1;
-    this.state.lastSearchParams = searchParams;
-    await this.loadTransactions(searchParams);
-}
-
-/**
- * 处理重置
- */
-async handleReset() {
-    this.state.currentPage = 1;
-    this.state.lastSearchParams = {};
-    this.hideSuggestions();
-    await this.loadTransactions();
-}
-
-/**
- * 处理页面大小变更
- */
-async handlePageSizeChange(event) {
-    this.config.ITEMS_PER_PAGE = parseInt(event.target.value, 10);
-    this.state.currentPage = 1;
-    await this.loadTransactions(this.state.lastSearchParams);
-}
-
-/**
- * 处理排序
- */
-async handleSort(event) {
-    const th = event.target.closest('th.tx-sortable');
-    if (!th) return;
-
-    const column = th.dataset.column;
-    const currentOrder = th.dataset.order || 'none';
-    
-    // 重置所有排序图标
-    document.querySelectorAll('th.tx-sortable').forEach(header => {
-        header.dataset.order = 'none';
-        const icon = header.querySelector('i');
-        if (icon) icon.className = 'fas fa-sort';
-    });
-
-    // 设置当前列排序
-    let newOrder;
-    if (currentOrder === 'none' || currentOrder === 'desc') {
-        newOrder = 'asc';
-    } else {
-        newOrder = 'desc';
-    }
-
-    th.dataset.order = newOrder;
-    const icon = th.querySelector('i');
-    if (icon) {
-        icon.className = newOrder === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
-    }
-
-    // 应用排序
-    const searchParams = {
-        ...this.state.lastSearchParams,
-        sort_column: column,
-        sort_order: newOrder
-    };
-
-    this.state.currentPage = 1;
-    await this.loadTransactions(searchParams);
-}/**
 * 优化的交易管理模块
 * 改进点：
 * 1. 添加类型检查和错误处理
@@ -224,7 +21,7 @@ constructor() {
         isLoading: false,
         lastSearchParams: {}
     };
-    
+
     // 配置常量
     this.config = {
         ITEMS_PER_PAGE: 15,
@@ -233,14 +30,14 @@ constructor() {
             PALLET: ['jordon', 'lineage', 'singlong']
         }
     };
-    
+
     // 缓存
     this.cache = {
         warehouses: null,
         operators: null,
         products: null
     };
-    
+
     // 防抖定时器
     this.debounceTimers = new Map();
 }
@@ -256,7 +53,7 @@ async init(contentElement, supabase) {
 
     this.supabase = supabase;
     this.contentElement = contentElement;
-    
+
     try {
         this.renderHTML();
         await this.initializeData();
@@ -276,7 +73,7 @@ renderHTML() {
             <div class="tx-page-header">
                 <h1>${translate('Transaction Management')}</h1>
             </div>
-            
+
             <div class="tx-search-container">
                 <form id="transaction-search-form" class="tx-modern-filters">
                     <div class="tx-filter-row">
@@ -295,7 +92,7 @@ renderHTML() {
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="tx-filter-row">
                         <div class="tx-form-group">
                             <label for="transaction-type">${translate('Transaction Type')}</label>
@@ -312,8 +109,8 @@ renderHTML() {
                         <div class="tx-form-group">
                             <label for="product-search">${translate('Product')}</label>
                             <div class="tx-search-input-container">
-                                <input type="text" id="product-search" name="product-search" 
-                                       placeholder="${translate('Search by code or name')}" 
+                                <input type="text" id="product-search" name="product-search"
+                                       placeholder="${translate('Search by code or name')}"
                                        class="tx-form-control" autocomplete="off">
                                 <div id="product-suggestions" class="tx-suggestions-dropdown"></div>
                             </div>
@@ -325,7 +122,7 @@ renderHTML() {
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="tx-filter-actions">
                         <button type="submit" class="tx-btn tx-btn-primary">
                             <i class="fas fa-search"></i> ${translate('Search')}
@@ -339,7 +136,7 @@ renderHTML() {
                     </div>
                 </form>
             </div>
-            
+
             <div class="tx-table-container">
                 <div class="tx-table-header">
                     <div class="tx-table-info">
@@ -351,7 +148,7 @@ renderHTML() {
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="tx-table-wrapper">
                     <table class="tx-data-table" id="transactions-table">
                         <thead>
@@ -380,7 +177,7 @@ renderHTML() {
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div class="tx-table-footer">
                     <div class="tx-pagination" id="pagination"></div>
                     <div class="tx-page-size-selector">
@@ -394,7 +191,7 @@ renderHTML() {
                     </div>
                 </div>
             </div>
-            
+
             <!-- 加载遮罩 -->
             <div id="loading-overlay" class="tx-loading-overlay" style="display: none;">
                 <div class="tx-loading-spinner">
@@ -442,7 +239,7 @@ bindEvents() {
 
     // 产品搜索自动完成
     productSearch?.addEventListener('input', this.debounce(
-        this.handleProductSearch.bind(this), 
+        this.handleProductSearch.bind(this),
         this.config.SEARCH_DEBOUNCE_DELAY
     ));
 
@@ -463,7 +260,7 @@ bindEvents() {
 
     // 点击外部关闭建议
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-input-container')) {
+        if (!e.target.closest('.tx-search-input-container')) {
             this.hideSuggestions();
         }
     });
@@ -489,11 +286,11 @@ showLoading(show = true) {
     this.state.isLoading = show;
     const overlay = document.getElementById('loading-overlay');
     const refreshBtn = document.getElementById('refresh-btn');
-    
+
     if (overlay) {
         overlay.style.display = show ? 'flex' : 'none';
     }
-    
+
     if (refreshBtn) {
         refreshBtn.disabled = show;
         const icon = refreshBtn.querySelector('i');
@@ -518,7 +315,7 @@ showError(message) {
             </tr>
         `;
     }
-    
+
     this.updateResultsInfo('Error occurred');
 }
 
@@ -565,7 +362,7 @@ async loadWarehouses() {
         .order('name');
 
     if (error) throw error;
-    
+
     this.cache.warehouses = data;
     return data;
 }
@@ -619,7 +416,7 @@ populateSelect(selectId, options, valueKey, textKey) {
  */
 async handleProductSearch(event) {
     const searchTerm = event.target.value.trim();
-    
+
     if (searchTerm.length < 2) {
         this.hideSuggestions();
         return;
@@ -653,7 +450,7 @@ showProductSuggestions(products) {
     }
 
     suggestionsDiv.innerHTML = products.map(product => `
-        <div class="suggestion-item" data-value="${this.escapeHtml(product.item_code)} - ${this.escapeHtml(product.product_name)}">
+        <div class="tx-suggestion-item" data-value="${this.escapeHtml(product.item_code)} - ${this.escapeHtml(product.product_name)}">
             <strong>${this.escapeHtml(product.item_code)}</strong>
             <span>${this.escapeHtml(product.product_name)}</span>
         </div>
@@ -662,7 +459,7 @@ showProductSuggestions(products) {
     suggestionsDiv.style.display = 'block';
 
     // 绑定点击事件
-    suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
+    suggestionsDiv.querySelectorAll('.tx-suggestion-item').forEach(item => {
         item.addEventListener('click', () => {
             document.getElementById('product-search').value = item.dataset.value;
             this.hideSuggestions();
@@ -685,7 +482,7 @@ hideSuggestions() {
  */
 async handleSearch(event) {
     event.preventDefault();
-    
+
     const formData = new FormData(event.target);
     const searchParams = {
         start_date: formData.get('start-date') || null,
@@ -731,14 +528,14 @@ async handlePageSizeChange(event) {
  * 处理排序
  */
 async handleSort(event) {
-    const th = event.target.closest('th.sortable');
+    const th = event.target.closest('th.tx-sortable');
     if (!th) return;
 
     const column = th.dataset.column;
     const currentOrder = th.dataset.order || 'none';
-    
+
     // 重置所有排序图标
-    document.querySelectorAll('th.sortable').forEach(header => {
+    document.querySelectorAll('th.tx-sortable').forEach(header => {
         header.dataset.order = 'none';
         const icon = header.querySelector('i');
         if (icon) icon.className = 'fas fa-sort';
@@ -800,8 +597,8 @@ async loadTransactions(searchParams = {}) {
 
         // 应用排序
         if (searchParams.sort_column && searchParams.sort_order) {
-            query = query.order(searchParams.sort_column, { 
-                ascending: searchParams.sort_order === 'asc' 
+            query = query.order(searchParams.sort_column, {
+                ascending: searchParams.sort_order === 'asc'
             });
         } else {
             query = query.order('created_at', { ascending: false });
@@ -934,11 +731,11 @@ createTransactionRow(transaction) {
                     <button class="tx-btn-icon tx-view-btn" data-action="view" title="${translate('View Details')}">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="tx-btn-icon tx-delete-btn" data-action="delete" 
-                            data-id="${transaction.id}" 
-                            data-inventory-id="${transaction.inventory_id}" 
-                            data-dest-inventory-id="${transaction.destination_inventory_id}" 
-                            data-quantity="${transaction.quantity}" 
+                    <button class="tx-btn-icon tx-delete-btn" data-action="delete"
+                            data-id="${transaction.id}"
+                            data-inventory-id="${transaction.inventory_id}"
+                            data-dest-inventory-id="${transaction.destination_inventory_id}"
+                            data-quantity="${transaction.quantity}"
                             data-type="${transaction.transaction_type}"
                             title="${translate('Delete Transaction')}">
                         <i class="fas fa-trash"></i>
@@ -974,7 +771,7 @@ getWarehouseDisplay(transaction) {
  */
 getQuantityDisplay(transaction) {
     const quantity = Math.abs(transaction.quantity);
-    
+
     switch (transaction.transaction_type) {
         case 'inbound':
         case 'from_production':
@@ -1005,7 +802,7 @@ getTypeDisplay(type) {
     };
 
     const typeInfo = typeMap[type] || { text: type, class: 'tx-type-default', icon: 'fa-question' };
-    
+
     return `
         <span class="tx-transaction-type ${typeInfo.class}">
             <i class="fas ${typeInfo.icon}"></i>
@@ -1019,10 +816,10 @@ getTypeDisplay(type) {
  */
 formatDate(dateString) {
     if (!dateString) return 'N/A';
-    
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid Date';
-    
+
     return date.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
@@ -1047,8 +844,8 @@ renderPagination() {
 
     // 上一页按钮
     paginationHTML += `
-        <button class="tx-btn-pagination ${currentPage <= 1 ? 'tx-disabled' : ''}" 
-                ${currentPage <= 1 ? 'disabled' : ''} 
+        <button class="tx-btn-pagination ${currentPage <= 1 ? 'tx-disabled' : ''}"
+                ${currentPage <= 1 ? 'disabled' : ''}
                 data-page="${currentPage - 1}">
             <i class="fas fa-chevron-left"></i> ${translate('Previous')}
         </button>
@@ -1058,7 +855,7 @@ renderPagination() {
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
@@ -1074,7 +871,7 @@ renderPagination() {
     // 页码范围
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML += `
-            <button class="tx-btn-pagination ${i === currentPage ? 'tx-active' : ''}" 
+            <button class="tx-btn-pagination ${i === currentPage ? 'tx-active' : ''}"
                     data-page="${i}">${i}</button>
         `;
     }
@@ -1089,8 +886,8 @@ renderPagination() {
 
     // 下一页按钮
     paginationHTML += `
-        <button class="tx-btn-pagination ${!this.state.hasNextPage ? 'tx-disabled' : ''}" 
-                ${!this.state.hasNextPage ? 'disabled' : ''} 
+        <button class="tx-btn-pagination ${!this.state.hasNextPage ? 'tx-disabled' : ''}"
+                ${!this.state.hasNextPage ? 'disabled' : ''}
                 data-page="${currentPage + 1}">
             ${translate('Next')} <i class="fas fa-chevron-right"></i>
         </button>
@@ -1126,7 +923,8 @@ async handleTableAction(event) {
     if (!button) return;
 
     const action = button.dataset.action;
-    const transactionId = button.dataset.id;
+    const transactionId = button.closest('tr').dataset.transactionId;
+
 
     switch (action) {
         case 'view':
@@ -1233,7 +1031,7 @@ showTransactionModal(transaction) {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
+
     const modal = document.getElementById('transaction-modal');
     modal.addEventListener('click', (e) => {
         if (e.target === modal || e.target.closest('.tx-close-button') || e.target.matches('[data-dismiss="modal"]')) {
@@ -1293,10 +1091,10 @@ async deleteTransaction(transactionId, inventoryId, destInventoryId, quantity, t
 
     // 更新库存
     await this.updateInventoryAfterDeletion(
-        transaction, 
-        inventoryId, 
-        destInventoryId, 
-        quantity, 
+        transaction,
+        inventoryId,
+        destInventoryId,
+        quantity,
         type
     );
 }
@@ -1318,7 +1116,7 @@ async updateInventoryAfterDeletion(transaction, inventoryId, destInventoryId, qu
 
         case 'internal_transfer':
             const pallet = transaction.inventory_details?.pallet;
-            
+
             // 恢复源仓库库存
             await this.updateInventoryQuantity(inventoryId, quantity);
             if (pallet && palletWarehouses.includes(transaction.warehouse_id)) {
@@ -1351,7 +1149,7 @@ async updateInventoryQuantity(inventoryId, quantityChange) {
     if (fetchError) throw fetchError;
 
     const newQuantity = inventory.quantity + quantityChange;
-    
+
     const { error: updateError } = await this.supabase
         .from('inventory')
         .update({ quantity: Math.max(0, newQuantity) })
@@ -1373,7 +1171,7 @@ async updateInventoryPallet(inventoryId, pallet, operation) {
     if (fetchError) throw fetchError;
 
     let newDetails = { ...inventory.details };
-    
+
     if (operation === 'add') {
         const currentPallet = newDetails.pallet ? parseInt(newDetails.pallet, 10) : 0;
         const palletToAdd = parseInt(pallet, 10);
@@ -1400,7 +1198,7 @@ async updateInventoryPallet(inventoryId, pallet, operation) {
 async handleExport() {
     try {
         this.showLoading(true);
-        
+
         // 获取所有符合条件的数据（不分页）
         let query = this.supabase
             .from('transactions')
@@ -1433,7 +1231,7 @@ async handleExport() {
 exportToCSV(transactions) {
     const headers = [
         'Date',
-        'Item Code', 
+        'Item Code',
         'Product Name',
         'Type',
         'Warehouse',
@@ -1459,7 +1257,7 @@ exportToCSV(transactions) {
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -1490,19 +1288,19 @@ getWarehouseDisplayText(transaction) {
 showConfirmDialog(title, message, confirmText = 'Confirm', type = 'primary') {
     return new Promise((resolve) => {
         const modalHTML = `
-            <div class="modal-backdrop" id="confirm-modal">
-                <div class="modal-content">
-                    <div class="modal-header">
+            <div class="tx-modal-backdrop" id="confirm-modal">
+                <div class="tx-modal-content">
+                    <div class="tx-modal-header">
                         <h3>${this.escapeHtml(title)}</h3>
                     </div>
-                    <div class="modal-body">
+                    <div class="tx-modal-body">
                         <p>${this.escapeHtml(message)}</p>
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-action="cancel">
+                    <div class="tx-modal-footer">
+                        <button class="tx-btn tx-btn-secondary" type="button" data-action="cancel">
                             ${translate('Cancel')}
                         </button>
-                        <button class="btn btn-${type}" type="button" data-action="confirm">
+                        <button class="tx-btn tx-btn-${type}" type="button" data-action="confirm">
                             ${this.escapeHtml(confirmText)}
                         </button>
                     </div>
@@ -1511,7 +1309,7 @@ showConfirmDialog(title, message, confirmText = 'Confirm', type = 'primary') {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
+
         const modal = document.getElementById('confirm-modal');
         modal.addEventListener('click', (e) => {
             const action = e.target.dataset.action;
@@ -1544,7 +1342,7 @@ showErrorMessage(message) {
  */
 showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `tx-toast tx-toast-${type}`;
     toast.innerHTML = `
         <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
         <span>${this.escapeHtml(message)}</span>
@@ -1553,11 +1351,11 @@ showToast(message, type = 'info') {
     document.body.appendChild(toast);
 
     // 显示动画
-    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => toast.classList.add('tx-show'), 100);
 
     // 自动隐藏
     setTimeout(() => {
-        toast.classList.remove('show');
+        toast.classList.remove('tx-show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }

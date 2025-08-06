@@ -57,6 +57,7 @@ const pageScripts = {
     },
     'transactions': {
         urls: ['transaction.js'],
+        styles: ['transaction.css'],
         init: (content) => window.loadTransactions(content, supabaseClient)
     },
     'cr-temperature': {
