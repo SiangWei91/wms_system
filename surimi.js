@@ -301,6 +301,29 @@ async function initializeForms(supabaseClient) {
     initializeSupplementForm();
     initializeOrderForm();
     initializeReturnForm();
+    initializeDefrostBalanceTable();
+}
+
+function initializeDefrostBalanceTable() {
+    const products = Array.from(activeProducts);
+    let tableHTML = `
+        <div class="form-row" style="font-weight: bold;">
+            <div>Product</div>
+            <div>Quantity</div>
+            <div>Batch Number</div>
+        </div>
+    `;
+    products.forEach(product => {
+        const qty = inventory.defrostRoom[product];
+        tableHTML += `
+            <div class="form-row">
+                <div>${product}</div>
+                <div id="defrost_balance_${product}">${qty}</div>
+                <input type="text" id="final_batch_${product}" placeholder="Enter Batch No." maxlength="20">
+            </div>
+        `;
+    });
+    document.getElementById('defrostBalanceTable').innerHTML = tableHTML;
 }
 
 function initializeSupplementForm() {
@@ -359,23 +382,14 @@ function initializeOrderForm() {
 }
 
 function divideOrderInput(element) {
-    let value = parseFloat(element.value);
-    if (!isNaN(value)) {
-        element.dataset.originalValue = value;
+    if (element.value) {
+        setTimeout(() => {
+            let value = parseFloat(element.value);
+            if (!isNaN(value)) {
+                element.value = value / 2;
+            }
+        }, 800);
     }
-}
-
-function updateOrderResult(product) {
-    const current = inventory.defrostRoom[product];
-    const order1 = (parseFloat(document.getElementById(`order1_${product}`).dataset.originalValue) || 0) / 2;
-    const order2 = (parseFloat(document.getElementById(`order2_${product}`).dataset.originalValue) || 0) / 2;
-    const order3 = (parseFloat(document.getElementById(`order3_${product}`).dataset.originalValue) || 0) / 2;
-    const order4 = (parseFloat(document.getElementById(`order4_${product}`).dataset.originalValue) || 0) / 2;
-    const total = order1 + order2 + order3 + order4;
-    const remaining = parseFloat((current - total).toFixed(1));
-
-    document.getElementById(`order_result_${product}`).textContent = remaining;
-    document.getElementById(`order_result_${product}`).className = remaining < 0 ? 'has-stock' : '';
 }
 
 function initializeReturnForm() {
@@ -431,6 +445,9 @@ function updateAllFormsStock() {
             supplementResultElement.textContent = inventory.defrostRoom[product];
         }
     });
+
+    // 更新 Defrost Balance table
+    initializeDefrostBalanceTable();
 }
 
 function updateOrderResult(product) {
@@ -557,10 +574,10 @@ function dispatchOrders() {
     let success = true;
 
     products.forEach(product => {
-        const order1Qty = (parseFloat(document.getElementById(`order1_${product}`).dataset.originalValue) || 0) / 2;
-        const order2Qty = (parseFloat(document.getElementById(`order2_${product}`).dataset.originalValue) || 0) / 2;
-        const order3Qty = (parseFloat(document.getElementById(`order3_${product}`).dataset.originalValue) || 0) / 2;
-        const order4Qty = (parseFloat(document.getElementById(`order4_${product}`).dataset.originalValue) || 0) / 2;
+        const order1Qty = parseFloat(document.getElementById(`order1_${product}`).value) || 0;
+        const order2Qty = parseFloat(document.getElementById(`order2_${product}`).value) || 0;
+        const order3Qty = parseFloat(document.getElementById(`order3_${product}`).value) || 0;
+        const order4Qty = parseFloat(document.getElementById(`order4_${product}`).value) || 0;
         const totalOrderQty = order1Qty + order2Qty + order3Qty + order4Qty;
 
         if (totalOrderQty > inventory.defrostRoom[product]) {
@@ -571,10 +588,10 @@ function dispatchOrders() {
 
     if (success) {
         products.forEach(product => {
-            const order1Qty = (parseFloat(document.getElementById(`order1_${product}`).dataset.originalValue) || 0) / 2;
-            const order2Qty = (parseFloat(document.getElementById(`order2_${product}`).dataset.originalValue) || 0) / 2;
-            const order3Qty = (parseFloat(document.getElementById(`order3_${product}`).dataset.originalValue) || 0) / 2;
-            const order4Qty = (parseFloat(document.getElementById(`order4_${product}`).dataset.originalValue) || 0) / 2;
+            const order1Qty = parseFloat(document.getElementById(`order1_${product}`).value) || 0;
+            const order2Qty = parseFloat(document.getElementById(`order2_${product}`).value) || 0;
+            const order3Qty = parseFloat(document.getElementById(`order3_${product}`).value) || 0;
+            const order4Qty = parseFloat(document.getElementById(`order4_${product}`).value) || 0;
             const totalOrderQty = order1Qty + order2Qty + order3Qty + order4Qty;
             
             inventory.defrostRoom[product] = parseFloat((inventory.defrostRoom[product] - totalOrderQty).toFixed(1));
@@ -625,43 +642,6 @@ function processReturns() {
 // Final check and return to main
 function finalCheck() {
     const products = Array.from(activeProducts);
-    const total = products.reduce((sum, product) => sum + inventory.defrostRoom[product], 0);
-
-    if (total === 0) {
-        alert("Defrost room is already empty.");
-        return;
-    }
-
-    let tableHTML = `
-        <div class="form-row" style="font-weight: bold;">
-            <div>Product</div>
-            <div>Quantity</div>
-            <div>Batch Number</div>
-        </div>
-    `;
-    products.forEach(product => {
-        const qty = inventory.defrostRoom[product];
-        if (qty > 0) {
-            tableHTML += `
-                <div class="form-row">
-                    <div>${product}</div>
-                    <div>${qty}</div>
-                    <input type="text" id="final_batch_${product}" placeholder="Enter Batch No." maxlength="20">
-                </div>
-            `;
-        }
-    });
-    tableHTML += `
-        <div class="form-row">
-            <button class="btn btn-primary" onclick="confirmFinalReturnFromTable()">Confirm Return</button>
-        </div>
-    `;
-
-    document.getElementById('finalCheckContainer').innerHTML = tableHTML;
-}
-
-function confirmFinalReturnFromTable() {
-    const products = Array.from(activeProducts);
     let allBatchNumbersEntered = true;
     const batchNumbers = {};
 
@@ -706,8 +686,6 @@ function confirmFinalReturnFromTable() {
     if (window.supabaseClient) {
         initializeForms(window.supabaseClient);
     }
-
-    document.getElementById('finalCheckContainer').innerHTML = '';
 }
 
 // Update inventory display
