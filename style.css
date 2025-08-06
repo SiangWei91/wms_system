@@ -581,11 +581,12 @@ nav ul li i {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  align-items: stretch; /* Ensure children stretch to the same height */
 }
 
 .cr-temperature-group > .cr-temperature-table-container,
 .cr-temperature-group > .cr-temperature-chart-wrapper {
-  flex: 1;
+  flex: 1 1 50%; /* Explicitly set flex-grow, flex-shrink, and flex-basis */
   min-width: 0; /* Prevents overflow issues with flex items */
 }
 
