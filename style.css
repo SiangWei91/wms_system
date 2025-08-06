@@ -1233,6 +1233,11 @@ nav ul li i {
   .transactions .modern-filters .form-group {
     flex-shrink: 0;
   }
+
+  /* CR Temperature responsive layout */
+  .cr-temperature-group {
+    flex-direction: column;
+  }
 }
 
 @media (min-width: 769px) {
