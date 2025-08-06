@@ -219,21 +219,30 @@ async function getIncomingShipments(supabase) {
       return [];
     }
     
-    console.log(`Using column "${headers[unloadDateIndex]}" for dates`);
+    console.log(`Using column "${headers[unloadDateIndex]}" for dates (index: ${unloadDateIndex})`);
 
     const now = new Date();
     const tenDaysFromNow = new Date();
     tenDaysFromNow.setDate(now.getDate() + 10);
 
+    console.log(`Filtering for dates between ${now.toLocaleDateString()} and ${tenDaysFromNow.toLocaleDateString()}`);
+
     const incomingShipments = shipmentData.filter(row => {
       const unloadDateStr = row[unloadDateIndex];
-      if (!unloadDateStr) return false;
+      if (!unloadDateStr) {
+        console.log("Skipping row with empty unload date:", row);
+        return false;
+      }
 
       // 解析日期 (假设格式是 DD/MM/YYYY)
       const dateParts = unloadDateStr.split('/');
-      if (dateParts.length !== 3) return false;
+      if (dateParts.length !== 3) {
+        console.log(`Skipping row with invalid date format: ${unloadDateStr}`, row);
+        return false;
+      }
       
       const unloadDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      console.log(`Processing row: ${row[0]}, Unload Date: ${unloadDate.toLocaleDateString()}, Is valid: ${unloadDate >= now && unloadDate <= tenDaysFromNow}`);
       
       // 检查是否在未来10天内
       return unloadDate >= now && unloadDate <= tenDaysFromNow;
