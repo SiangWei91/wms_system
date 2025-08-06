@@ -23,7 +23,7 @@ const LoadingManager = {
     const container = document.getElementById(containerId);
     if (container) {
       container.innerHTML = `
-        <div class="loading-container" style="
+        <div class="dashboard-loading-container" style="
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -31,11 +31,11 @@ const LoadingManager = {
           padding: 40px;
           color: #666;
         ">
-          <div class="spinner" style="
+          <div class="dashboard-spinner" style="
             width: 40px;
             height: 40px;
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
+            border-top: 4px solid #94a3b8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 15px;
@@ -55,7 +55,7 @@ const LoadingManager = {
   hide(containerId) {
     const container = document.getElementById(containerId);
     if (container) {
-      const loading = container.querySelector('.loading-container');
+      const loading = container.querySelector('.dashboard-loading-container');
       if (loading) {
         loading.remove();
       }
@@ -66,7 +66,7 @@ const LoadingManager = {
     const container = document.getElementById(containerId);
     if (container) {
       container.innerHTML = `
-        <div class="error-container" style="
+        <div class="dashboard-error-container" style="
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -80,7 +80,7 @@ const LoadingManager = {
           <button onclick="window.loadDashboard(window.supabase)" style="
             margin-top: 15px;
             padding: 8px 16px;
-            background: #007bff;
+            background: #94a3b8;
             color: white;
             border: none;
             border-radius: 4px;
@@ -177,6 +177,89 @@ async function getLatestTemperatures(supabase) {
   }
 }
 
+// 获取即将到达的货物
+async function getIncomingShipments(supabase) {
+  try {
+    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=100", {
+      method: 'GET',
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || !data.values) {
+      return [];
+    }
+
+    const headers = data.values[0];
+    const shipmentData = data.values.slice(1);
+    
+    // 找到 Unload Date 列的索引
+    let unloadDateIndex = headers.findIndex(header => 
+      header.toLowerCase().includes('unload') && header.toLowerCase().includes('date')
+    );
+    
+    // 如果没找到 'unload date'，尝试找 'eta' 或其他可能的日期列
+    if (unloadDateIndex === -1) {
+      unloadDateIndex = headers.findIndex(header => 
+        header.toLowerCase().includes('eta') || 
+        header.toLowerCase().includes('arrival') ||
+        header.toLowerCase().includes('delivery')
+      );
+    }
+    
+    if (unloadDateIndex === -1) {
+      console.warn('No date column found in shipment data. Available headers:', headers);
+      return [];
+    }
+    
+    console.log(`Using column "${headers[unloadDateIndex]}" for dates`);
+
+    const now = new Date();
+    const tenDaysFromNow = new Date();
+    tenDaysFromNow.setDate(now.getDate() + 10);
+
+    const incomingShipments = shipmentData.filter(row => {
+      const unloadDateStr = row[unloadDateIndex];
+      if (!unloadDateStr) return false;
+
+      // 解析日期 (假设格式是 DD/MM/YYYY)
+      const dateParts = unloadDateStr.split('/');
+      if (dateParts.length !== 3) return false;
+      
+      const unloadDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      
+      // 检查是否在未来10天内
+      return unloadDate >= now && unloadDate <= tenDaysFromNow;
+    }).map(row => {
+      const shipmentNo = row[0] || 'N/A';
+      const poNo = row[1] || 'N/A';
+      const containerNo = row[2] || 'N/A';
+      const unloadDateStr = row[unloadDateIndex];
+      
+      // 计算距离今天的天数
+      const dateParts = unloadDateStr.split('/');
+      const unloadDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      const daysUntilUnload = Math.ceil((unloadDate - now) / (1000 * 60 * 60 * 24));
+      
+      return {
+        shipmentNo,
+        poNo,
+        containerNo,
+        unloadDate: unloadDateStr,
+        daysUntilUnload,
+        priority: daysUntilUnload <= 2 ? 'urgent' : daysUntilUnload <= 5 ? 'warning' : 'normal'
+      };
+    }).sort((a, b) => a.daysUntilUnload - b.daysUntilUnload);
+
+    return incomingShipments;
+  } catch (error) {
+    console.error("Error fetching incoming shipments:", error);
+    throw error;
+  }
+}
+
 // 优化温度判断逻辑
 function getTemperatureStatus(temp, coldroom) {
   const room = coldroom.toLowerCase();
@@ -202,9 +285,88 @@ function getTemperatureStatus(temp, coldroom) {
 
 // 优化温度卡片创建
 function createTemperatureCard(tempData) {
-  const container = document.getElementById("temperature-summary-container");
-  if (!container) return;
+  const container = document.getElementById("dashboard-temperature-grid");
+  if (!container) {
+    // 如果新的容器不存在，尝试使用旧的容器ID
+    const oldContainer = document.getElementById("temperature-summary-container");
+    if (oldContainer) {
+      createTemperatureCardOld(tempData, oldContainer);
+      return;
+    }
+    return;
+  }
   
+  const card = document.createElement("div");
+  card.className = "dashboard-temp-card";
+
+  const lastUpdate = tempData.latestEntries[0]
+    ? new Intl.DateTimeFormat("en-GB", {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(tempData.latestEntries[0].DateTime)
+    : translate("N/A");
+
+  let content = `
+    <i class="fas fa-thermometer-half"></i>
+    <div>
+      <h4 class="dashboard-temp-name">${tempData.tabName}</h4>
+      <p class="dashboard-temp-update">${translate("Last Update: ")}${lastUpdate}</p>
+  `;
+
+  // 优化温度条目渲染
+  tempData.latestEntries.forEach((entry) => {
+    if (entry && entry.Temperature !== undefined) {
+      const tempStatus = getTemperatureStatus(entry.Temperature, entry.Coldroom);
+      
+      content += `
+        <p class="dashboard-temp-reading" style="color: ${tempStatus.color};">
+          ${entry.Coldroom}: ${entry.Temperature}°C
+          ${tempStatus.status === 'warning' ? '<i class="fas fa-exclamation-triangle" style="margin-left: 5px;"></i>' : ''}
+        </p>
+      `;
+    }
+  });
+
+  content += `</div>`;
+  card.innerHTML = content;
+  container.appendChild(card);
+}
+
+// 创建即将到达货物卡片
+function createIncomingShipmentCard(shipment) {
+  const container = document.getElementById("dashboard-incoming-list");
+  if (!container) return;
+
+  const card = document.createElement("div");
+  card.className = `dashboard-incoming-item ${shipment.priority}`;
+
+  card.innerHTML = `
+    <div class="dashboard-incoming-header">
+      <span class="dashboard-incoming-title">${shipment.shipmentNo}</span>
+      <span class="dashboard-incoming-date ${shipment.priority}">
+        ${shipment.daysUntilUnload === 0 ? 'Today' : 
+          shipment.daysUntilUnload === 1 ? 'Tomorrow' : 
+          `${shipment.daysUntilUnload} days`}
+      </span>
+    </div>
+    <div class="dashboard-incoming-details">
+      <div><strong>PO:</strong> ${shipment.poNo}</div>
+      <div><strong>Container:</strong> ${shipment.containerNo}</div>
+      <div><strong>Unload Date:</strong> ${shipment.unloadDate}</div>
+    </div>
+  `;
+
+  container.appendChild(card);
+}
+
+// 存储 Chart 实例以便清理
+const chartInstances = new Map();
+
+// 为了向后兼容，添加旧版温度卡片创建函数
+function createTemperatureCardOld(tempData, container) {
   const card = document.createElement("div");
   card.className = "stat-card";
 
@@ -244,24 +406,30 @@ function createTemperatureCard(tempData) {
   container.appendChild(card);
 }
 
-// 存储 Chart 实例以便清理
-const chartInstances = new Map();
-
 // 优化仓库卡片渲染
 function renderWarehouseCard(container, name, current, max, id) {
   const card = document.createElement("div");
-  card.className = "stat-card";
-
-  const usagePercentage = max > 0 ? (current / max) * 100 : 0;
-  let usageColor = '#007bff';
-  if (usagePercentage > 90) {
-    usageColor = '#dc3545';
-  } else if (usagePercentage > 70) {
-    usageColor = '#fd7e14';
+  
+  // 检查是否使用新的容器
+  if (container.id === "dashboard-warehouse-grid") {
+    card.className = "dashboard-warehouse-card";
+  } else {
+    card.className = "stat-card";
   }
 
+  const usagePercentage = max > 0 ? (current / max) * 100 : 0;
+  let usageColor = '#94a3b8';
+  if (usagePercentage > 90) {
+    usageColor = '#ef4444';
+  } else if (usagePercentage > 70) {
+    usageColor = '#f59e0b';
+  }
+
+  // 使用适当的标签
+  const headerTag = container.id === "dashboard-warehouse-grid" ? "h4" : "h3";
+  
   card.innerHTML = `
-    <h3 data-translate="${name}">${name}</h3>
+    <${headerTag} data-translate="${name}">${name}</${headerTag}>
     <canvas id="${id}-chart" width="120" height="120"></canvas>
     <p>${current} / ${max} Pallets (${Math.round(usagePercentage)}%)</p>
   `;
@@ -281,7 +449,7 @@ function renderWarehouseCard(container, name, current, max, id) {
       datasets: [
         {
           data: [current, Math.max(0, max - current)],
-          backgroundColor: [usageColor, "#e9ecef"],
+          backgroundColor: [usageColor, "#e2e8f0"],
           borderColor: "rgba(255, 255, 255, 0)",
           borderWidth: 2,
         },
@@ -346,10 +514,10 @@ const warehouseCapacities = {
 };
 
 async function loadWarehouseCapacity(supabase) {
-  const container = document.getElementById("warehouse-capacity-container");
+  const container = document.getElementById("dashboard-warehouse-grid");
   if (!container) return;
 
-  LoadingManager.show("warehouse-capacity-container", "Loading warehouse data...");
+  LoadingManager.show("dashboard-warehouse-grid", "Loading warehouse data...");
 
   try {
     // 并行获取所有仓库数据
@@ -370,7 +538,46 @@ async function loadWarehouseCapacity(supabase) {
 
   } catch (error) {
     console.error("Error loading warehouse capacity:", error);
-    LoadingManager.showError("warehouse-capacity-container", "Failed to load warehouse data");
+    LoadingManager.showError("dashboard-warehouse-grid", "Failed to load warehouse data");
+  }
+}
+
+async function loadIncomingShipments(supabase) {
+  const container = document.getElementById("dashboard-incoming-list");
+  if (!container) return;
+
+  LoadingManager.show("dashboard-incoming-container", "Loading shipments...");
+
+  try {
+    const incomingShipments = await getIncomingShipments(supabase);
+    
+    const listContainer = document.getElementById("dashboard-incoming-list");
+    if (listContainer) {
+      listContainer.innerHTML = "";
+      
+      if (incomingShipments.length === 0) {
+        listContainer.innerHTML = `
+          <div class="dashboard-no-data">
+            <i class="fas fa-ship" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 12px;"></i>
+            <p>No incoming shipments in the next 10 days</p>
+          </div>
+        `;
+      } else {
+        incomingShipments.forEach(createIncomingShipmentCard);
+      }
+    }
+
+    LoadingManager.hide("dashboard-incoming-container");
+  } catch (error) {
+    console.error("Error loading incoming shipments:", error);
+    LoadingManager.showError("dashboard-incoming-container", "Failed to load shipments");
+  }
+}
+
+// 刷新即将到达货物
+window.refreshIncomingShipments = async function() {
+  if (window.supabase) {
+    await loadIncomingShipments(window.supabase);
   }
 }
 
@@ -381,35 +588,40 @@ window.loadDashboard = async function(supabase) {
   updateText(); // For translations
 
   // 显示加载状态
-  LoadingManager.show("temperature-summary-container", "Loading temperature data...");
+  LoadingManager.show("dashboard-temperature-grid", "Loading temperature data...");
 
   try {
-    // 并行加载仓库和温度数据
-    const [warehouseResult, temperatureResult] = await Promise.allSettled([
+    // 并行加载所有数据
+    const [warehouseResult, temperatureResult, shipmentsResult] = await Promise.allSettled([
       loadWarehouseCapacity(supabase),
-      getLatestTemperatures(supabase)
+      getLatestTemperatures(supabase),
+      loadIncomingShipments(supabase)
     ]);
 
     // 处理温度数据
-    const tempContainer = document.getElementById("temperature-summary-container");
+    const tempContainer = document.getElementById("dashboard-temperature-grid");
     if (tempContainer) {
       if (temperatureResult.status === 'fulfilled') {
         tempContainer.innerHTML = ""; // 清除加载状态
         temperatureResult.value.forEach(createTemperatureCard);
       } else {
         console.error("Temperature loading failed:", temperatureResult.reason);
-        LoadingManager.showError("temperature-summary-container", "Failed to load temperature data");
+        LoadingManager.showError("dashboard-temperature-grid", "Failed to load temperature data");
       }
     }
 
-    // 检查仓库加载结果
+    // 检查其他加载结果
     if (warehouseResult.status === 'rejected') {
       console.error("Warehouse loading failed:", warehouseResult.reason);
     }
 
+    if (shipmentsResult.status === 'rejected') {
+      console.error("Shipments loading failed:", shipmentsResult.reason);
+    }
+
   } catch (error) {
     console.error("Dashboard loading error:", error);
-    LoadingManager.showError("temperature-summary-container", "Failed to load dashboard");
+    LoadingManager.showError("dashboard-temperature-grid", "Failed to load dashboard");
   }
 
   console.timeEnd('Dashboard Load Time'); // 性能监控

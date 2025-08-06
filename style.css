@@ -879,52 +879,6 @@ nav ul li i {
   font-size: 1rem;
 }
 
-/* ===== 温度相关样式 ===== */
-#temperature-summary-container {
-  max-width: 800px;
-  margin: 0;
-}
-
-.temperature-cards-container {
-  width: 900px;
-  margin: 0;
-  margin-top: 15px;
-}
-
-.cr-temperature-container {
-  padding: 20px;
-  margin-bottom: 15px;
-}
-
-.cr-temperature-controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center;
-}
-
-.cr-temperature-group {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.cr-temperature-table-container {
-  flex: 1 1 500px;
-}
-
-.cr-temperature-chart-container {
-  flex: 1 1 300px;
-  height: 300px;
-}
-
-.temp-detail {
-  font-size: 0.8rem;
-  font-weight: normal;
-  color: #888;
-}
 
 /* ===== 报告容器样式 ===== */
 .report-container {
@@ -1261,5 +1215,355 @@ nav ul li i {
 @media (min-width: 769px) {
   .app-container.sidebar-show .sidebar {
     width: 0;
+  }
+}
+
+/* ===== 新增 4 分区仪表盘样式 ===== */
+
+/* === 仪表盘基础网格布局 === */
+.dashboard-four-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+  height: calc(100vh - 160px);
+  min-height: 600px;
+}
+
+/* === 每个网格区域 === */
+.dashboard-grid-section {
+  background-color: #f1f3f5;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s ease;
+}
+
+.dashboard-grid-section:hover {
+  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.15);
+}
+
+/* === 网格头部标题栏 === */
+.dashboard-grid-header {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.dashboard-grid-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* === 刷新按钮 === */
+.dashboard-refresh-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.dashboard-refresh-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* === 内容区 === */
+.dashboard-grid-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* === 仓库容量卡片 === */
+.dashboard-warehouse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  height: 100%;
+}
+
+.dashboard-warehouse-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 140px;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border: 1px solid #dfe6e9;
+}
+
+.dashboard-warehouse-card:hover {
+  transform: translateY(-2px);
+  background: #ecf0f1;
+}
+
+.dashboard-warehouse-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.dashboard-warehouse-card canvas {
+  margin-bottom: 10px;
+  max-width: 90px;
+  max-height: 90px;
+}
+
+.dashboard-warehouse-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #34495e;
+}
+
+/* === 即将到达货物列表 === */
+.dashboard-incoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.dashboard-incoming-item {
+  background: #ffffff;
+  border-left: 4px solid #2c3e50;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #dfe6e9;
+  transition: all 0.2s ease;
+}
+
+.dashboard-incoming-item:hover {
+  background: #ecf0f1;
+  transform: translateX(2px);
+}
+
+.dashboard-incoming-item.urgent {
+  border-left-color: #e74c3c;
+  background: #fef2f2;
+}
+
+.dashboard-incoming-item.warning {
+  border-left-color: #f39c12;
+  background: #fff8e1;
+}
+
+.dashboard-incoming-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.dashboard-incoming-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.dashboard-incoming-date {
+  background: #2c3e50;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.dashboard-incoming-date.urgent {
+  background: #e74c3c;
+}
+
+.dashboard-incoming-date.warning {
+  background: #f39c12;
+}
+
+.dashboard-incoming-details {
+  font-size: 0.8rem;
+  color: #636e72;
+  line-height: 1.4;
+}
+
+.dashboard-incoming-details strong {
+  color: #2c3e50;
+}
+
+/* === 温度监控卡片 === */
+.dashboard-temperature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  height: 100%;
+}
+
+.dashboard-temp-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #dfe6e9;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.dashboard-temp-card:hover {
+  transform: translateY(-2px);
+  background: #ecf0f1;
+}
+
+.dashboard-temp-card i {
+  font-size: 1.8rem;
+  margin-right: 14px;
+  color: #2c3e50;
+}
+
+.dashboard-temp-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 6px 0;
+}
+
+.dashboard-temp-update {
+  font-size: 0.7rem;
+  color: #95a5a6;
+  margin-bottom: 6px;
+}
+
+.dashboard-temp-reading {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* === 通用状态 === */
+.dashboard-no-data,
+.dashboard-orders-placeholder,
+.dashboard-loading-container,
+.dashboard-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #95a5a6;
+}
+
+.dashboard-error-container i,
+.dashboard-orders-placeholder i {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.dashboard-error-container p,
+.dashboard-no-data p,
+.dashboard-loading-container p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.dashboard-error-container button {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-error-container button:hover {
+  background: #1f2d3a;
+}
+
+.dashboard-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #ecf0f1;
+  border-top: 3px solid #2c3e50;
+  border-radius: 50%;
+  animation: dashboard-spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes dashboard-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === 响应式设计 === */
+@media (max-width: 1024px) {
+  .dashboard-four-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, minmax(250px, 1fr));
+    height: auto;
+  }
+
+  .dashboard-warehouse-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-temperature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-four-grid {
+    gap: 15px;
+    grid-template-rows: repeat(4, minmax(200px, 1fr));
+  }
+
+  .dashboard-grid-content {
+    padding: 12px;
+  }
+
+  .dashboard-grid-header {
+    padding: 12px 16px;
+  }
+
+  .dashboard-grid-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .dashboard-warehouse-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-temperature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-warehouse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-incoming-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .dashboard-incoming-date {
+    align-self: flex-end;
   }
 }
