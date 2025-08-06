@@ -181,7 +181,7 @@ async function getLatestTemperatures(supabase) {
 async function getIncomingShipments(supabase) {
   try {
     console.log("Fetching incoming shipments...");
-    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=1000", {
+    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=300", {
       method: 'GET',
     });
 
@@ -200,9 +200,9 @@ async function getIncomingShipments(supabase) {
     const headers = data.values[0];
     const shipmentData = data.values.slice(1);
     
-    // 找到 Unload Date 列的索引
+    // 找到 Unload Date 列的索引 (case-insensitive)
     let unloadDateIndex = headers.findIndex(header => 
-      header.toLowerCase().includes('unload') && header.toLowerCase().includes('date')
+      header.toLowerCase().trim() === 'unload date'
     );
     
     // 如果没找到 'unload date'，尝试找 'eta' 或其他可能的日期列
