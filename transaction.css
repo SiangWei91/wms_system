@@ -752,8 +752,8 @@
   
   .tx-detail-item label {
     font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--tx-text-secondary);
+  font-weight: normal;
+  color: #000;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
