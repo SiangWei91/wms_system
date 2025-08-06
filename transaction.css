@@ -437,8 +437,8 @@
     padding: 0.25rem 0.5rem;
     background-color: var(--tx-bg-tertiary);
     border-radius: 0.25rem;
-    font-size: 0.8em;
-    font-weight: 500;
+  font-size: 0.9em;
+  font-weight: 700;
   }
   
   /* 操作员徽章 */
@@ -752,7 +752,7 @@
   
   .tx-detail-item label {
     font-size: 0.875rem;
-  font-weight: normal;
+  font-weight: bold;
   color: #000;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
@@ -763,7 +763,7 @@
   .tx-detail-item pre {
     font-size: 1rem;
     color: #000;
-    font-weight: normal;
+  font-weight: bold;
   }
   
   .tx-detail-item pre {

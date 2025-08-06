@@ -781,10 +781,13 @@ createTransactionRow(transaction) {
  */
 getWarehouseDisplay(transaction) {
     if (transaction.transaction_type === 'internal_transfer' || transaction.transaction_type === 'P.Warehouse transfer') {
+        const warehouseName = transaction.warehouses?.name || transaction.warehouse_id;
         const sourceName = transaction.source_warehouses?.name || transaction.source_warehouse_id;
         const destName = transaction.dest_warehouses?.name || transaction.destination_warehouse_id;
         return `
             <div class="tx-warehouse-transfer">
+                <span class="tx-warehouse-name">${this.escapeHtml(warehouseName)}</span>
+                <i class="fas fa-arrow-right tx-transfer-arrow"></i>
                 <span class="tx-source">${this.escapeHtml(sourceName)}</span>
                 <i class="fas fa-arrow-right tx-transfer-arrow"></i>
                 <span class="tx-destination">${this.escapeHtml(destName)}</span>
