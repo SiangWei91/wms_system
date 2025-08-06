@@ -244,7 +244,7 @@ async function getIncomingShipments(supabase) {
       const unloadDate = new Date(year, month, day);
 
       console.log(`Parsed local date for ${row[0]}: ${unloadDate.toDateString()}`);
-      
+
       // 检查日期是否有效
       if (isNaN(unloadDate.getTime())) {
         console.log(`Invalid date for ${row[0]}: ${unloadDateStr}`);
@@ -371,6 +371,7 @@ function createTemperatureCard(tempData) {
 
 // 创建即将到达货物卡片
 function createIncomingShipmentCard(shipment) {
+  console.log("Creating shipment card for:", shipment);
   const container = document.getElementById("dashboard-incoming-list");
   if (!container) return;
 
@@ -578,12 +579,16 @@ async function loadWarehouseCapacity(supabase) {
 
 async function loadIncomingShipments(supabase) {
   const container = document.getElementById("dashboard-incoming-list");
-  if (!container) return;
+  if (!container) {
+    console.log("Dashboard incoming list container not found");
+    return;
+  }
 
   LoadingManager.show("dashboard-incoming-container", "Loading shipments...");
 
   try {
     const incomingShipments = await getIncomingShipments(supabase);
+    console.log("Incoming shipments to render:", incomingShipments);
     
     const listContainer = document.getElementById("dashboard-incoming-list");
     if (listContainer) {
