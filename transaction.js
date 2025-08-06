@@ -70,9 +70,6 @@ async init(contentElement, supabase) {
 renderHTML() {
     this.contentElement.innerHTML = `
         <div class="tx-transactions">
-            <div class="tx-page-header">
-                <h1>${translate('Transaction Management')}</h1>
-            </div>
 
             <div class="tx-search-container">
                 <form id="transaction-search-form" class="tx-modern-filters">
@@ -587,9 +584,9 @@ async loadTransactions(searchParams = {}) {
             .select(`
                 *,
                 products (product_name),
-                warehouses!transactions_warehouse_id_fkey (name),
-                source_warehouses:warehouses!transactions_source_warehouse_id_fkey (name),
-                dest_warehouses:warehouses!transactions_destination_warehouse_id_fkey (name)
+                warehouses!warehouse_id (name),
+                source_warehouses:warehouses!source_warehouse_id (name),
+                dest_warehouses:warehouses!destination_warehouse_id (name)
             `, { count: 'exact' });
 
         // 应用搜索条件
@@ -946,9 +943,9 @@ async viewTransactionDetails(transactionId) {
             .select(`
                 *,
                 products (product_name, description),
-                warehouses!transactions_warehouse_id_fkey (name),
-                source_warehouses:warehouses!transactions_source_warehouse_id_fkey (name),
-                dest_warehouses:warehouses!transactions_destination_warehouse_id_fkey (name)
+                warehouses!warehouse_id (name),
+                source_warehouses:warehouses!source_warehouse_id (name),
+                dest_warehouses:warehouses!destination_warehouse_id (name)
             `)
             .eq('id', transactionId)
             .single();
