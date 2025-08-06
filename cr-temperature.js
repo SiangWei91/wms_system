@@ -154,7 +154,7 @@ const loadCrTemperaturePage = (() => {
 
   function createChart(chartData, coldroomName) {
     const container = document.createElement("div");
-    container.className = "cr-temperature-chart-container modern-table-container";
+    container.className = "cr-temperature-chart-container cr-temperature-chart-wrapper";
     const title = document.createElement("h3");
     title.textContent = `${coldroomName}${translate(" - Chart")}`;
     container.appendChild(title);

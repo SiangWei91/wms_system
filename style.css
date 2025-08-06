@@ -567,6 +567,15 @@ nav ul li i {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* This is the fix for the CR Temperature Chart */
+.cr-temperature-chart-wrapper {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 400px;
+}
+
 /* 盘点表格样式 */
 .stock-take-table {
   width: 100%;
