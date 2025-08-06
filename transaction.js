@@ -581,13 +581,7 @@ async loadTransactions(searchParams = {}) {
         // 构建查询
         let query = this.supabase
             .from('transactions')
-            .select(`
-                *,
-                products (product_name),
-                warehouses!warehouse_id (name),
-                source_warehouses:warehouses!source_warehouse_id (name),
-                dest_warehouses:warehouses!destination_warehouse_id (name)
-            `, { count: 'exact' });
+            .select(`*`, { count: 'exact' });
 
         // 应用搜索条件
         query = this.applySearchFilters(query, searchParams);
@@ -614,13 +608,41 @@ async loadTransactions(searchParams = {}) {
 
         if (error) throw error;
 
+        // 获取相关的产品和仓库信息
+        const productIds = [...new Set(transactions.map(t => t.item_code).filter(Boolean))];
+        const warehouseIds = [...new Set(
+            transactions.flatMap(t => [t.warehouse_id, t.source_warehouse_id, t.destination_warehouse_id]).filter(Boolean)
+        )];
+
+        const [
+            { data: products, error: productError },
+            { data: warehouses, error: warehouseError }
+        ] = await Promise.all([
+            this.supabase.from('products').select('item_code, product_name').in('item_code', productIds),
+            this.supabase.from('warehouses').select('warehouse_id, name').in('warehouse_id', warehouseIds)
+        ]);
+
+        if (productError) throw productError;
+        if (warehouseError) throw warehouseError;
+
+        const productMap = new Map(products.map(p => [p.item_code, p.product_name]));
+        const warehouseMap = new Map(warehouses.map(w => [w.warehouse_id, w.name]));
+
+        const hydratedTransactions = transactions.map(t => ({
+            ...t,
+            products: { product_name: productMap.get(t.item_code) || 'N/A' },
+            warehouses: { name: warehouseMap.get(t.warehouse_id) || t.warehouse_id },
+            source_warehouses: { name: warehouseMap.get(t.source_warehouse_id) || t.source_warehouse_id },
+            dest_warehouses: { name: warehouseMap.get(t.destination_warehouse_id) || t.destination_warehouse_id }
+        }));
+
         // 更新状态
         this.state.totalItems = count || 0;
         this.state.totalPages = Math.ceil(this.state.totalItems / this.config.ITEMS_PER_PAGE);
         this.state.hasNextPage = this.state.currentPage < this.state.totalPages;
 
         // 渲染数据
-        this.renderTransactionsTable(transactions);
+        this.renderTransactionsTable(hydratedTransactions);
         this.renderPagination();
         this.updateResultsInfo(`${translate('Showing')} ${transactions.length} ${translate('of')} ${this.state.totalItems} ${translate('transactions')}`);
 
