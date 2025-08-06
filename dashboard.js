@@ -181,7 +181,7 @@ async function getLatestTemperatures(supabase) {
 async function getIncomingShipments(supabase) {
   try {
     console.log("Fetching incoming shipments...");
-    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=100", {
+    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=1000", {
       method: 'GET',
     });
 
