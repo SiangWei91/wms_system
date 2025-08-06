@@ -1176,6 +1176,7 @@ async updateInventoryAfterDeletion(transaction, inventoryId, destInventoryId, qu
             break;
 
         case 'internal_transfer':
+        case 'P.Warehouse transfer':
             const pallet = transaction.inventory_details?.pallet;
 
             // 恢复源仓库库存
@@ -1194,7 +1195,76 @@ async updateInventoryAfterDeletion(transaction, inventoryId, destInventoryId, qu
         case 'adjustment':
             await this.updateInventoryQuantity(inventoryId, -quantity);
             break;
+
+        case 'Container Unload':
+            await this.deleteInventoryItem(inventoryId);
+            break;
     }
+}
+
+/**
+ * 更新库存数量
+ */
+async updateInventoryQuantity(inventoryId, quantityChange) {
+    const { data: inventory, error: fetchError } = await this.supabase
+        .from('inventory')
+        .select('quantity')
+        .eq('id', inventoryId)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    const newQuantity = inventory.quantity + quantityChange;
+
+    const { error: updateError } = await this.supabase
+        .from('inventory')
+        .update({ quantity: Math.max(0, newQuantity) })
+        .eq('id', inventoryId);
+
+    if (updateError) throw updateError;
+}
+
+/**
+ * 更新库存托盘信息
+ */
+async updateInventoryPallet(inventoryId, pallet, operation) {
+    const { data: inventory, error: fetchError } = await this.supabase
+        .from('inventory')
+        .select('details')
+        .eq('id', inventoryId)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    let newDetails = { ...inventory.details };
+
+    if (operation === 'add') {
+        const currentPallet = newDetails.pallet ? parseInt(newDetails.pallet, 10) : 0;
+        const palletToAdd = parseInt(pallet, 10);
+        newDetails.pallet = (currentPallet + palletToAdd).toString();
+    } else if (operation === 'remove') {
+        if (newDetails.pallet) {
+            const pallets = newDetails.pallet.split(',');
+            const updatedPallets = pallets.filter(p => p !== pallet);
+            newDetails.pallet = updatedPallets.join(',');
+        }
+    }
+
+    const { error: updateError } = await this.supabase
+        .from('inventory')
+        .update({ details: newDetails })
+        .eq('id', inventoryId);
+
+    if (updateError) throw updateError;
+}
+
+async deleteInventoryItem(inventoryId) {
+    const { error } = await this.supabase
+        .from('inventory')
+        .delete()
+        .eq('id', inventoryId);
+
+    if (error) throw error;
 }
 
 /**
