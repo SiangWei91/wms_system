@@ -1407,35 +1407,9 @@
     opacity: 1;
   }
   
-  /* 暗色主题支持 */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --tx-text-primary: #e9ecef;
-      --tx-text-secondary: #adb5bd;
-      --tx-text-muted: #6c757d;
-
-      --tx-bg-primary: #212529;
-      --tx-bg-secondary: #343a40;
-      --tx-bg-tertiary: #495057;
-
-      --tx-border-color: #495057;
-    }
-
-    .tx-form-control {
-      background-color: var(--tx-bg-secondary);
-      border-color: var(--tx-border-color);
-      color: var(--tx-text-primary);
-    }
-
-    .tx-data-table th {
-      background-color: var(--tx-bg-tertiary);
-      color: var(--tx-text-primary);
-    }
-
-    .tx-suggestions-dropdown {
-      background-color: var(--tx-bg-secondary);
-      border-color: var(--tx-border-color);
-    }
+  .tx-transactions {
+    background-color: #fff;
+    color: #000;
   }
   
   /* 高对比度模式支持 */
