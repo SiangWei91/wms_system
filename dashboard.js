@@ -371,26 +371,76 @@ function createTemperatureCard(tempData) {
 
 // 创建即将到达货物卡片
 function createIncomingShipmentCard(shipment) {
-  console.log("Creating shipment card for:", shipment);
   const container = document.getElementById("dashboard-incoming-list");
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const card = document.createElement("div");
   card.className = `dashboard-incoming-item ${shipment.priority}`;
 
+  const daysText = shipment.daysUntilUnload === 0 ? 'Today' : 
+                  shipment.daysUntilUnload === 1 ? 'Tomorrow' : 
+                  `${shipment.daysUntilUnload} days`;
+
+  // 确定优先级样式
+  let priorityStyle = '';
+  let dateStyle = '';
+  
+  if (shipment.priority === 'urgent') {
+    priorityStyle = 'border-left: 4px solid #ef4444;';
+    dateStyle = 'background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;';
+  } else if (shipment.priority === 'warning') {
+    priorityStyle = 'border-left: 4px solid #f59e0b;';
+    dateStyle = 'background-color: #fffbeb; color: #d97706; border: 1px solid #fed7aa;';
+  } else {
+    priorityStyle = 'border-left: 4px solid #10b981;';
+    dateStyle = 'background-color: #f0fdf4; color: #059669; border: 1px solid #bbf7d0;';
+  }
+
+  card.style.cssText = `
+    display: block;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    ${priorityStyle}
+  `;
+
   card.innerHTML = `
-    <div class="dashboard-incoming-header">
-      <span class="dashboard-incoming-title">${shipment.shipmentNo}</span>
-      <span class="dashboard-incoming-date ${shipment.priority}">
-        ${shipment.daysUntilUnload === 0 ? 'Today' : 
-          shipment.daysUntilUnload === 1 ? 'Tomorrow' : 
-          `${shipment.daysUntilUnload} days`}
+    <div class="dashboard-incoming-header" style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    ">
+      <span class="dashboard-incoming-title" style="
+        font-weight: 600;
+        font-size: 1.1em;
+        color: #1f2937;
+      ">${shipment.shipmentNo}</span>
+      <span class="dashboard-incoming-date" style="
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.875em;
+        font-weight: 500;
+        ${dateStyle}
+      ">
+        ${daysText}
       </span>
     </div>
-    <div class="dashboard-incoming-details">
-      <div><strong>PO:</strong> ${shipment.poNo}</div>
-      <div><strong>Container:</strong> ${shipment.containerNo}</div>
-      <div><strong>Unload Date:</strong> ${shipment.unloadDate}</div>
+    <div class="dashboard-incoming-details" style="
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.9em;
+      color: #4b5563;
+    ">
+      <div style="flex: 1;"><strong>PO:</strong> ${shipment.poNo}</div>
+      <div style="flex: 1;"><strong>Container:</strong> ${shipment.containerNo}</div>
+      <div style="flex: 1;"><strong>Unload Date:</strong> ${shipment.unloadDate}</div>
     </div>
   `;
 
@@ -580,36 +630,161 @@ async function loadWarehouseCapacity(supabase) {
 async function loadIncomingShipments(supabase) {
   const container = document.getElementById("dashboard-incoming-list");
   if (!container) {
-    console.log("Dashboard incoming list container not found");
     return;
   }
 
-  LoadingManager.show("dashboard-incoming-container", "Loading shipments...");
+  // 直接在目标容器显示加载状态
+  container.innerHTML = `
+    <div class="dashboard-loading-container" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: #666;
+      min-height: 200px;
+    ">
+      <div class="dashboard-spinner" style="
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #94a3b8;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+      "></div>
+      <p>Loading shipments...</p>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
 
   try {
     const incomingShipments = await getIncomingShipments(supabase);
-    console.log("Incoming shipments to render:", incomingShipments);
     
-    const listContainer = document.getElementById("dashboard-incoming-list");
-    if (listContainer) {
-      listContainer.innerHTML = "";
-      
-      if (incomingShipments.length === 0) {
-        listContainer.innerHTML = `
-          <div class="dashboard-no-data">
-            <i class="fas fa-ship" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 12px;"></i>
-            <p>No incoming shipments in the next 10 days</p>
+    // 清空容器
+    container.innerHTML = "";
+    
+    if (incomingShipments.length === 0) {
+      container.innerHTML = `
+        <div class="dashboard-no-data" style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px;
+          color: #64748b;
+          text-align: center;
+          min-height: 200px;
+        ">
+          <i class="fas fa-ship" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 12px;"></i>
+          <p>No incoming shipments in the next 10 days</p>
+        </div>
+      `;
+    } else {
+      // 创建所有卡片的HTML
+      let cardsHTML = '';
+      incomingShipments.forEach(shipment => {
+        const daysText = shipment.daysUntilUnload === 0 ? 'Today' : 
+                        shipment.daysUntilUnload === 1 ? 'Tomorrow' : 
+                        `${shipment.daysUntilUnload} days`;
+        
+        // 确定优先级样式
+        let priorityStyle = '';
+        let dateStyle = '';
+        
+        if (shipment.priority === 'urgent') {
+          priorityStyle = 'border-left: 4px solid #ef4444;';
+          dateStyle = 'background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;';
+        } else if (shipment.priority === 'warning') {
+          priorityStyle = 'border-left: 4px solid #f59e0b;';
+          dateStyle = 'background-color: #fffbeb; color: #d97706; border: 1px solid #fed7aa;';
+        } else {
+          priorityStyle = 'border-left: 4px solid #10b981;';
+          dateStyle = 'background-color: #f0fdf4; color: #059669; border: 1px solid #bbf7d0;';
+        }
+        
+        cardsHTML += `
+          <div class="dashboard-incoming-item" style="
+            display: block;
+            margin-bottom: 12px;
+            padding: 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            ${priorityStyle}
+          ">
+            <div class="dashboard-incoming-header" style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            ">
+              <span class="dashboard-incoming-title" style="
+                font-weight: 600;
+                font-size: 1.1em;
+                color: #1f2937;
+              ">${shipment.shipmentNo}</span>
+              <span class="dashboard-incoming-date" style="
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.875em;
+                font-weight: 500;
+                ${dateStyle}
+              ">
+                ${daysText}
+              </span>
+            </div>
+            <div class="dashboard-incoming-details" style="
+              display: flex;
+              justify-content: space-between;
+              gap: 12px;
+              font-size: 0.9em;
+              color: #4b5563;
+            ">
+              <div style="flex: 1;"><strong>PO:</strong> ${shipment.poNo}</div>
+              <div style="flex: 1;"><strong>Container:</strong> ${shipment.containerNo}</div>
+              <div style="flex: 1;"><strong>Unload Date:</strong> ${shipment.unloadDate}</div>
+            </div>
           </div>
         `;
-      } else {
-        incomingShipments.forEach(createIncomingShipmentCard);
-      }
+      });
+      
+      container.innerHTML = cardsHTML;
     }
 
-    LoadingManager.hide("dashboard-incoming-container");
   } catch (error) {
-    console.error("Error loading incoming shipments:", error);
-    LoadingManager.showError("dashboard-incoming-container", "Failed to load shipments");
+    container.innerHTML = `
+      <div class="dashboard-error-container" style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        color: #dc3545;
+        text-align: center;
+        min-height: 200px;
+      ">
+        <i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 15px;"></i>
+        <p>Failed to load shipments</p>
+        <button onclick="window.refreshIncomingShipments()" style="
+          margin-top: 15px;
+          padding: 8px 16px;
+          background: #94a3b8;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        " onmouseover="this.style.backgroundColor='#64748b'" 
+           onmouseout="this.style.backgroundColor='#94a3b8'">Retry</button>
+      </div>
+    `;
   }
 }
 
