@@ -180,15 +180,20 @@ async function getLatestTemperatures(supabase) {
 // 获取即将到达的货物
 async function getIncomingShipments(supabase) {
   try {
+    console.log("Fetching incoming shipments...");
     const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=100", {
       method: 'GET',
     });
 
     if (error) {
+      console.error("Error invoking shipment-list function:", error);
       throw error;
     }
 
-    if (!data || !data.values) {
+    console.log("Received data from shipment-list function:", data);
+
+    if (!data || !data.values || data.values.length === 0) {
+      console.warn("No shipment data or values array is empty.");
       return [];
     }
 
@@ -570,7 +575,10 @@ async function loadIncomingShipments(supabase) {
     LoadingManager.hide("dashboard-incoming-container");
   } catch (error) {
     console.error("Error loading incoming shipments:", error);
-    LoadingManager.showError("dashboard-incoming-container", "Failed to load shipments");
+    const errorMessage = error.message.includes("Failed to fetch")
+      ? "Could not connect to the server. Please check your network connection."
+      : "An unexpected error occurred while loading shipments.";
+    LoadingManager.showError("dashboard-incoming-container", errorMessage);
   }
 }
 

@@ -1224,7 +1224,7 @@ nav ul li i {
 .dashboard-four-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 0.8fr 1.2fr;
   gap: 20px;
   height: calc(100vh - 160px);
   min-height: 600px;
