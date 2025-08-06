@@ -177,7 +177,7 @@ async function getLatestTemperatures(supabase) {
   }
 }
 
-// 获取即将到达的货物
+// 修复后的获取即将到达货物函数
 async function getIncomingShipments(supabase) {
   try {
     const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=100", {
@@ -216,13 +216,18 @@ async function getIncomingShipments(supabase) {
     
     console.log(`Using column "${headers[unloadDateIndex]}" for dates`);
 
+    // 修复：使用本地时间而不是UTC时间进行比较
     const now = new Date();
-    const tenDaysFromNow = new Date();
-    tenDaysFromNow.setDate(now.getDate() + 10);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tenDaysFromNow = new Date(today);
+    tenDaysFromNow.setDate(today.getDate() + 10);
+
+    console.log(`Today: ${today.toDateString()}`);
+    console.log(`Ten days from now: ${tenDaysFromNow.toDateString()}`);
 
     const incomingShipments = shipmentData.filter(row => {
       const unloadDateStr = row[unloadDateIndex];
-      if (!unloadDateStr) return false;
+      if (!unloadDateStr || unloadDateStr.trim() === '') return false;
 
       // 解析日期 (支持 DD/MM/YYYY 和 DD-MM-YYYY)
       const dateParts = unloadDateStr.split(/\/|-/);
@@ -230,14 +235,30 @@ async function getIncomingShipments(supabase) {
         console.log(`Skipping row with invalid date format: ${unloadDateStr}`, row);
         return false;
       }
+
+      // 修复：使用本地时间创建日期对象，而不是UTC
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1; // JavaScript月份从0开始
+      const year = parseInt(dateParts[2]);
+
+      const unloadDate = new Date(year, month, day);
+
+      console.log(`Parsed local date for ${row[0]}: ${unloadDate.toDateString()}`);
       
-      const unloadDate = new Date(Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])));
-      console.log(`Parsed UTC date for row ${row[0]}: ${unloadDate}`);
+      // 检查日期是否有效
+      if (isNaN(unloadDate.getTime())) {
+        console.log(`Invalid date for ${row[0]}: ${unloadDateStr}`);
+        return false;
+      }
+
+      // 检查是否在未来10天内（包含今天）
+      const isInRange = unloadDate >= today && unloadDate <= tenDaysFromNow;
       
-      // 检查是否在未来10天内
-      const nowUtc = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-      const tenDaysFromNowUtc = new Date(Date.UTC(tenDaysFromNow.getFullYear(), tenDaysFromNow.getMonth(), tenDaysFromNow.getDate()));
-      return unloadDate >= nowUtc && unloadDate <= tenDaysFromNowUtc;
+      if (isInRange) {
+        console.log(`✓ Found incoming shipment: ${row[0]} - ${unloadDate.toDateString()}`);
+      }
+
+      return isInRange;
     }).map(row => {
       const shipmentNo = row[0] || 'N/A';
       const poNo = row[1] || 'N/A';
@@ -245,9 +266,15 @@ async function getIncomingShipments(supabase) {
       const unloadDateStr = row[unloadDateIndex];
       
       // 计算距离今天的天数
-      const dateParts = unloadDateStr.split('/');
-      const unloadDate = new Date(Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])));
-      const daysUntilUnload = Math.ceil((unloadDate - new Date()) / (1000 * 60 * 60 * 24));
+      const dateParts = unloadDateStr.split(/\/|-/);
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1;
+      const year = parseInt(dateParts[2]);
+      const unloadDate = new Date(year, month, day);
+
+      // 修复：正确计算天数差异
+      const timeDiff = unloadDate.getTime() - today.getTime();
+      const daysUntilUnload = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
       
       return {
         shipmentNo,
@@ -259,6 +286,7 @@ async function getIncomingShipments(supabase) {
       };
     }).sort((a, b) => a.daysUntilUnload - b.daysUntilUnload);
 
+    console.log(`Found ${incomingShipments.length} incoming shipments`);
     return incomingShipments;
   } catch (error) {
     console.error("Error fetching incoming shipments:", error);
