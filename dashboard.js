@@ -231,11 +231,13 @@ async function getIncomingShipments(supabase) {
         return false;
       }
       
-      const unloadDate = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
-      console.log(`Parsed date for row ${row[0]}: ${unloadDate}`);
+      const unloadDate = new Date(Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])));
+      console.log(`Parsed UTC date for row ${row[0]}: ${unloadDate}`);
       
       // 检查是否在未来10天内
-      return unloadDate >= now && unloadDate <= tenDaysFromNow;
+      const nowUtc = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      const tenDaysFromNowUtc = new Date(Date.UTC(tenDaysFromNow.getFullYear(), tenDaysFromNow.getMonth(), tenDaysFromNow.getDate()));
+      return unloadDate >= nowUtc && unloadDate <= tenDaysFromNowUtc;
     }).map(row => {
       const shipmentNo = row[0] || 'N/A';
       const poNo = row[1] || 'N/A';
@@ -244,8 +246,8 @@ async function getIncomingShipments(supabase) {
       
       // 计算距离今天的天数
       const dateParts = unloadDateStr.split('/');
-      const unloadDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-      const daysUntilUnload = Math.ceil((unloadDate - now) / (1000 * 60 * 60 * 24));
+      const unloadDate = new Date(Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])));
+      const daysUntilUnload = Math.ceil((unloadDate - new Date()) / (1000 * 60 * 60 * 24));
       
       return {
         shipmentNo,
