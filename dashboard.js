@@ -180,29 +180,24 @@ async function getLatestTemperatures(supabase) {
 // 获取即将到达的货物
 async function getIncomingShipments(supabase) {
   try {
-    console.log("Fetching incoming shipments...");
-    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=300", {
+    const { data, error } = await supabase.functions.invoke("shipment-list?page=1&limit=100", {
       method: 'GET',
     });
 
     if (error) {
-      console.error("Error invoking shipment-list function:", error);
       throw error;
     }
 
-    console.log("Received data from shipment-list function:", data);
-
-    if (!data || !data.values || data.values.length === 0) {
-      console.warn("No shipment data or values array is empty.");
+    if (!data || !data.values) {
       return [];
     }
 
     const headers = data.values[0];
     const shipmentData = data.values.slice(1);
     
-    // 找到 Unload Date 列的索引 (case-insensitive)
+    // 找到 Unload Date 列的索引
     let unloadDateIndex = headers.findIndex(header => 
-      header.toLowerCase().trim() === 'unload date'
+      header.toLowerCase().includes('unload') && header.toLowerCase().includes('date')
     );
     
     // 如果没找到 'unload date'，尝试找 'eta' 或其他可能的日期列
@@ -219,30 +214,25 @@ async function getIncomingShipments(supabase) {
       return [];
     }
     
-    console.log(`Using column "${headers[unloadDateIndex]}" for dates (index: ${unloadDateIndex})`);
+    console.log(`Using column "${headers[unloadDateIndex]}" for dates`);
 
     const now = new Date();
     const tenDaysFromNow = new Date();
     tenDaysFromNow.setDate(now.getDate() + 10);
 
-    console.log(`Filtering for dates between ${now.toLocaleDateString()} and ${tenDaysFromNow.toLocaleDateString()}`);
-
     const incomingShipments = shipmentData.filter(row => {
       const unloadDateStr = row[unloadDateIndex];
-      if (!unloadDateStr) {
-        console.log("Skipping row with empty unload date:", row);
-        return false;
-      }
+      if (!unloadDateStr) return false;
 
-      // 解析日期 (假设格式是 DD/MM/YYYY)
-      const dateParts = unloadDateStr.split('/');
+      // 解析日期 (支持 DD/MM/YYYY 和 DD-MM-YYYY)
+      const dateParts = unloadDateStr.split(/\/|-/);
       if (dateParts.length !== 3) {
         console.log(`Skipping row with invalid date format: ${unloadDateStr}`, row);
         return false;
       }
       
-      const unloadDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-      console.log(`Processing row: ${row[0]}, Unload Date: ${unloadDate.toLocaleDateString()}, Is valid: ${unloadDate >= now && unloadDate <= tenDaysFromNow}`);
+      const unloadDate = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+      console.log(`Parsed date for row ${row[0]}: ${unloadDate}`);
       
       // 检查是否在未来10天内
       return unloadDate >= now && unloadDate <= tenDaysFromNow;
@@ -584,10 +574,7 @@ async function loadIncomingShipments(supabase) {
     LoadingManager.hide("dashboard-incoming-container");
   } catch (error) {
     console.error("Error loading incoming shipments:", error);
-    const errorMessage = error.message.includes("Failed to fetch")
-      ? "Could not connect to the server. Please check your network connection."
-      : "An unexpected error occurred while loading shipments.";
-    LoadingManager.showError("dashboard-incoming-container", errorMessage);
+    LoadingManager.showError("dashboard-incoming-container", "Failed to load shipments");
   }
 }
 
