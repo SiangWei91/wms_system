@@ -365,39 +365,62 @@ function initializeSupplementForm() {
 function initializeOrderForm() {
     const products = Array.from(activeProducts);
     let orderHTML = '<div class="form-row order-row" style="background: #f3e5f5; font-weight: bold;"><div>Product</div><div>Current</div><div>1st</div><div>2nd</div><div>Premium</div><div>Replenish</div><div>After</div></div>';
+    
     products.forEach(product => {
         orderHTML += `
             <div class="form-row order-row">
                 <div class="product-name">${product}</div>
                 <div id="order_current_${product}">${inventory.defrostRoom[product]}</div>
-                <input type="number" id="order1_${product}" placeholder="" min="0" step="0.5" oninput="divideOrderInput(this)" onchange="updateOrderResult('${product}')">
-                <input type="number" id="order2_${product}" placeholder="" min="0" step="0.5" oninput="divideOrderInput(this)" onchange="updateOrderResult('${product}')">
-                <input type="number" id="order3_${product}" placeholder="" min="0" step="0.5" oninput="divideOrderInput(this)" onchange="updateOrderResult('${product}')">
-                <input type="number" id="order4_${product}" placeholder="" min="0" step="0.5" oninput="divideOrderInput(this)" onchange="updateOrderResult('${product}')">
+                
+                <input type="number" id="order1_${product}" placeholder="" min="0" step="0.5"
+                    onfocus="this.dataset.divided = 'false'"
+                    onblur="divideOrderOnBlur(this)"
+                    onchange="updateOrderResult('${product}')">
+
+                <input type="number" id="order2_${product}" placeholder="" min="0" step="0.5"
+                    onfocus="this.dataset.divided = 'false'"
+                    onblur="divideOrderOnBlur(this)"
+                    onchange="updateOrderResult('${product}')">
+
+                <input type="number" id="order3_${product}" placeholder="" min="0" step="0.5"
+                    onfocus="this.dataset.divided = 'false'"
+                    onblur="divideOrderOnBlur(this)"
+                    onchange="updateOrderResult('${product}')">
+
+                <input type="number" id="order4_${product}" placeholder="" min="0" step="0.5"
+                    onfocus="this.dataset.divided = 'false'"
+                    onblur="divideOrderOnBlur(this)"
+                    onchange="updateOrderResult('${product}')">
+
                 <div id="order_result_${product}">${inventory.defrostRoom[product]}</div>
             </div>
         `;
     });
+
     document.getElementById('orderDispatch1').innerHTML = orderHTML;
 }
 
-function divideOrderInput(element) {
+
+function divideOrderOnBlur(element) {
     if (element.value === '') {
         element.dataset.divided = 'false';
         return;
     }
+
     if (element.dataset.divided !== 'true') {
-        if (element.value) {
-            setTimeout(() => {
-                let value = parseFloat(element.value);
-                if (!isNaN(value)) {
-                    element.value = value / 2;
-                    element.dataset.divided = 'true';
-                }
-            }, 800);
+        let value = parseFloat(element.value);
+        if (!isNaN(value)) {
+            element.value = (value / 2).toFixed(1);  // 自动除以2
+            element.dataset.divided = 'true';
+
+            // 🆕 加这一行，重新计算 After 值
+            const productId = element.id.split('_')[1]; // 从 "order1_ProductA" 拆出 "ProductA"
+            updateOrderResult(productId);
         }
     }
 }
+
+
 
 function initializeReturnForm() {
     const products = Array.from(activeProducts);
