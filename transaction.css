@@ -426,6 +426,8 @@
   .tx-warehouse-transfer .tx-destination {
     background-color: rgba(40, 167, 69, 0.1);
     color: #155724;
+    font-size: 0.9em;
+    font-weight: 700;
   }
   
   .tx-transfer-arrow {
