@@ -1238,6 +1238,10 @@ nav ul li i {
   .cr-temperature-group {
     flex-direction: column;
   }
+  .cr-temperature-group > .cr-temperature-table-container,
+  .cr-temperature-group > .cr-temperature-chart-wrapper {
+    flex: none; /* Reset flex-grow so it doesn't expand vertically */
+  }
 }
 
 @media (min-width: 769px) {
