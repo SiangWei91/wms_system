@@ -762,8 +762,8 @@
   .tx-detail-item span,
   .tx-detail-item pre {
     font-size: 1rem;
-    color: var(--tx-text-primary);
-    font-weight: 500;
+    color: #000;
+    font-weight: normal;
   }
   
   .tx-detail-item pre {

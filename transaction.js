@@ -340,6 +340,22 @@ async populateFilterOptions() {
         this.populateSelect('warehouse', warehouses, 'warehouse_id', 'name');
         this.populateSelect('operator', operators, 'operator_id', 'operator_id');
 
+        const { data: transactionTypes, error: transactionTypesError } = await this.supabase
+            .from('transactions')
+            .select('transaction_type');
+
+        if (transactionTypesError) throw transactionTypesError;
+
+        const uniqueTransactionTypes = [...new Set(transactionTypes.map(t => t.transaction_type).filter(Boolean))];
+
+        const transactionTypeSelect = document.getElementById('transaction-type');
+        uniqueTransactionTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            transactionTypeSelect.appendChild(option);
+        });
+
     } catch (error) {
         console.error('Failed to populate filter options:', error);
     }
@@ -770,7 +786,7 @@ createTransactionRow(transaction) {
  */
 getWarehouseDisplay(transaction) {
     if (transaction.transaction_type === 'internal_transfer') {
-        const sourceName = transaction.warehouses?.name || transaction.warehouse_id;
+        const sourceName = transaction.source_warehouses?.name || transaction.source_warehouse_id;
         const destName = transaction.dest_warehouses?.name || transaction.destination_warehouse_id;
         return `
             <div class="tx-warehouse-transfer">
@@ -825,7 +841,7 @@ getTypeDisplay(type) {
     return `
         <span class="tx-transaction-type ${typeInfo.class}">
             <i class="fas ${typeInfo.icon}"></i>
-            ${translate(typeInfo.text)}
+            ${typeInfo.text}
         </span>
     `;
 }
@@ -1336,7 +1352,7 @@ exportToCSV(transactions) {
  */
 getWarehouseDisplayText(transaction) {
     if (transaction.transaction_type === 'internal_transfer') {
-        const sourceName = transaction.warehouses?.name || transaction.warehouse_id;
+        const sourceName = transaction.source_warehouses?.name || transaction.source_warehouse_id;
         const destName = transaction.dest_warehouses?.name || transaction.destination_warehouse_id;
         return `${sourceName} → ${destName}`;
     } else {
