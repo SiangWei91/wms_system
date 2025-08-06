@@ -156,7 +156,7 @@ renderHTML() {
                                 <th class="tx-sortable" data-column="item_code">
                                     ${translate('Item Code')} <i class="fas fa-sort"></i>
                                 </th>
-                                <th>${translate('Product Description')}</th>
+                                <th>${translate('Product Name')}</th>
                                 <th>${translate('Warehouse')}</th>
                                 <th class="tx-sortable" data-column="quantity">
                                     ${translate('Quantity')} <i class="fas fa-sort"></i>
@@ -976,7 +976,7 @@ async viewTransactionDetails(transactionId) {
             { data: products, error: productError },
             { data: warehouses, error: warehouseError }
         ] = await Promise.all([
-            this.supabase.from('products').select('item_code, product_name, description').in('item_code', productIds),
+            this.supabase.from('products').select('item_code, product_name').in('item_code', productIds),
             this.supabase.from('warehouses').select('warehouse_id, name').in('warehouse_id', warehouseIds)
         ]);
 
