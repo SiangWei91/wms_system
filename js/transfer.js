@@ -184,7 +184,7 @@ class TransferFormManager {
             this.transferToWarehouseGroup.classList.toggle('hidden', issueType !== 'internal_transfer');
         }
 
-        if (issueType === 'outbound' || issueType === 'to_production') {
+        if (issueType === 'outbound' || issueType === 'to_production' || issueType === 'internal_transfer') {
             this.batchNoInput.readOnly = false; // Or true if suggestions are forced
             submitButton.disabled = false;
         } else if (issueType === 'inbound' || issueType === 'from_production') {
@@ -200,7 +200,7 @@ class TransferFormManager {
 
     async onBatchSearch() {
         const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
-        if (issueType !== 'outbound' && issueType !== 'to_production') {
+        if (issueType !== 'outbound' && issueType !== 'to_production' && issueType !== 'internal_transfer') {
             this.hideSuggestions(this.batchSuggestionsContainer);
             return;
         }
@@ -281,6 +281,8 @@ class TransferFormManager {
             await this.handleOutbound(formData, issueType, operatorId);
         } else if (issueType === 'inbound' || issueType === 'from_production') {
             await this.handleInbound(formData, issueType, operatorId);
+        } else if (issueType === 'internal_transfer') {
+            await this.handleInternalTransfer(formData, issueType, operatorId);
         } else {
             alert('This transaction type is not yet supported.');
             submitButton.disabled = false;
@@ -391,6 +393,87 @@ class TransferFormManager {
 
         } catch (error) {
             console.error('Error submitting transaction:', error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
+        }
+    }
+
+    async handleInternalTransfer(formData, issueType, operatorId) {
+        const submitButton = this.form.querySelector('button[type="submit"]');
+        try {
+            const sourceInventoryId = formData.get('inventory_id');
+            const quantityTransferred = parseFloat(formData.get('quantity'));
+            const destinationWarehouseId = this.form.querySelector('[name="transfer_to_warehouse_id"]').value;
+
+            if (!sourceInventoryId || !quantityTransferred || quantityTransferred <= 0 || !destinationWarehouseId) {
+                throw new Error("Invalid inventory ID, quantity, or destination warehouse.");
+            }
+
+            // 1. Get source inventory details
+            const { data: sourceInventory, error: fetchError } = await this.supabaseClient
+                .from('inventory')
+                .select('quantity, item_code, batch_no')
+                .eq('id', sourceInventoryId)
+                .single();
+
+            if (fetchError) throw fetchError;
+            if (!sourceInventory) throw new Error("Source inventory item not found.");
+            if (sourceInventory.quantity < quantityTransferred) {
+                throw new Error("Not enough stock for this transfer.");
+            }
+
+            // 2. Decrement source inventory
+            const newSourceQuantity = sourceInventory.quantity - quantityTransferred;
+            const { error: updateError } = await this.supabaseClient
+                .from('inventory')
+                .update({ quantity: newSourceQuantity })
+                .eq('id', sourceInventoryId);
+            if (updateError) throw updateError;
+
+            let destinationInventoryId = null;
+
+            // 3. Handle destination inventory (Case 1 vs Case 2)
+            if (destinationWarehouseId === 'coldroom6') {
+                const { data: newInventory, error: inventoryError } = await this.supabaseClient
+                    .from('inventory')
+                    .insert({
+                        item_code: sourceInventory.item_code,
+                        warehouse_id: destinationWarehouseId,
+                        batch_no: sourceInventory.batch_no,
+                        quantity: quantityTransferred,
+                    })
+                    .select('id')
+                    .single();
+
+                if (inventoryError) throw inventoryError;
+                destinationInventoryId = newInventory.id;
+            }
+
+            // 4. Create transaction record
+            const transactionData = {
+                transaction_type: issueType,
+                item_code: sourceInventory.item_code,
+                warehouse_id: formData.get('warehouse_id'),
+                destination_warehouse_id: destinationWarehouseId,
+                batch_no: sourceInventory.batch_no,
+                quantity: quantityTransferred,
+                transaction_date: formData.get('transaction_date'),
+                note: formData.get('note'),
+                inventory_id: sourceInventoryId,
+                destination_inventory_id: destinationInventoryId,
+                operator_id: operatorId
+            };
+
+            const { error: insertError } = await this.supabaseClient.from('transactions').insert([transactionData]);
+            if (insertError) throw insertError;
+
+            alert('Internal Transfer successful!');
+            this.resetForm();
+
+        } catch (error) {
+            console.error('Error in internal transfer:', error);
             alert(`Error: ${error.message}`);
         } finally {
             submitButton.disabled = false;
