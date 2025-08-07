@@ -435,11 +435,21 @@ class TransferFormManager {
             let destinationInventoryId = null;
 
             // 3. Handle destination inventory (Case 1 vs Case 2)
-            if (destinationWarehouseId === 'coldroom6') {
+            if (destinationWarehouseId === 'coldroom5' || destinationWarehouseId === 'coldroom6') {
+                const itemCodeMapping = {
+                    '90002': '90002.1', '90003': '90003.1', '90004': '90004.1',
+                    '24020': '24020.1', '25000': '25000.1', '26010': '26010.1',
+                    '40666': '40666.1', '40670': '40670.1', '90006': '90006.1',
+                    '90007': '90007.1', '90008': '90008.1', '90009': '90009.1',
+                    '90010': '90010.1', '90021': '90021.1', '90023': '90023.1',
+                    '90024': '90024.1', '90025': '90025.1'
+                };
+                const newItemCode = itemCodeMapping[sourceInventory.item_code] || sourceInventory.item_code;
+
                 const { data: newInventory, error: inventoryError } = await this.supabaseClient
                     .from('inventory')
                     .insert({
-                        item_code: sourceInventory.item_code,
+                        item_code: newItemCode,
                         warehouse_id: destinationWarehouseId,
                         batch_no: sourceInventory.batch_no,
                         quantity: quantityTransferred,
