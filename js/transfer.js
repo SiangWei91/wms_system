@@ -177,7 +177,7 @@ class TransferFormManager {
             this.transferToWarehouseGroup.classList.toggle('hidden', issueType !== 'internal_transfer');
         }
 
-        if (issueType === 'outbound') {
+        if (issueType === 'outbound' || issueType === 'to_production') {
             this.batchNoInput.readOnly = false; // Or true if suggestions are forced
             submitButton.disabled = false;
         } else if (issueType === 'inbound' || issueType === 'from_production') {
@@ -193,7 +193,7 @@ class TransferFormManager {
 
     async onBatchSearch() {
         const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
-        if (issueType !== 'outbound') {
+        if (issueType !== 'outbound' && issueType !== 'to_production') {
             this.hideSuggestions(this.batchSuggestionsContainer);
             return;
         }
@@ -256,10 +256,24 @@ class TransferFormManager {
         const formData = new FormData(this.form);
         const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
 
-        if (issueType === 'outbound') {
-            await this.handleOutbound(formData);
+        const getOperatorId = () => {
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const userNameCookie = cookies.find(c => c.startsWith('userName='));
+            return userNameCookie ? userNameCookie.split('=')[1] : null;
+        };
+
+        const operatorId = getOperatorId();
+        if (!operatorId) {
+            alert("Could not find operator ID. Please log in again.");
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
+            return;
+        }
+
+        if (issueType === 'outbound' || issueType === 'to_production') {
+            await this.handleOutbound(formData, issueType, operatorId);
         } else if (issueType === 'inbound' || issueType === 'from_production') {
-            await this.handleInbound(formData, issueType);
+            await this.handleInbound(formData, issueType, operatorId);
         } else {
             alert('This transaction type is not yet supported.');
             submitButton.disabled = false;
@@ -268,7 +282,7 @@ class TransferFormManager {
         }
     }
 
-    async handleOutbound(formData) {
+    async handleOutbound(formData, issueType, operatorId) {
         try {
             const inventoryId = formData.get('inventory_id');
             const quantityToDeduct = parseFloat(formData.get('quantity'));
@@ -298,30 +312,31 @@ class TransferFormManager {
             if (updateError) throw updateError;
 
             const transactionData = {
-                transaction_type: 'outbound',
+                transaction_type: issueType,
                 item_code: formData.get('item_code'),
                 warehouse_id: formData.get('warehouse_id'),
                 batch_no: formData.get('batch_no'),
                 quantity: quantityToDeduct,
                 transaction_date: formData.get('transaction_date'),
                 note: formData.get('note'),
-                inventory_id: inventoryId
+                inventory_id: inventoryId,
+                operator_id: operatorId
             };
 
             const { error: insertError } = await this.supabaseClient.from('transactions').insert([transactionData]);
             if (insertError) throw insertError;
 
-            alert('Outbound transaction successful!');
+            alert(`${issueType.charAt(0).toUpperCase() + issueType.slice(1)} transaction successful!`);
             this.form.reset();
             this.initialize();
 
         } catch (error) {
-            console.error('Error in outbound transaction:', error);
+            console.error(`Error in ${issueType} transaction:`, error);
             alert(`Error: ${error.message}`);
         }
     }
 
-    async handleInbound(formData, issueType) {
+    async handleInbound(formData, issueType, operatorId) {
         const submitButton = this.form.querySelector('button[type="submit"]');
         try {
             const batchNo = formData.get('batch_no');
@@ -331,7 +346,6 @@ class TransferFormManager {
                 throw new Error("Batch No and a valid quantity are required.");
             }
 
-            // 1. Create new inventory record
             const newInventoryItem = {
                 item_code: formData.get('item_code'),
                 warehouse_id: formData.get('warehouse_id'),
@@ -347,7 +361,6 @@ class TransferFormManager {
             if (inventoryError) throw inventoryError;
             if (!newInventory) throw new Error("Failed to create new inventory item.");
 
-            // 2. Create transaction record
             const transactionData = {
                 transaction_type: issueType,
                 item_code: formData.get('item_code'),
@@ -356,7 +369,8 @@ class TransferFormManager {
                 quantity: quantity,
                 transaction_date: formData.get('transaction_date'),
                 note: formData.get('note'),
-                inventory_id: newInventory.id
+                inventory_id: newInventory.id,
+                operator_id: operatorId
             };
 
             const { error: insertError } = await this.supabaseClient.from('transactions').insert([transactionData]);
