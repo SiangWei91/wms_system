@@ -68,6 +68,7 @@ class TransferFormManager {
     constructor(formId, supabaseClient) {
         this.form = document.getElementById(formId);
         this.supabaseClient = supabaseClient;
+        this.initialized = false;
 
         // Form Elements
         this.dateInput = this.form.querySelector('input[type="date"]');
@@ -88,8 +89,12 @@ class TransferFormManager {
     }
 
     initialize() {
-        // Set default date to today
-        this.dateInput.valueAsDate = new Date();
+        if (this.initialized) {
+            this.resetForm();
+            return;
+        }
+
+        this.resetForm();
 
         // Add event listeners
         this.productSearchInput.addEventListener('input', (e) => this.onProductSearch(e.target.value));
@@ -107,6 +112,15 @@ class TransferFormManager {
         });
 
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        this.initialized = true;
+    }
+
+    resetForm() {
+        this.form.reset();
+        this.dateInput.valueAsDate = new Date();
+        if (this.issueTypeSelect) {
+            this.onIssueTypeChange(this.issueTypeSelect.value);
+        }
     }
 
     async onProductSearch(searchTerm) {
@@ -327,12 +341,15 @@ class TransferFormManager {
             if (insertError) throw insertError;
 
             alert(`${issueType.charAt(0).toUpperCase() + issueType.slice(1)} transaction successful!`);
-            this.form.reset();
-            this.initialize();
+            this.resetForm();
 
         } catch (error) {
             console.error(`Error in ${issueType} transaction:`, error);
             alert(`Error: ${error.message}`);
+        } finally {
+            const submitButton = this.form.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
         }
     }
 
@@ -377,8 +394,7 @@ class TransferFormManager {
             if (insertError) throw insertError;
 
             alert(`${issueType.charAt(0).toUpperCase() + issueType.slice(1)} transaction successful!`);
-            this.form.reset();
-            this.initialize();
+            this.resetForm();
 
         } catch (error) {
             console.error('Error submitting transaction:', error);
