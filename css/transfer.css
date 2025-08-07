@@ -1,0 +1,41 @@
+.transfer-container {
+    width: 100%;
+}
+
+.transfer-tabs {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.transfer-tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #000000;
+    transition: all 0.3s ease;
+    margin-bottom: -2px;
+}
+
+.transfer-tab-button.active {
+    color: #3498db;
+    font-weight: 600;
+    border-bottom: 3px solid #3498db;
+}
+
+.transfer-tab-button.create-adjustment {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.transfer-content .transfer-tab-pane {
+    display: none;
+    padding-top: 1rem;
+}
+
+.transfer-content .transfer-tab-pane.active {
+    display: block;
+}

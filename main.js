@@ -89,7 +89,9 @@ const pageScripts = {
         init: () => window.loadSingLongPage(supabaseClient)
     },
     'transfer': {
-        redirect: 'coming-soon'
+        styles: ['css/transfer.css'],
+        urls: ['js/transfer.js'],
+        init: () => window.loadTransferPage(supabaseClient)
     },
     'surimi': {
         styles: ['surimi.css'],
