@@ -98,7 +98,7 @@ class TransferFormManager {
             this.onIssueTypeChange(this.issueTypeSelect.value); // Initial check
         }
 
-        this.batchNoInput.addEventListener('input', (e) => this.onBatchSearch(e.target.value));
+        this.batchNoInput.addEventListener('focus', () => this.onBatchSearch());
 
         document.addEventListener('click', (e) => {
             this.hideSuggestionsOnClickOutside(e, this.productSuggestionsContainer, this.productSearchInput);
@@ -108,7 +108,7 @@ class TransferFormManager {
 
     async onProductSearch(searchTerm) {
         if (searchTerm.length < 2) {
-            this.hideSuggestions();
+            this.hideSuggestions(this.productSuggestionsContainer);
             return;
         }
 
@@ -180,9 +180,9 @@ class TransferFormManager {
         }
     }
 
-    async onBatchSearch(searchTerm) {
+    async onBatchSearch() {
         const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
-        if (issueType !== 'outbound' || searchTerm.length < 1) {
+        if (issueType !== 'outbound') {
             this.hideSuggestions(this.batchSuggestionsContainer);
             return;
         }
@@ -202,7 +202,6 @@ class TransferFormManager {
                 .eq('item_code', itemCode)
                 .eq('warehouse_id', warehouseId)
                 .gt('quantity', 0)
-                .ilike('batch_no', `%${searchTerm}%`)
                 .limit(10);
 
             if (error) throw error;
