@@ -43,13 +43,24 @@
                         <option value="coldroom6">Coldroom 6</option>
                     </select>
                 </div>
+                <div id="goods-issue-transfer-to-warehouse-group" class="form-group hidden">
+                    <label for="goods-issue-transfer-to-warehouse">Transfer to Warehouse</label>
+                    <select id="goods-issue-transfer-to-warehouse" name="transfer_to_warehouse_id">
+                        <option value="coldroom1">Coldroom 1</option>
+                        <option value="coldroom2">Coldroom 2</option>
+                        <option value="coldroom5">Coldroom 5</option>
+                        <option value="coldroom6">Coldroom 6</option>
+                        <option value="blk15">Blk 15</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="goods-issue-quantity">Quantity</label>
                     <input type="number" id="goods-issue-quantity" name="quantity">
                 </div>
                 <div class="form-group">
                     <label for="goods-issue-batch-no">Batch No</label>
-                    <input type="text" id="goods-issue-batch-no" name="batch_no">
+                    <input type="text" id="goods-issue-batch-no" name="batch_no" autocomplete="off">
+                    <div id="goods-issue-batch-suggestions" class="suggestions-container"></div>
                 </div>
                 <div class="form-group">
                     <label for="goods-issue-note">Note</label>
@@ -100,7 +111,8 @@
                 </div>
                 <div class="form-group">
                     <label for="adjustment-batch-no">Batch No</label>
-                    <input type="text" id="adjustment-batch-no" name="batch_no">
+                    <input type="text" id="adjustment-batch-no" name="batch_no" autocomplete="off">
+                    <div id="adjustment-batch-suggestions" class="suggestions-container"></div>
                 </div>
                 <div class="form-group">
                     <label for="adjustment-note">Note</label>

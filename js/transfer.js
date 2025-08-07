@@ -68,20 +68,42 @@ class TransferFormManager {
     constructor(formId, supabaseClient) {
         this.form = document.getElementById(formId);
         this.supabaseClient = supabaseClient;
+
+        // Form Elements
         this.dateInput = this.form.querySelector('input[type="date"]');
+        this.issueTypeSelect = this.form.querySelector('select[name="issue_type"]');
         this.productSearchInput = this.form.querySelector('input[id$="-product-search"]');
-        this.suggestionsContainer = this.form.querySelector('.suggestions-container');
         this.itemCodeInput = this.form.querySelector('input[id$="-item-code"]');
         this.packingSizeInput = this.form.querySelector('input[id$="-packing-size"]');
+        this.warehouseSelect = this.form.querySelector('select[name="warehouse_id"]');
+        this.transferToWarehouseGroup = this.form.querySelector('[id$="-transfer-to-warehouse-group"]');
+        this.batchNoInput = this.form.querySelector('input[id$="-batch-no"]');
+
+        // Suggestion Containers
+        this.productSuggestionsContainer = this.form.querySelector('[id$="-product-suggestions"]');
+        this.batchSuggestionsContainer = this.form.querySelector('[id$="-batch-suggestions"]');
 
         this.initialize();
-        this.productSearchInput.addEventListener('input', (e) => this.onProductSearch(e.target.value));
-        document.addEventListener('click', (e) => this.hideSuggestionsOnClickOutside(e));
     }
 
     initialize() {
         // Set default date to today
         this.dateInput.valueAsDate = new Date();
+
+        // Add event listeners
+        this.productSearchInput.addEventListener('input', (e) => this.onProductSearch(e.target.value));
+
+        if (this.issueTypeSelect) {
+            this.issueTypeSelect.addEventListener('change', (e) => this.onIssueTypeChange(e.target.value));
+            this.onIssueTypeChange(this.issueTypeSelect.value); // Initial check
+        }
+
+        this.batchNoInput.addEventListener('input', (e) => this.onBatchSearch(e.target.value));
+
+        document.addEventListener('click', (e) => {
+            this.hideSuggestionsOnClickOutside(e, this.productSuggestionsContainer, this.productSearchInput);
+            this.hideSuggestionsOnClickOutside(e, this.batchSuggestionsContainer, this.batchNoInput);
+        });
     }
 
     async onProductSearch(searchTerm) {
@@ -107,20 +129,20 @@ class TransferFormManager {
 
     showProductSuggestions(products) {
         if (!products || products.length === 0) {
-            this.hideSuggestions();
+            this.hideSuggestions(this.productSuggestionsContainer);
             return;
         }
 
-        this.suggestionsContainer.innerHTML = products.map(product => `
+        this.productSuggestionsContainer.innerHTML = products.map(product => `
             <div class="suggestion-item" data-product='${JSON.stringify(product)}'>
                 <strong>${product.item_code}</strong>
                 <span>${product.product_name} (${product.product_chinese_name}) - ${product.packing_size}</span>
             </div>
         `).join('');
 
-        this.suggestionsContainer.style.display = 'block';
+        this.productSuggestionsContainer.style.display = 'block';
 
-        this.suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+        this.productSuggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
             item.addEventListener('click', () => this.onSuggestionClick(item));
         });
     }
@@ -130,17 +152,88 @@ class TransferFormManager {
         this.productSearchInput.value = `${product.product_name} (${product.product_chinese_name})`;
         this.itemCodeInput.value = product.item_code;
         this.packingSizeInput.value = product.packing_size;
-        this.hideSuggestions();
+        this.hideSuggestions(this.productSuggestionsContainer);
     }
 
-    hideSuggestions() {
-        this.suggestionsContainer.style.display = 'none';
-    }
-
-    hideSuggestionsOnClickOutside(e) {
-        if (!this.suggestionsContainer.contains(e.target) && e.target !== this.productSearchInput) {
-            this.hideSuggestions();
+    hideSuggestions(container) {
+        if (container) {
+            container.style.display = 'none';
         }
+    }
+
+    hideSuggestionsOnClickOutside(e, container, input) {
+        if (container && !container.contains(e.target) && e.target !== input) {
+            container.style.display = 'none';
+        }
+    }
+
+    onIssueTypeChange(issueType) {
+        if (this.transferToWarehouseGroup) {
+            this.transferToWarehouseGroup.classList.toggle('hidden', issueType !== 'internal_transfer');
+        }
+
+        if (issueType === 'outbound') {
+            this.batchNoInput.readOnly = false;
+        } else {
+            this.batchNoInput.readOnly = true;
+            this.hideSuggestions(this.batchSuggestionsContainer);
+        }
+    }
+
+    async onBatchSearch(searchTerm) {
+        const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
+        if (issueType !== 'outbound' || searchTerm.length < 1) {
+            this.hideSuggestions(this.batchSuggestionsContainer);
+            return;
+        }
+
+        const itemCode = this.itemCodeInput.value;
+        const warehouseId = this.warehouseSelect.value;
+
+        if (!itemCode || !warehouseId) {
+            console.warn("Please select a product and warehouse first.");
+            return;
+        }
+
+        try {
+            const { data, error } = await this.supabaseClient
+                .from('inventory')
+                .select('batch_no, quantity')
+                .eq('item_code', itemCode)
+                .eq('warehouse_id', warehouseId)
+                .gt('quantity', 0)
+                .ilike('batch_no', `%${searchTerm}%`)
+                .limit(10);
+
+            if (error) throw error;
+            this.showBatchSuggestions(data);
+
+        } catch (error) {
+            console.error('Error searching for batches:', error);
+        }
+    }
+
+    showBatchSuggestions(batches) {
+        if (!batches || batches.length === 0) {
+            this.hideSuggestions(this.batchSuggestionsContainer);
+            return;
+        }
+
+        this.batchSuggestionsContainer.innerHTML = batches.map(batch => `
+            <div class="suggestion-item" data-batch='${JSON.stringify(batch)}'>
+                <strong>${batch.batch_no}</strong> (Qty: ${batch.quantity})
+            </div>
+        `).join('');
+
+        this.batchSuggestionsContainer.style.display = 'block';
+
+        this.batchSuggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const batch = JSON.parse(item.dataset.batch);
+                this.batchNoInput.value = batch.batch_no;
+                this.hideSuggestions(this.batchSuggestionsContainer);
+            });
+        });
     }
 }
 

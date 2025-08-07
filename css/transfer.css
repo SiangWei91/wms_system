@@ -141,3 +141,7 @@
     margin-right: 10px;
     color: #3498db;
 }
+
+.hidden {
+    display: none;
+}
