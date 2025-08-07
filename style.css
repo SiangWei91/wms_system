@@ -1294,20 +1294,6 @@ nav ul li i {
   font-weight: 600;
 }
 
-/* === 刷新按钮 === */
-.dashboard-refresh-button {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  border-radius: 6px;
-  padding: 8px;
-  cursor: pointer;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.dashboard-refresh-button:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
 
 /* === 内容区 === */
 .dashboard-grid-content {
