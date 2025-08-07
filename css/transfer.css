@@ -67,3 +67,77 @@
 .transfer-table tbody tr:hover {
     background-color: #f0f0f0;
 }
+
+/* Form Styles */
+.transfer-form {
+    max-width: 600px;
+    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.transfer-form .form-group {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.transfer-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.transfer-form input[type="text"],
+.transfer-form input[type="number"],
+.transfer-form select,
+.transfer-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.transfer-form input[readonly] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.transfer-form .btn-primary {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+}
+
+/* Suggestions Styles */
+.suggestions-container {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0 0 4px 4px;
+}
+
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
+
+.suggestion-item strong {
+    margin-right: 10px;
+    color: #3498db;
+}

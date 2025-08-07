@@ -64,9 +64,92 @@ const fetchAndRenderTable = async (tabName, sheetName, container, supabaseClient
     }
 };
 
+class TransferFormManager {
+    constructor(formId, supabaseClient) {
+        this.form = document.getElementById(formId);
+        this.supabaseClient = supabaseClient;
+        this.productSearchInput = this.form.querySelector('input[id$="-product-search"]');
+        this.suggestionsContainer = this.form.querySelector('.suggestions-container');
+        this.itemCodeInput = this.form.querySelector('input[id$="-item-code"]');
+        this.packingSizeInput = this.form.querySelector('input[id$="-packing-size"]');
+
+        this.productSearchInput.addEventListener('input', (e) => this.onProductSearch(e.target.value));
+        document.addEventListener('click', (e) => this.hideSuggestionsOnClickOutside(e));
+    }
+
+    async onProductSearch(searchTerm) {
+        if (searchTerm.length < 2) {
+            this.hideSuggestions();
+            return;
+        }
+
+        try {
+            const { data, error } = await this.supabaseClient
+                .from('products')
+                .select('item_code, product_name, product_chinese_name, packing_size')
+                .or(`product_name.ilike.%${searchTerm}%,item_code.ilike.%${searchTerm}%`)
+                .limit(10);
+
+            if (error) throw error;
+
+            this.showProductSuggestions(data);
+        } catch (error) {
+            console.error('Error searching for products:', error);
+        }
+    }
+
+    showProductSuggestions(products) {
+        if (!products || products.length === 0) {
+            this.hideSuggestions();
+            return;
+        }
+
+        this.suggestionsContainer.innerHTML = products.map(product => `
+            <div class="suggestion-item" data-product='${JSON.stringify(product)}'>
+                <strong>${product.item_code}</strong>
+                <span>${product.product_name} (${product.product_chinese_name}) - ${product.packing_size}</span>
+            </div>
+        `).join('');
+
+        this.suggestionsContainer.style.display = 'block';
+
+        this.suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => this.onSuggestionClick(item));
+        });
+    }
+
+    onSuggestionClick(item) {
+        const product = JSON.parse(item.dataset.product);
+        this.productSearchInput.value = `${product.product_name} (${product.product_chinese_name})`;
+        this.itemCodeInput.value = product.item_code;
+        this.packingSizeInput.value = product.packing_size;
+        this.hideSuggestions();
+    }
+
+    hideSuggestions() {
+        this.suggestionsContainer.style.display = 'none';
+    }
+
+    hideSuggestionsOnClickOutside(e) {
+        if (!this.suggestionsContainer.contains(e.target) && e.target !== this.productSearchInput) {
+            this.hideSuggestions();
+        }
+    }
+}
+
+
 window.loadTransferPage = (supabaseClient) => {
     const tabButtons = document.querySelectorAll('.transfer-tab-button');
     const tabPanes = document.querySelectorAll('.transfer-tab-pane');
+    let goodsIssueFormManager, adjustmentFormManager;
+
+    const initForms = (tab) => {
+        if (tab === 'goods-issue' && !goodsIssueFormManager) {
+            goodsIssueFormManager = new TransferFormManager('goods-issue-form', supabaseClient);
+        } else if (tab === 'create-adjustment' && !adjustmentFormManager) {
+            adjustmentFormManager = new TransferFormManager('adjustment-form', supabaseClient);
+        }
+    };
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -75,11 +158,7 @@ window.loadTransferPage = (supabaseClient) => {
 
             const tab = button.getAttribute('data-tab');
             tabPanes.forEach(pane => {
-                if (pane.id === tab) {
-                    pane.classList.add('active');
-                } else {
-                    pane.classList.remove('active');
-                }
+                pane.classList.toggle('active', pane.id === tab);
             });
 
             if (tab === 'inventory-note') {
@@ -89,13 +168,17 @@ window.loadTransferPage = (supabaseClient) => {
                 const container = document.querySelector('#cr5-to-production-table');
                 fetchAndRenderTable('CR5 to Production/Packing Room', 'CR5 transfer to PR', container, supabaseClient);
             }
+
+            initForms(tab);
         });
     });
 
-    // Automatically load the default active tab's data if it's one of the dynamic ones
+    // Initialize forms for the default active tab
     const activeTab = document.querySelector('.transfer-tab-button.active');
     if (activeTab) {
         const tabName = activeTab.getAttribute('data-tab');
+        initForms(tabName);
+
         if (tabName === 'inventory-note') {
             const container = document.querySelector('#inventory-note-table');
             fetchAndRenderTable('Inventory Note', 'InventoryTranscationRecord', container, supabaseClient);

@@ -7,8 +7,45 @@
     </div>
     <div class="transfer-content">
         <div id="goods-issue" class="transfer-tab-pane active">
-            <!-- Content for Goods Issue Note -->
             <h2>Goods Issue Note</h2>
+            <form id="goods-issue-form" class="transfer-form">
+                <div class="form-group">
+                    <label for="goods-issue-type">Issue Type</label>
+                    <select id="goods-issue-type" name="issue_type">
+                        <option value="inbound">Inbound</option>
+                        <option value="outbound">Outbound</option>
+                        <option value="internal_transfer">Internal Transfer</option>
+                        <option value="to_production">To Production</option>
+                        <option value="from_production">From Production</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-product-search">Product Name</label>
+                    <input type="text" id="goods-issue-product-search" placeholder="Search for a product...">
+                    <div id="goods-issue-product-suggestions" class="suggestions-container"></div>
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-item-code">Item Code</label>
+                    <input type="text" id="goods-issue-item-code" name="item_code" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-packing-size">Packing Size</label>
+                    <input type="text" id="goods-issue-packing-size" name="packing_size" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-quantity">Quantity</label>
+                    <input type="number" id="goods-issue-quantity" name="quantity">
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-batch-no">Batch No</label>
+                    <input type="text" id="goods-issue-batch-no" name="batch_no">
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-note">Note</label>
+                    <textarea id="goods-issue-note" name="note" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Submit</button>
+            </form>
         </div>
         <div id="inventory-note" class="transfer-tab-pane">
             <h2>Inventory Note</h2>
@@ -19,8 +56,36 @@
             <div id="cr5-to-production-table" class="table-container"></div>
         </div>
         <div id="create-adjustment" class="transfer-tab-pane">
-            <!-- Content for Create Adjustment -->
             <h2>Create Adjustment</h2>
+            <form id="adjustment-form" class="transfer-form">
+                <input type="hidden" name="issue_type" value="adjustment">
+                <div class="form-group">
+                    <label for="adjustment-product-search">Product Name</label>
+                    <input type="text" id="adjustment-product-search" placeholder="Search for a product...">
+                    <div id="adjustment-product-suggestions" class="suggestions-container"></div>
+                </div>
+                <div class="form-group">
+                    <label for="adjustment-item-code">Item Code</label>
+                    <input type="text" id="adjustment-item-code" name="item_code" readonly>
+                </div>
+                 <div class="form-group">
+                    <label for="adjustment-packing-size">Packing Size</label>
+                    <input type="text" id="adjustment-packing-size" name="packing_size" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="adjustment-quantity">Quantity</label>
+                    <input type="number" id="adjustment-quantity" name="quantity">
+                </div>
+                <div class="form-group">
+                    <label for="adjustment-batch-no">Batch No</label>
+                    <input type="text" id="adjustment-batch-no" name="batch_no">
+                </div>
+                <div class="form-group">
+                    <label for="adjustment-note">Note</label>
+                    <textarea id="adjustment-note" name="note" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Submit</button>
+            </form>
         </div>
     </div>
 </div>
