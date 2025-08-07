@@ -68,7 +68,6 @@ class TransferFormManager {
     constructor(formId, supabaseClient) {
         this.form = document.getElementById(formId);
         this.supabaseClient = supabaseClient;
-        this.initialized = false;
 
         // Form Elements
         this.dateInput = this.form.querySelector('input[type="date"]');
@@ -89,11 +88,6 @@ class TransferFormManager {
     }
 
     initialize() {
-        if (this.initialized) {
-            this.resetForm();
-            return;
-        }
-
         this.resetForm();
 
         // Add event listeners
@@ -112,7 +106,6 @@ class TransferFormManager {
         });
 
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        this.initialized = true;
     }
 
     resetForm() {
@@ -406,16 +399,15 @@ class TransferFormManager {
     }
 }
 
-let goodsIssueFormManager, adjustmentFormManager;
-
 window.loadTransferPage = (supabaseClient) => {
     const tabButtons = document.querySelectorAll('.transfer-tab-button');
     const tabPanes = document.querySelectorAll('.transfer-tab-pane');
+    let goodsIssueFormManager, adjustmentFormManager;
 
     const initForms = (tab) => {
-        if (tab === 'goods-issue' && !goodsIssueFormManager) {
+        if (tab === 'goods-issue') {
             goodsIssueFormManager = new TransferFormManager('goods-issue-form', supabaseClient);
-        } else if (tab === 'create-adjustment' && !adjustmentFormManager) {
+        } else if (tab === 'create-adjustment') {
             adjustmentFormManager = new TransferFormManager('adjustment-form', supabaseClient);
         }
     };
