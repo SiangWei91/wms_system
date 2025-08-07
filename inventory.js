@@ -120,14 +120,21 @@ window.loadInventoryPage = async (supabaseClient) => {
 
   // 格式化数字显示（添加千位分隔符）
   const formatNumber = (num) => {
-  if (num === 0 || num === null || num === undefined) return '';
-  
-  // 如果是字符串（coldroom1, coldroom2 的情况），直接返回
-  if (typeof num === 'string') return num;
-  
-  // 如果是数字，添加千位分隔符
-  return Math.round(num).toLocaleString();
-};
+    // 先转换为数字
+    const numValue = typeof num === 'string' ? parseFloat(num) : num;
+    
+    if (numValue === 0 || numValue === null || numValue === undefined || isNaN(numValue)) {
+      return '';
+    }
+    
+    // 如果原始值是字符串且包含特殊格式（coldroom1, coldroom2），直接返回
+    if (typeof num === 'string' && (num.includes('.') || num.includes(' ctn') || num.includes(' pkt'))) {
+      return num;
+    }
+    
+    // 如果是数字，添加千位分隔符
+    return Math.round(numValue).toLocaleString();
+  };
   // ========================================
   // 表头渲染函数
   // ========================================
