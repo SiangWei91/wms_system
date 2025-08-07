@@ -541,12 +541,11 @@ function showUploadStatus(message, type = 'info') {
 const shipmentModuleState = {
     allExtractedData: {},
     viewDefinitions: [
-        { name: 'Jordon',    displayName: 'Jordon',    filterColumnLetter: 'C' },
-        { name: 'Lineage',   displayName: 'Lineage',   filterColumnLetter: 'D' },
-        { name: 'Blk 15',    displayName: 'Blk15',     filterColumnLetter: 'E', columns: ['A', 'B', 'C'] },
-        { name: 'Coldroom 6',displayName: 'Coldroom 6',filterColumnLetter: 'F', columns: ['A', 'B', 'C'] },
-        { name: 'Coldroom 5',displayName: 'Coldroom 5',filterColumnLetter: 'G', columns: ['A', 'B', 'C'] }
-    ],
+      { name: 'Jordon',    displayName: 'Jordon',    filterColumnLetter: 'C' },
+      { name: 'Lineage',   displayName: 'Lineage',   filterColumnLetter: 'D' },
+      { name: 'Coldroom 6',displayName: 'Coldroom 6',filterColumnLetter: 'F', columns: ['A', 'B', 'C'] },
+      { name: 'Coldroom 5',displayName: 'Coldroom 5',filterColumnLetter: 'G', columns: ['A', 'B', 'C'] }
+  ],
     isInitialized: false,
     currentResultsContainer: null,
     currentShipmentTabNav: null,
@@ -804,8 +803,14 @@ function extractLineageData(lineageSheet, sheet1LookupMap) {
 }
 
 function extractDataForView(sheetData, viewConfig, sheet1LookupMap) {
-    const viewResults = [];
-    if (!sheetData || sheetData.length === 0) return viewResults;
+  const viewResults = [];
+  
+  // 如果是 Blk15，直接返回空数组
+  if (viewConfig.name === 'Blk 15') {
+      return viewResults;
+  }
+  
+  if (!sheetData || sheetData.length === 0) return viewResults;
     const itemCodeColIndexInConvert = getColumnIndex('A');
     const descriptionColIndexInConvert = getColumnIndex('B');
     const quantityColIndexInConvert = getColumnIndex(viewConfig.filterColumnLetter);
@@ -1037,8 +1042,11 @@ async function updateInventory(supabase) {
     try {
         const allItems = [];
         for (const viewName in shipmentModuleState.allExtractedData) {
-            const viewData = shipmentModuleState.allExtractedData[viewName];
-            const { warehouseId } = await getWarehouseInfo(viewName);
+          // 跳过 Blk15（双重保险）
+          if (viewName === 'Blk 15') continue;
+          
+          const viewData = shipmentModuleState.allExtractedData[viewName];
+          const { warehouseId } = await getWarehouseInfo(viewName);
             for (let i = 0; i < viewData.length; i++) {
                 const item = viewData[i];
                 if (!item.itemCode) {
@@ -1068,16 +1076,19 @@ async function updateInventory(supabase) {
             };
 
             if (item.warehouse_id === 'jordon' || item.warehouse_id === 'lineage') {
-                inventoryData.details = {
-                    pallet: item.pallet,
-                    status: "Pending",
-                    location: "",
-                    lotNumber: "",
-                    dateStored: shipmentModuleState.storedDate,
-                    palletType: "",
-                    llm_item_code: item.llmItemCode || ""
-                };
-            }
+              // 确保 pallet 是数字类型
+              const palletNumber = item.pallet ? parseFloat(item.pallet) : 0;
+              
+              inventoryData.details = {
+                  pallet: palletNumber, // 改为数字类型
+                  status: "Pending",
+                  location: "",
+                  lotNumber: "",
+                  dateStored: shipmentModuleState.storedDate,
+                  palletType: "",
+                  llm_item_code: item.llmItemCode || ""
+              };
+          }
 
             // Insert inventory record and get the returned data (including ID)
             const { data: insertedInventory, error: insertError } = await supabase
@@ -1094,16 +1105,16 @@ async function updateInventory(supabase) {
             const userName = session.user.user_metadata.name || session.user.email;
 
             const transactionData = {
-                transaction_type: 'inbound',
-                item_code: item.itemCode,
-                warehouse_id: item.warehouse_id,
-                batch_no: item.batchNo,
-                quantity: parseFloat(item.quantity),
-                transaction_date: new Date().toISOString().split('T')[0],
-                operator_id: userName,
-                inventory_id: inventoryId, // 添加 inventory_id
-                inventory_details: inventoryData.details // 添加 inventory_details
-            };
+              transaction_type: 'Container Unload', // 修改为 Container Unload
+              item_code: item.itemCode,
+              warehouse_id: item.warehouse_id,
+              batch_no: item.batchNo,
+              quantity: parseFloat(item.quantity),
+              transaction_date: new Date().toISOString().split('T')[0],
+              operator_id: userName,
+              inventory_id: inventoryId,
+              inventory_details: inventoryData.details
+          };
 
             const { error: transactionError } = await supabase
                 .from('transactions')
