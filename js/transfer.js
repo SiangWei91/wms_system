@@ -295,7 +295,7 @@ class TransferFormManager {
                 item_code: formData.get('item_code'),
                 warehouse_id: formData.get('warehouse_id'),
                 batch_no: formData.get('batch_no'),
-                quantity: -quantityToDeduct,
+                quantity: quantityToDeduct,
                 transaction_date: formData.get('transaction_date'),
                 note: formData.get('note'),
                 inventory_id: inventoryId
