@@ -376,11 +376,11 @@ class TransferFormManager {
     }
 }
 
+let goodsIssueFormManager, adjustmentFormManager;
 
 window.loadTransferPage = (supabaseClient) => {
     const tabButtons = document.querySelectorAll('.transfer-tab-button');
     const tabPanes = document.querySelectorAll('.transfer-tab-pane');
-    let goodsIssueFormManager, adjustmentFormManager;
 
     const initForms = (tab) => {
         if (tab === 'goods-issue' && !goodsIssueFormManager) {
