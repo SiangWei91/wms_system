@@ -178,7 +178,11 @@ class TransferFormManager {
         }
 
         if (issueType === 'outbound') {
+            this.batchNoInput.readOnly = false; // Or true if suggestions are forced
+            submitButton.disabled = false;
+        } else if (issueType === 'inbound' || issueType === 'from_production') {
             this.batchNoInput.readOnly = false;
+            this.hideSuggestions(this.batchSuggestionsContainer);
             submitButton.disabled = false;
         } else {
             this.batchNoInput.readOnly = true;
@@ -252,13 +256,19 @@ class TransferFormManager {
         const formData = new FormData(this.form);
         const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
 
-        if (issueType !== 'outbound') {
-            alert('This feature is currently only available for "Outbound" transactions.');
+        if (issueType === 'outbound') {
+            await this.handleOutbound(formData);
+        } else if (issueType === 'inbound' || issueType === 'from_production') {
+            await this.handleInbound(formData, issueType);
+        } else {
+            alert('This transaction type is not yet supported.');
             submitButton.disabled = false;
             submitButton.textContent = 'Submit';
             return;
         }
+    }
 
+    async handleOutbound(formData) {
         try {
             const inventoryId = formData.get('inventory_id');
             const quantityToDeduct = parseFloat(formData.get('quantity'));
@@ -267,7 +277,6 @@ class TransferFormManager {
                 throw new Error("Invalid inventory ID or quantity.");
             }
 
-            // 1. Get current quantity
             const { data: inventoryItem, error: fetchError } = await this.supabaseClient
                 .from('inventory')
                 .select('quantity')
@@ -280,7 +289,6 @@ class TransferFormManager {
                 throw new Error("Not enough stock for this transaction.");
             }
 
-            // 2. Decrement inventory quantity
             const newQuantity = inventoryItem.quantity - quantityToDeduct;
             const { error: updateError } = await this.supabaseClient
                 .from('inventory')
@@ -289,7 +297,6 @@ class TransferFormManager {
 
             if (updateError) throw updateError;
 
-            // 3. Create transaction record
             const transactionData = {
                 transaction_type: 'outbound',
                 item_code: formData.get('item_code'),
@@ -301,15 +308,63 @@ class TransferFormManager {
                 inventory_id: inventoryId
             };
 
-            const { error: insertError } = await this.supabaseClient
-                .from('transactions')
-                .insert([transactionData]);
-
+            const { error: insertError } = await this.supabaseClient.from('transactions').insert([transactionData]);
             if (insertError) throw insertError;
 
-            alert('Transaction successful!');
+            alert('Outbound transaction successful!');
             this.form.reset();
-            this.initialize(); // Reset date
+            this.initialize();
+
+        } catch (error) {
+            console.error('Error in outbound transaction:', error);
+            alert(`Error: ${error.message}`);
+        }
+    }
+
+    async handleInbound(formData, issueType) {
+        const submitButton = this.form.querySelector('button[type="submit"]');
+        try {
+            const batchNo = formData.get('batch_no');
+            const quantity = parseFloat(formData.get('quantity'));
+
+            if (!batchNo || !quantity || quantity <= 0) {
+                throw new Error("Batch No and a valid quantity are required.");
+            }
+
+            // 1. Create new inventory record
+            const newInventoryItem = {
+                item_code: formData.get('item_code'),
+                warehouse_id: formData.get('warehouse_id'),
+                batch_no: batchNo,
+                quantity: quantity,
+            };
+            const { data: newInventory, error: inventoryError } = await this.supabaseClient
+                .from('inventory')
+                .insert(newInventoryItem)
+                .select('id')
+                .single();
+
+            if (inventoryError) throw inventoryError;
+            if (!newInventory) throw new Error("Failed to create new inventory item.");
+
+            // 2. Create transaction record
+            const transactionData = {
+                transaction_type: issueType,
+                item_code: formData.get('item_code'),
+                warehouse_id: formData.get('warehouse_id'),
+                batch_no: batchNo,
+                quantity: quantity,
+                transaction_date: formData.get('transaction_date'),
+                note: formData.get('note'),
+                inventory_id: newInventory.id
+            };
+
+            const { error: insertError } = await this.supabaseClient.from('transactions').insert([transactionData]);
+            if (insertError) throw insertError;
+
+            alert(`${issueType.charAt(0).toUpperCase() + issueType.slice(1)} transaction successful!`);
+            this.form.reset();
+            this.initialize();
 
         } catch (error) {
             console.error('Error submitting transaction:', error);
