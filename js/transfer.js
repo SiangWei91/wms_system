@@ -25,7 +25,7 @@ const createTable = (data) => {
     return table;
 };
 
-const fetchAndRenderTable = async (tabName, sheetName, container) => {
+const fetchAndRenderTable = async (tabName, sheetName, container, supabaseClient) => {
     // Check if data has already been loaded
     if (container.dataset.loaded) {
         return;
@@ -34,7 +34,23 @@ const fetchAndRenderTable = async (tabName, sheetName, container) => {
     container.innerHTML = '<p>Loading...</p>';
 
     try {
-        const response = await fetch(EDGE_FUNCTION_URL);
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError) {
+            throw sessionError;
+        }
+
+        if (!session) {
+            throw new Error("User not authenticated.");
+        }
+
+        const accessToken = session.access_token;
+
+        const response = await fetch(EDGE_FUNCTION_URL, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            },
+        });
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -68,10 +84,10 @@ window.loadTransferPage = (supabaseClient) => {
 
             if (tab === 'inventory-note') {
                 const container = document.querySelector('#inventory-note-table');
-                fetchAndRenderTable('Inventory Note', 'InventoryTranscationRecord', container);
+                fetchAndRenderTable('Inventory Note', 'InventoryTranscationRecord', container, supabaseClient);
             } else if (tab === 'cr5-to-production') {
                 const container = document.querySelector('#cr5-to-production-table');
-                fetchAndRenderTable('CR5 to Production/Packing Room', 'CR5 transfer to PR', container);
+                fetchAndRenderTable('CR5 to Production/Packing Room', 'CR5 transfer to PR', container, supabaseClient);
             }
         });
     });
@@ -82,10 +98,10 @@ window.loadTransferPage = (supabaseClient) => {
         const tabName = activeTab.getAttribute('data-tab');
         if (tabName === 'inventory-note') {
             const container = document.querySelector('#inventory-note-table');
-            fetchAndRenderTable('Inventory Note', 'InventoryTranscationRecord', container);
+            fetchAndRenderTable('Inventory Note', 'InventoryTranscationRecord', container, supabaseClient);
         } else if (tabName === 'cr5-to-production') {
             const container = document.querySelector('#cr5-to-production-table');
-            fetchAndRenderTable('CR5 to Production/Packing Room', 'CR5 transfer to PR', container);
+            fetchAndRenderTable('CR5 to Production/Packing Room', 'CR5 transfer to PR', container, supabaseClient);
         }
     }
 };
