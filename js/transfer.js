@@ -267,30 +267,42 @@ class TransferFormManager {
                 throw new Error("Invalid inventory ID or quantity.");
             }
 
-            // 1. Decrement inventory quantity
+            // 1. Get current quantity
+            const { data: inventoryItem, error: fetchError } = await this.supabaseClient
+                .from('inventory')
+                .select('quantity')
+                .eq('id', inventoryId)
+                .single();
+
+            if (fetchError) throw fetchError;
+            if (!inventoryItem) throw new Error("Inventory item not found.");
+            if (inventoryItem.quantity < quantityToDeduct) {
+                throw new Error("Not enough stock for this transaction.");
+            }
+
+            // 2. Decrement inventory quantity
+            const newQuantity = inventoryItem.quantity - quantityToDeduct;
             const { error: updateError } = await this.supabaseClient
-                .rpc('decrement_inventory', {
-                    x_inventory_id: inventoryId,
-                    x_quantity: quantityToDeduct
-                });
+                .from('inventory')
+                .update({ quantity: newQuantity })
+                .eq('id', inventoryId);
 
             if (updateError) throw updateError;
 
-            // 2. Create transaction record
+            // 3. Create transaction record
             const transactionData = {
+                transaction_type: 'outbound',
                 item_code: formData.get('item_code'),
                 warehouse_id: formData.get('warehouse_id'),
                 batch_no: formData.get('batch_no'),
-                quantity: -quantityToDeduct, // Negative for outbound
-                type: 'outbound',
-                details: {
-                    note: formData.get('note'),
-                    transaction_date: formData.get('transaction_date')
-                }
+                quantity: -quantityToDeduct,
+                transaction_date: formData.get('transaction_date'),
+                note: formData.get('note'),
+                inventory_id: inventoryId
             };
 
             const { error: insertError } = await this.supabaseClient
-                .from('inventory_transactions') // Assuming table is named inventory_transactions
+                .from('transactions')
                 .insert([transactionData]);
 
             if (insertError) throw insertError;
