@@ -10,6 +10,10 @@
             <h2>Goods Issue Note</h2>
             <form id="goods-issue-form" class="transfer-form">
                 <div class="form-group">
+                    <label for="goods-issue-date">Transaction Date</label>
+                    <input type="date" id="goods-issue-date" name="transaction_date">
+                </div>
+                <div class="form-group">
                     <label for="goods-issue-type">Issue Type</label>
                     <select id="goods-issue-type" name="issue_type">
                         <option value="inbound">Inbound</option>
@@ -31,6 +35,13 @@
                 <div class="form-group">
                     <label for="goods-issue-packing-size">Packing Size</label>
                     <input type="text" id="goods-issue-packing-size" name="packing_size" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="goods-issue-warehouse">Warehouse</label>
+                    <select id="goods-issue-warehouse" name="warehouse_id">
+                        <option value="coldroom5">Coldroom 5</option>
+                        <option value="coldroom6">Coldroom 6</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="goods-issue-quantity">Quantity</label>
@@ -60,6 +71,10 @@
             <form id="adjustment-form" class="transfer-form">
                 <input type="hidden" name="issue_type" value="adjustment">
                 <div class="form-group">
+                    <label for="adjustment-date">Transaction Date</label>
+                    <input type="date" id="adjustment-date" name="transaction_date">
+                </div>
+                <div class="form-group">
                     <label for="adjustment-product-search">Product Name</label>
                     <input type="text" id="adjustment-product-search" placeholder="Search for a product...">
                     <div id="adjustment-product-suggestions" class="suggestions-container"></div>
@@ -71,6 +86,13 @@
                  <div class="form-group">
                     <label for="adjustment-packing-size">Packing Size</label>
                     <input type="text" id="adjustment-packing-size" name="packing_size" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="adjustment-warehouse">Warehouse</label>
+                    <select id="adjustment-warehouse" name="warehouse_id">
+                        <option value="coldroom5">Coldroom 5</option>
+                        <option value="coldroom6">Coldroom 6</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="adjustment-quantity">Quantity</label>

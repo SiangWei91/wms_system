@@ -68,13 +68,20 @@ class TransferFormManager {
     constructor(formId, supabaseClient) {
         this.form = document.getElementById(formId);
         this.supabaseClient = supabaseClient;
+        this.dateInput = this.form.querySelector('input[type="date"]');
         this.productSearchInput = this.form.querySelector('input[id$="-product-search"]');
         this.suggestionsContainer = this.form.querySelector('.suggestions-container');
         this.itemCodeInput = this.form.querySelector('input[id$="-item-code"]');
         this.packingSizeInput = this.form.querySelector('input[id$="-packing-size"]');
 
+        this.initialize();
         this.productSearchInput.addEventListener('input', (e) => this.onProductSearch(e.target.value));
         document.addEventListener('click', (e) => this.hideSuggestionsOnClickOutside(e));
+    }
+
+    initialize() {
+        // Set default date to today
+        this.dateInput.valueAsDate = new Date();
     }
 
     async onProductSearch(searchTerm) {
@@ -87,7 +94,7 @@ class TransferFormManager {
             const { data, error } = await this.supabaseClient
                 .from('products')
                 .select('item_code, product_name, product_chinese_name, packing_size')
-                .or(`product_name.ilike.%${searchTerm}%,item_code.ilike.%${searchTerm}%`)
+                .or(`product_name.ilike.%${searchTerm}%,item_code.ilike.%${searchTerm}%,product_chinese_name.ilike.%${searchTerm}%`)
                 .limit(10);
 
             if (error) throw error;
