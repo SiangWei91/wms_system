@@ -78,6 +78,7 @@ class TransferFormManager {
         this.warehouseSelect = this.form.querySelector('select[name="warehouse_id"]');
         this.transferToWarehouseGroup = this.form.querySelector('[id$="-transfer-to-warehouse-group"]');
         this.batchNoInput = this.form.querySelector('input[id$="-batch-no"]');
+        this.inventoryIdInput = this.form.querySelector('input[name="inventory_id"]');
 
         // Suggestion Containers
         this.productSuggestionsContainer = this.form.querySelector('[id$="-product-suggestions"]');
@@ -104,6 +105,8 @@ class TransferFormManager {
             this.hideSuggestionsOnClickOutside(e, this.productSuggestionsContainer, this.productSearchInput);
             this.hideSuggestionsOnClickOutside(e, this.batchSuggestionsContainer, this.batchNoInput);
         });
+
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
     }
 
     async onProductSearch(searchTerm) {
@@ -168,15 +171,19 @@ class TransferFormManager {
     }
 
     onIssueTypeChange(issueType) {
+        const submitButton = this.form.querySelector('button[type="submit"]');
+
         if (this.transferToWarehouseGroup) {
             this.transferToWarehouseGroup.classList.toggle('hidden', issueType !== 'internal_transfer');
         }
 
         if (issueType === 'outbound') {
             this.batchNoInput.readOnly = false;
+            submitButton.disabled = false;
         } else {
             this.batchNoInput.readOnly = true;
             this.hideSuggestions(this.batchSuggestionsContainer);
+            submitButton.disabled = true;
         }
     }
 
@@ -198,7 +205,7 @@ class TransferFormManager {
         try {
             const { data, error } = await this.supabaseClient
                 .from('inventory')
-                .select('batch_no, quantity')
+                .select('id, batch_no, quantity')
                 .eq('item_code', itemCode)
                 .eq('warehouse_id', warehouseId)
                 .gt('quantity', 0)
@@ -230,9 +237,75 @@ class TransferFormManager {
             item.addEventListener('click', () => {
                 const batch = JSON.parse(item.dataset.batch);
                 this.batchNoInput.value = batch.batch_no;
+                this.inventoryIdInput.value = batch.id; // Store the inventory ID
                 this.hideSuggestions(this.batchSuggestionsContainer);
             });
         });
+    }
+
+    async handleSubmit(event) {
+        event.preventDefault();
+        const submitButton = this.form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+
+        const formData = new FormData(this.form);
+        const issueType = this.issueTypeSelect ? this.issueTypeSelect.value : 'adjustment';
+
+        if (issueType !== 'outbound') {
+            alert('This feature is currently only available for "Outbound" transactions.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
+            return;
+        }
+
+        try {
+            const inventoryId = formData.get('inventory_id');
+            const quantityToDeduct = parseFloat(formData.get('quantity'));
+
+            if (!inventoryId || !quantityToDeduct || quantityToDeduct <= 0) {
+                throw new Error("Invalid inventory ID or quantity.");
+            }
+
+            // 1. Decrement inventory quantity
+            const { error: updateError } = await this.supabaseClient
+                .rpc('decrement_inventory', {
+                    x_inventory_id: inventoryId,
+                    x_quantity: quantityToDeduct
+                });
+
+            if (updateError) throw updateError;
+
+            // 2. Create transaction record
+            const transactionData = {
+                item_code: formData.get('item_code'),
+                warehouse_id: formData.get('warehouse_id'),
+                batch_no: formData.get('batch_no'),
+                quantity: -quantityToDeduct, // Negative for outbound
+                type: 'outbound',
+                details: {
+                    note: formData.get('note'),
+                    transaction_date: formData.get('transaction_date')
+                }
+            };
+
+            const { error: insertError } = await this.supabaseClient
+                .from('inventory_transactions') // Assuming table is named inventory_transactions
+                .insert([transactionData]);
+
+            if (insertError) throw insertError;
+
+            alert('Transaction successful!');
+            this.form.reset();
+            this.initialize(); // Reset date
+
+        } catch (error) {
+            console.error('Error submitting transaction:', error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
+        }
     }
 }
 

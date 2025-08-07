@@ -9,6 +9,7 @@
         <div id="goods-issue" class="transfer-tab-pane active">
             <h2>Goods Issue Note</h2>
             <form id="goods-issue-form" class="transfer-form">
+                <input type="hidden" name="inventory_id">
                 <div class="form-group">
                     <label for="goods-issue-date">Transaction Date</label>
                     <input type="date" id="goods-issue-date" name="transaction_date">
@@ -80,6 +81,7 @@
         <div id="create-adjustment" class="transfer-tab-pane">
             <h2>Create Adjustment</h2>
             <form id="adjustment-form" class="transfer-form">
+                <input type="hidden" name="inventory_id">
                 <input type="hidden" name="issue_type" value="adjustment">
                 <div class="form-group">
                     <label for="adjustment-date">Transaction Date</label>
