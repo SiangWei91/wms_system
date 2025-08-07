@@ -1,4 +1,4 @@
-const EDGE_FUNCTION_URL = 'https://<YOUR-SUPABASE-PROJECT-ID>.supabase.co/functions/v1/fetch-google-sheet';
+const EDGE_FUNCTION_URL = 'https://xnwjvhbkzrazluihnzhw.supabase.co/functions/v1/transfer_memo';
 
 const createTable = (data) => {
     if (!data || data.length === 0) {
