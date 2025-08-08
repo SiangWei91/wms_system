@@ -49,8 +49,11 @@ function initializeCalendar() {
             // Revert the original event to its old position, effectively creating a copy
             info.revert();
         },
-        eventDblClick: function(info) {
-            info.event.remove();
+        eventClick: function(info) {
+            // Use jsEvent.detail to detect double-clicks
+            if (info.jsEvent.detail === 2) {
+                info.event.remove();
+            }
         }
     });
 
@@ -177,8 +180,8 @@ function setupEventListeners() {
 }
 
 // Export function for main.js to call
-window.loadSchedulePage = function(supabaseClient) {
-    console.log('Loading schedule page...');
+window.loadSchedulePage = function(content, supabaseClient, user) {
+    console.log('Loading schedule page for user:', user ? user.email : 'No user');
     
     // Check if FullCalendar is available
     if (typeof FullCalendar === 'undefined') {

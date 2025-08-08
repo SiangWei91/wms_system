@@ -181,7 +181,7 @@ const generateJordonPrintHTML = (order_number, draw_out_date, draw_out_time, ite
 };
 
 (() => {
-  window.createWarehousePage = (warehouseId, supabaseClient) => {
+  window.createWarehousePage = (warehouseId, supabaseClient, user) => {
     let eventController = null;
     
     // 为每个仓库创建独立的 stock out 数据存储
@@ -1090,7 +1090,7 @@ if (inventorySummaryTable && !document.getElementById(`${warehouseId}-search-con
       });
 
       // Insert into scheduled_transactions
-      const operator_id = getCookie('userName') || 'unknown';
+      const operator_id = user.user_metadata.name || user.email || 'unknown';
       const { error: scheduledError } = await supabaseClient
         .from('scheduled_transactions')
         .insert({

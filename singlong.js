@@ -1,4 +1,4 @@
-window.loadSingLongPage = (supabaseClient) => {
+window.loadSingLongPage = (content, supabaseClient, user) => {
     const warehouseId = 'singlong';
     let eventController = null;
 
@@ -815,7 +815,7 @@ window.loadSingLongPage = (supabaseClient) => {
                 });
             });
 
-            const operator_id = getCookie('userName') || 'unknown';
+            const operator_id = user.user_metadata.name || user.email || 'unknown';
             const { error: insertError } = await supabaseClient
                 .from('scheduled_transactions')
                 .insert({
@@ -1169,7 +1169,7 @@ window.loadSingLongPage = (supabaseClient) => {
         return;
     }
 
-    const operator_id = getCookie('userName') || 'unknown';
+    const operator_id = user.user_metadata.name || user.email || 'unknown';
 
     try {
         for (const row of rows) {
