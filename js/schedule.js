@@ -18,26 +18,17 @@ function initializeCalendar() {
         initialView: 'dayGridMonth',
         locale: 'en', // English locale
         headerToolbar: {
-            left: 'prev,next today',
+            left: 'prev,next',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: 'dayGridMonth'
         },
         buttonText: {
-            today: 'Today',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day'
+            month: 'Month'
         },
         editable: true,
         droppable: true,
         eventReceive: function(info) {
             console.log('Event added to calendar:', info.event.title);
-        },
-        drop: function(info) {
-            // If "Remove after drop" option is checked
-            if (document.getElementById('drop-remove').checked) {
-                info.draggedEl.parentNode.removeChild(info.draggedEl);
-            }
         },
         eventClick: function(info) {
             if (confirm('Are you sure you want to delete this shift?')) {
