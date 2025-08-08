@@ -1,0 +1,179 @@
+.schedule-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+#external-events {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#external-events h3 {
+    margin-top: 0;
+    color: #495057;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.employee-input-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.employee-input-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.input-group button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.input-group button:hover {
+    background-color: #0056b3;
+}
+
+.employee-list {
+    margin-bottom: 10px;
+}
+
+.employee-tag {
+    display: inline-block;
+    background-color: #e9ecef;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.employee-tag .remove-btn {
+    margin-left: 5px;
+    color: #dc3545;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.team-input-section {
+    margin-bottom: 20px;
+}
+
+.create-team-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.create-team-btn:hover {
+    background-color: #218838;
+}
+
+.draggable-teams {
+    margin-top: 20px;
+}
+
+.fc-event {
+    margin: 8px 0;
+    cursor: grab;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    font-size: 13px;
+}
+
+.fc-event:hover {
+    background-color: #0056b3;
+}
+
+.fc-event.custom-team {
+    background-color: #28a745;
+}
+
+.fc-event.custom-team:hover {
+    background-color: #218838;
+}
+
+#calendar-container {
+    flex-grow: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.checkbox-container {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.checkbox-container label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #495057;
+}
+
+.team-name-display {
+    font-weight: bold;
+    color: #495057;
+}
+
+.team-members-display {
+    font-size: 11px;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+/* FullCalendar 自定义样式 */
+.fc-toolbar-title {
+    color: #495057;
+}
+
+.fc-button-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.fc-button-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}

@@ -1,99 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule</title>
+    <title>员工排班日历</title>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
-    <style>
-        .schedule-container {
-            display: flex;
-            gap: 20px;
-        }
 
-        #external-events {
-            width: 200px;
-            padding: 0 10px;
-            border: 1px solid #ccc;
-            background: #eee;
-            text-align: left;
-        }
-
-        #calendar-container {
-            flex-grow: 1;
-        }
-
-        .fc-event {
-            margin: 10px 0;
-            cursor: grab;
-        }
-    </style>
 </head>
 <body>
+    <h1 style="text-align: center; color: #495057; margin-bottom: 30px;">员工排班日历</h1>
+    
     <div class="schedule-container">
+        <!-- 左侧员工和团队管理区域 -->
         <div id='external-events'>
-            <p>
-            <strong>Draggable Events</strong>
-            </p>
-            <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-                <div class='fc-event-main'>My Event 1</div>
+            <h3>📋 班次管理</h3>
+            
+            <!-- 员工输入区域 -->
+            <div class="employee-input-section">
+                <h4>👥 添加员工</h4>
+                <div class="input-group">
+                    <input type="text" id="employee-name" placeholder="输入员工姓名" />
+                    <button onclick="addEmployee()">添加</button>
+                </div>
+                <div class="employee-list" id="employee-list">
+                    <!-- 已添加的员工会显示在这里 -->
+                </div>
             </div>
-            <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-                <div class='fc-event-main'>My Event 2</div>
+
+            <!-- 团队创建区域 -->
+            <div class="team-input-section">
+                <h4>🏷️ 创建班次</h4>
+                <div class="input-group">
+                    <input type="text" id="team-name" placeholder="输入班次名称（如：早班、晚班）" />
+                </div>
+                <button class="create-team-btn" onclick="createTeam()">创建班次</button>
             </div>
-            <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-                <div class='fc-event-main'>My Event 3</div>
+
+            <!-- 可拖拽的班次 -->
+            <div class="draggable-teams">
+                <h4>🎯 可拖拽班次</h4>
+                <div id="teams-list">
+                    <!-- 创建的班次会显示在这里 -->
+                </div>
             </div>
-            <p>
-            <input type='checkbox' id='drop-remove' />
-            <label for='drop-remove'>remove after drop</label>
-            </p>
+
+            <!-- 选项 -->
+            <div class="checkbox-container">
+                <label>
+                    <input type='checkbox' id='drop-remove' />
+                    拖拽后移除班次
+                </label>
+            </div>
         </div>
 
+        <!-- 右侧日历区域 -->
         <div id='calendar-container'>
             <div id='calendar'></div>
         </div>
     </div>
-    <script>
-        window.loadSchedulePage = function(supabase) {
-            var calendarEl = document.getElementById('calendar');
-            var containerEl = document.getElementById('external-events');
 
-            // initialize the external events
-            // -----------------------------------------------------------------
 
-            new FullCalendar.Draggable(containerEl, {
-            itemSelector: '.fc-event',
-            eventData: function(eventEl) {
-                return {
-                title: eventEl.innerText
-                };
-            }
-            });
-
-            // initialize the calendar
-            // -----------------------------------------------------------------
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                editable: true,
-                droppable: true, // this allows things to be dropped onto the calendar
-                drop: function(info) {
-                    // is the "remove after drop" checkbox checked?
-                    if (document.getElementById('drop-remove').checked) {
-                        // if so, remove the element from the "Draggable Events" list
-                        info.draggedEl.parentNode.removeChild(info.draggedEl);
-                    }
-                }
-            });
-
-            calendar.render();
-        };
-    </script>
 </body>
 </html>
