@@ -18,9 +18,17 @@ function initializeCalendar() {
         initialView: 'dayGridMonth',
         locale: 'en', // English locale
         headerToolbar: {
-            left: 'prev,next',
+            left: 'prev,next printButton',
             center: 'title',
             right: 'dayGridMonth'
+        },
+        customButtons: {
+            printButton: {
+                text: 'Print',
+                click: function() {
+                    window.print();
+                }
+            }
         },
         buttonText: {
             month: 'Month'
@@ -30,10 +38,19 @@ function initializeCalendar() {
         eventReceive: function(info) {
             console.log('Event added to calendar:', info.event.title);
         },
-        eventClick: function(info) {
-            if (confirm('Are you sure you want to delete this shift?')) {
-                info.event.remove();
-            }
+        eventDrop: function(info) {
+            // Create a copy of the event
+            calendar.addEvent({
+                title: info.event.title,
+                start: info.event.start,
+                end: info.event.end,
+                allDay: info.event.allDay
+            });
+            // Revert the original event to its old position, effectively creating a copy
+            info.revert();
+        },
+        eventDblClick: function(info) {
+            info.event.remove();
         }
     });
 
