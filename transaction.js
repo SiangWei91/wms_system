@@ -255,6 +255,16 @@ bindEvents() {
             this.hideSuggestions();
         }
     });
+
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    startDateInput?.addEventListener('change', () => {
+        const endDateValue = endDateInput.value;
+        setTimeout(() => {
+            endDateInput.value = endDateValue;
+        }, 1);
+    });
 }
 
 /**

@@ -68,6 +68,11 @@ const pageScripts = {
         urls: ['dashboard.js'],
         init: () => window.loadDashboard(supabaseClient)
     },
+    'schedule': {
+        urls: ['js/schedule.js'],
+        styles: ['css/schedule.css'],
+        init: () => window.loadSchedulePage(supabaseClient)
+    },
     'service-record': {
         urls: ['service-record.js'],
         init: (content) => window.loadServiceRecordPage(content, supabaseClient)

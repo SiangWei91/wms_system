@@ -1,0 +1,21 @@
+.schedule-container {
+    display: flex;
+    gap: 20px;
+}
+
+#external-events {
+    width: 200px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    background: #eee;
+    text-align: left;
+}
+
+#calendar-container {
+    flex-grow: 1;
+}
+
+.fc-event {
+    margin: 10px 0;
+    cursor: grab;
+}
