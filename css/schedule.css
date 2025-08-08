@@ -6,7 +6,7 @@
 }
 
 #external-events {
-    width: 300px;
+    width: 15%;
     padding: 20px;
     border: 1px solid #dee2e6;
     background: #ffffff;
@@ -41,6 +41,7 @@
 }
 
 .input-group input {
+    width: 100%;
     flex: 1;
     padding: 8px 12px;
     border: 1px solid #ced4da;
@@ -112,18 +113,21 @@
     cursor: grab;
     border-radius: 6px;
     padding: 8px 12px;
-    background-color: #007bff;
+    background-color: transparent;
     border: none;
     color: white;
     font-size: 13px;
 }
-
+.fc-event, 
+.fc-event .fc-event-main {
+    color: black !important;
+}
 .fc-event:hover {
     background-color: #0056b3;
 }
 
 .fc-event.custom-team {
-    background-color: #28a745;
+    background-color: transparent;
 }
 
 .fc-event.custom-team:hover {

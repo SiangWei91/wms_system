@@ -1,65 +1,56 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>员工排班日历</title>
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/main.min.css' rel='stylesheet' />
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
+<h1 style="text-align: center; color: #495057; margin-bottom: 30px;">Worker Schedule Calendar</h1>
 
-</head>
-<body>
-    <h1 style="text-align: center; color: #495057; margin-bottom: 30px;">员工排班日历</h1>
-    
-    <div class="schedule-container">
-        <!-- 左侧员工和团队管理区域 -->
-        <div id='external-events'>
-            <h3>📋 班次管理</h3>
-            
-            <!-- 员工输入区域 -->
-            <div class="employee-input-section">
-                <h4>👥 添加员工</h4>
-                <div class="input-group">
-                    <input type="text" id="employee-name" placeholder="输入员工姓名" />
-                    <button onclick="addEmployee()">添加</button>
-                </div>
-                <div class="employee-list" id="employee-list">
-                    <!-- 已添加的员工会显示在这里 -->
-                </div>
+<div class="schedule-container">
+    <!-- Left sidebar for employee and team management -->
+    <div id='external-events'>
+        <h3>📋 Shift Management</h3>
+        
+        <!-- Employee input section -->
+        <div class="employee-input-section">
+            <h4>👥 Add Employees</h4>
+          
+            <div class="input-group">
+              <input type="text" id="employee-name" placeholder="Enter employee name" />
             </div>
-
-            <!-- 团队创建区域 -->
-            <div class="team-input-section">
-                <h4>🏷️ 创建班次</h4>
-                <div class="input-group">
-                    <input type="text" id="team-name" placeholder="输入班次名称（如：早班、晚班）" />
-                </div>
-                <button class="create-team-btn" onclick="createTeam()">创建班次</button>
+          
+            <div class="input-group">
+              <button onclick="addEmployee()">Add</button>
             </div>
-
-            <!-- 可拖拽的班次 -->
-            <div class="draggable-teams">
-                <h4>🎯 可拖拽班次</h4>
-                <div id="teams-list">
-                    <!-- 创建的班次会显示在这里 -->
-                </div>
+          
+            <div class="employee-list" id="employee-list">
+              <!-- Added employees will appear here -->
             </div>
+          </div>
+          
 
-            <!-- 选项 -->
-            <div class="checkbox-container">
-                <label>
-                    <input type='checkbox' id='drop-remove' />
-                    拖拽后移除班次
-                </label>
+        <!-- Team creation section -->
+        <div class="team-input-section">
+            <h4>🏷️ Create Shift</h4>
+            <div class="input-group">
+                <input type="text" id="team-name" placeholder="Enter shift name (e.g., Morning, Evening)" />
+            </div>
+            <button class="create-team-btn" onclick="createTeam()">Create Shift</button>
+        </div>
+
+        <!-- Draggable shifts -->
+        <div class="draggable-teams">
+            <h4>🎯 Draggable Shifts</h4>
+            <div id="teams-list">
+                <!-- Created shifts will appear here -->
             </div>
         </div>
 
-        <!-- 右侧日历区域 -->
-        <div id='calendar-container'>
-            <div id='calendar'></div>
+        <!-- Options -->
+        <div class="checkbox-container">
+            <label>
+                <input type='checkbox' id='drop-remove' />
+                Remove shift after dragging
+            </label>
         </div>
     </div>
 
-
-</body>
-</html>
+    <!-- Right side calendar area -->
+    <div id='calendar-container'>
+        <div id='calendar'></div>
+    </div>
+</div>

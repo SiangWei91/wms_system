@@ -71,7 +71,13 @@ const pageScripts = {
     'schedule': {
         urls: ['js/schedule.js'],
         styles: ['css/schedule.css'],
-        init: () => window.loadSchedulePage(supabaseClient)
+        init: () => {
+            if (window.loadSchedulePage) {
+                window.loadSchedulePage(supabaseClient);
+            } else {
+                console.error('loadSchedulePage function not found');
+            }
+        }
     },
     'service-record': {
         urls: ['service-record.js'],
